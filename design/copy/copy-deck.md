@@ -61,7 +61,7 @@
 | Collected tile state | **gesammelt** | **collected** | ~~gesehen / seen~~ |
 | Unseen tile state | **noch nicht gesammelt** | **not yet collected** | ~~ungesehen / unseen~~ |
 | Location badge (not a state) | **In der Sammlung** | **In the collection** | used as a state verb |
-| Collection | **Die Sammlung** | **The Collection** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13). **Renamed 2026-11-22 (D-04b):** the former name `Katalog` / `Catalogue` is retired (§13) |
+| Collection | **Die Sammlung** | **The Collection** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13). **Renamed 2026-11-22 (D-04b):** the former name `Katalog` / `Catalogue` is retired (§14) |
 | Second-lap stamp | **2. Auflage** | **Second edition** | ~~2nd printing~~ |
 | Brand | **Elsa the Explorer** | **Elsa the Explorer** | translated in either language |
 | Pack size | **vier Karten** | **four cards** | ~~fünf / five~~ — **4-card canon 2026-11-22** (mobile-first); the holo/rare still lands late, now 3rd or 4th |
