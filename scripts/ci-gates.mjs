@@ -47,9 +47,12 @@ for (const gate of enforced) {
   if (!scripts.has(gate.script)) {
     errors.push(`enforced gate "${gate.id}": package.json has no script "${gate.script}"`);
   }
-  const step = new RegExp(`npm run ${gate.script.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=\\s|$)`);
+  // The step must be a `run:` line whose whole command is the gate: a step named
+  // "npm run canon" that runs `echo skipped` is not evidence, and neither is
+  // `npm run canon 2>&1 | tee log` (the pipe's status would hide the failure).
+  const step = new RegExp(`^\\s*(?:-\\s*)?run:\\s*npm run ${gate.script.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*$`, "m");
   if (!step.test(workflow)) {
-    errors.push(`enforced gate "${gate.id}": ci.yml never runs "npm run ${gate.script}"`);
+    errors.push(`enforced gate "${gate.id}": ci.yml has no bare "run: npm run ${gate.script}" step`);
   }
 }
 
@@ -63,11 +66,20 @@ for (const gate of pending) {
 
 for (const [pattern, why] of [
   [/--if-present/, "ci.yml uses --if-present: a missing script would report success"],
-  [/\|\|\s*(?:true|:)\b/, "ci.yml uses `|| true`/`|| :`: a failure would report success"],
+  [/\|\|\s*(?:true|:)(?:\s|$)/m, "ci.yml uses `|| true`/`|| :`: a failure would report success"],
   [/\|\|\s*exit\s+0\b/, "ci.yml uses `|| exit 0`: a failure would report success"],
-  [/^\s*continue-on-error:\s*true/m, "ci.yml sets continue-on-error: a failing gate would report success"],
-  [/^\s*if:\s*(?:false|\$\{\{\s*false\s*\}\})/m, "ci.yml gates a step on `if: false`: a gate that never runs would report success"],
-  [/npm run [A-Za-z0-9:_-]+\s*\|/, "ci.yml pipes a gate through another command: the pipe's status hides the failure"],
+  [
+    /^\s*["']?continue-on-error["']?:\s*(?:true|\$\{\{\s*true\s*\}\})\s*$/im,
+    "ci.yml sets continue-on-error: a failing gate would report success",
+  ],
+  [
+    /^\s*["']?if["']?:\s*(?:false|\$\{\{\s*false\s*\}\})\s*$/im,
+    "ci.yml gates a step on `if: false`: a gate that never runs would report success",
+  ],
+  [
+    /npm run [A-Za-z0-9:_-]+[^\n]*\|/,
+    "ci.yml pipes a gate through another command: the pipe's status hides the failure",
+  ],
 ]) {
   if (pattern.test(workflow)) errors.push(why);
 }
