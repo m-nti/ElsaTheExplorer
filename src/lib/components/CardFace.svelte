@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { CardFaceModel } from "$lib/domain/card";
+  import { plateRows } from "$lib/domain/card-plate";
   import { STAR_SCALE_MAX, starLabel } from "$lib/domain/card-stars";
   import { focusToObjectPosition } from "$lib/domain/card-photo";
   import { i18n } from "$lib/stores/i18n.svelte";
@@ -13,6 +14,8 @@
 
   const rarityClass = $derived(rarityRecipe({ rarity: model.rarity }));
   const titleId = $derived(`card-title-${model.id}`);
+  /** The plate's two rows (art-bible §8): name first, metadata second. */
+  const rows = $derived(plateRows(model));
   /** Spoken against the fixed scale in the page's language — never a literal. */
   const starsLabel = $derived(starLabel(model.stars, i18n.locale));
   /** The row is always `STAR_SCALE_MAX` slots; the filled ones lead. */
@@ -25,12 +28,12 @@
   <article class="card-face {rarityClass}" data-rarity={model.rarity} aria-labelledby={titleId}>
     <div class="plate">
     <header class="zone header">
-      <div class="header-top">
-        <span class="number">{model.number}</span>
-        <span class="chip">{model.rarityLabel}</span>
+      <h2 class="name" id={titleId}>{rows.name}</h2>
+      <div class="plate-meta">
+        <span class="number">{rows.meta[0]}</span>
+        <span class="mood">{rows.meta[1]}</span>
+        <span class="chip">{rows.meta[2]}</span>
       </div>
-      <h2 class="name" id={titleId}>{model.name}</h2>
-      <span class="mood">{model.mood}</span>
     </header>
 
     <div class="zone photo-zone">
@@ -152,23 +155,24 @@
   }
 
   .header {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    display: grid;
+    grid-template-rows: auto auto;
+    align-content: center;
     gap: var(--elsa-spacing-1);
     padding: var(--elsa-spacing-2);
     border-bottom: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line);
     background: var(--elsa-gradients-plate-header);
   }
 
-  .header-top {
+  .plate-meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--elsa-spacing-2);
+    min-width: 0;
   }
 
   .number {
+    flex: none;
     color: var(--elsa-colors-print-number);
     font-size: var(--elsa-font-sizes-sm);
     font-weight: var(--elsa-font-weights-semibold);
@@ -177,6 +181,7 @@
   }
 
   .chip {
+    flex: none;
     padding: var(--elsa-spacing-1) var(--elsa-spacing-2);
     border: var(--elsa-border-widths-hairline) solid var(--tier-chip-border);
     border-radius: var(--elsa-radii-pill);
@@ -205,14 +210,18 @@
   }
 
   .mood {
+    flex: 1;
+    overflow: hidden;
+    min-width: 0;
     color: var(--elsa-colors-print-mood);
     font-size: var(--elsa-font-sizes-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .photo-zone {
     display: grid;
     place-items: center;
-    padding-block: var(--elsa-spacing-2);
   }
 
   .window {
