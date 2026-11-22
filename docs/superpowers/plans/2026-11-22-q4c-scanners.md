@@ -160,22 +160,20 @@ Expected: one changed line per fix, no reflow, no prose edit beyond the path tok
 
 - [ ] **Step 1: Write the fixtures**
 
-`plan-status-prs.json` declares 59 and 64 merged, 61 open.
+`plan-status-prs.json` declares 501 and 503 merged, 502 open — numbers no PR in this repository will ever hold.
 
-`plan-status-seeded/plan.md` — one claim of each direction plus two lines that must stay quiet:
+`plan-status-seeded/plan.md` states one claim of each direction plus two lines that must stay quiet; the shape is:
 
 ````markdown
-# Seeded plan
-
 | Ticket | Status |
 | --- | --- |
-| Q4b | PR #59 in review |
-| Q4c | PR #61 merged |
-| Q4a | PR #64 ✅ |
-| #45 | PR #59 produced two moving review heads and a review of a stale commit |
+| Q4b | PR #<merged-one> in review |
+| Q4c | PR #<open-one> merged |
+| Q4a | PR #<merged-other> ✅ |
+| #45 | PR #<merged-one> produced two moving review heads and a review of a stale commit |
 ````
 
-Violations: line 5 (`59` claims review, is merged) and line 6 (`61` claims merged, is open). Line 7 is consistent; line 8 is prose.
+Rows 5 and 6 are the two contradictions; the third row is consistent and the fourth is prose (no token in its clause). The numbers live in the fixture, not here, so this plan cannot contradict the fixture it describes.
 
 `plan-status-clean/plan.md` flips the two claims so both are true, and repeats the prose line, which must not become a third claim.
 
@@ -192,7 +190,7 @@ Expected: FAIL — `Cannot find module …/scripts/plan-status.mjs`.
 
 Read every `*.md` directly under the plan root, default `docs/superpowers/plans`. Build the merge set from `--prs` or from `gh pr list` with a 15 s timeout; on a missing binary, a non-zero exit or unparseable output print `plan-status: WARNING — could not read merged PRs (<reason>); the plan claims are unverified` and exit 0.
 
-Per line, find `PR #<n>` and then a status token in the same clause after the mention (stop at `|`, `.`, `;`, end of line): `in review`, `in-review`, `awaiting review`, `review pending`, `🟡`, `⬜`, `open` → claim `review`; `merged`, `landed`, `✅`, `done` → claim `merged`. A mention with no token in its clause is prose. Fail when the claim contradicts the set, printing `<file>:<line>: PR #<n> is merged but the plan says "in review"`.
+Per line, find `PR #<n>` and then a status token in the same clause after the mention (stop at `|`, `.`, `;`, end of line): `in review`, `in-review`, `awaiting review`, `review pending`, `🟡`, `⬜`, `open` → claim `review`; `merged`, `landed`, `✅`, `done` → claim `merged`. A mention with no token in its clause is prose. Fail when the claim contradicts the set, printing `<file>:<line>: PR #<n> is merged but the plan says "in review"`. Read the set with `gh pr list --state all --json number,state` so the open direction is available from the same call.
 
 - [ ] **Step 5: Run the tests and watch them pass**
 
