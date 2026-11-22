@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { announcer } from "$lib/a11y/announcer.svelte";
   import { captureOpener, restoreFocus } from "$lib/a11y/focus.svelte";
   import { persistence } from "$lib/io/persistence.svelte";
+  import { audio } from "$lib/stores/audio.svelte";
+  import { collection } from "$lib/stores/collection.svelte";
   import { i18n } from "$lib/stores/i18n.svelte";
-  import { resetAll } from "$lib/stores/reset.svelte";
+  import { performReset } from "$lib/stores/reset";
 
   /**
    * Reset with Confirmation (#27, `interaction-patterns` "Reset with
@@ -42,7 +45,17 @@
     // Close first: the announcement is written into the document-level region,
     // and focus returns through the native close path.
     close();
-    resetAll();
+    performReset({
+      wipe: () => persistence.wipe(),
+      resetCollection: () => collection.reset(),
+      resetPreferences: () => {
+        // First-visit preferences: sound on, German.
+        audio.setMuted(true);
+        i18n.setLocale("de");
+      },
+      translate: (key) => i18n.t(key),
+      announce: (message) => announcer.say(message),
+    });
   }
 </script>
 
