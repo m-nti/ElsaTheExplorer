@@ -579,8 +579,8 @@ or any screenshot:
 
 | Retired | Replaced by | Why |
 | --- | --- | --- |
-| Serie I / Erste Auflage (as the page eyebrow) | Katalog I / Catalogue I | Owner rebrand (BR) |
-| Sammelwerk · Serie I / The Collection · Series I | Katalog I | Owner rebrand (D3) |
+| Serie I / Erste Auflage (as the page eyebrow) | Sammlung I / Collection I | Owner rebrand (BR), renamed by D-04b |
+| Sammelwerk · Serie I / The Collection · Series I | Sammlung I / Collection I | Owner rebrand (D3), renamed by D-04b |
 | Sammelheft, binder, "das Heft" as the collection's name | Die Sammlung / The Collection | Owner canon 2026-11-22. **No exception: not even the arrival line says "Heft" any more** (D5) |
 | gesehen / seen, ungesehen / unseen | gesammelt / collected, noch nicht gesammelt / not yet collected | GDD R9 |
 | katalogisiert / catalogued | gesammelt / collected | Verb canon |
@@ -595,7 +595,7 @@ or any screenshot:
 | fünf Karten / five cards as the **pack count** — "1. Auflage · fünf frische Karten", "Fünf Karten pro Pack", "five cards per pack" | **vier Karten / four cards** ("1. Auflage · vier frische Karten", "Vier Karten pro Pack") | Owner canon 2026-11-22 (**4-card canon**, mobile-first). The holo/rare still lands late, now **3rd or 4th** (PL §Card Reveal Step). "Fünf Karten. Ein Sammelwerk." above is retired on *both* grounds (D2 and this) |
 | "Du hast alle … gesehen. Das Pack beginnt von vorn." | Das waren alle Karten. Jetzt beginnt das Pack von vorn. | A11Y/PRE-refactor lap line, superseded by PL |
 | Diplom, DiplomCard, per-set Diplom | Elsas Ehrenmensch / Elsa's Honorary Human, one surface at 100 % | Owner canon (BND §15 resolved) |
-| "1. Auflage" as the masthead/series label | stage.eyebrow = Katalog I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
+| "1. Auflage" as the masthead/series label | stage.eyebrow = Sammlung I / Collection I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
 | "Holo" as a printed rarity word | Holo-Pracht / Holo glory | D7 |
 | 2nd printing | Second edition | D8 |
 
