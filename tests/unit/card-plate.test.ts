@@ -96,6 +96,12 @@ describe("CardFace plate and photo band (#13, T5)", () => {
     expect(properties).not.toContain("padding-bottom");
   });
 
+  it("distributes the 4.5% gutters bay as the five row gaps", () => {
+    // art-bible §8: the seven bays sum to 100, so the six content rows sum to
+    // 95.5 % and the remaining 4.5 % is the gap between them (0.9 % each).
+    expect(valueOf(".plate", "row-gap")).toBe("calc(var(--elsa-sizes-zone-gutters) / 5)");
+  });
+
   it("gives the window the 4:5 token ratio and the focus anchor", () => {
     expect(valueOf(".window", "aspect-ratio")).toBe("var(--elsa-aspect-ratios-window)");
     expect(source).toContain("focusToObjectPosition(model.photo.focus)");

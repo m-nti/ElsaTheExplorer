@@ -35,6 +35,14 @@ describe("foil stack (#13, T6)", () => {
     expect(depths.get("rays")!).toBeGreaterThan(depths.get("foil-glitter")!);
   });
 
+  it("scopes the chip layer to the chip, never a wash over the plate", () => {
+    // art-bible §8 foil rule 1: rim, chip, photo window. Rule 6: never cover
+    // the plate text. The layer must be a child of `.chip`, not a sibling of
+    // the edge layers.
+    const depths = classDepths(markup);
+    expect(depths.get("foil-chip")!).toBeGreaterThan(depths.get("chip")!);
+  });
+
   it("uses only tokens for colour, gradient, shadow and opacity", () => {
     for (const rule of cssRules(css)) {
       if (!rule.selectors.some((selector) => LAYERS.some((layer) => selector.includes(`.${layer}`)))) {

@@ -32,7 +32,10 @@
       <div class="plate-meta">
         <span class="number">{rows.meta[0]}</span>
         <span class="mood">{rows.meta[1]}</span>
-        <span class="chip">{rows.meta[2]}</span>
+        <span class="chip">
+          {rows.meta[2]}
+          <span class="foil-chip" aria-hidden="true"></span>
+        </span>
       </div>
     </header>
 
@@ -81,7 +84,6 @@
     </footer>
 
       <span class="foil-rim" aria-hidden="true"></span>
-      <span class="foil-chip" aria-hidden="true"></span>
       <span class="foil-etch" aria-hidden="true"></span>
       <span class="foil-glitter" aria-hidden="true">
         <span class="rays" aria-hidden="true"></span>
@@ -144,6 +146,13 @@
       var(--elsa-sizes-zone-story)
       var(--elsa-sizes-zone-stats)
       var(--elsa-sizes-zone-foot);
+    /*
+     * The seventh bay: 4.5 % of the plate, distributed as the five gaps between
+     * the six content bands — 0.9 % each, 4.23 px at the 340 px reference
+     * (art-bible §8, `tokens.ts` `zone-gutters`). Without it the rows sum to
+     * 95.5 % and the foot floats above the plate's bottom edge.
+     */
+    row-gap: calc(var(--elsa-sizes-zone-gutters) / 5);
     position: relative;
     overflow: hidden;
     height: 100%;
@@ -185,6 +194,9 @@
   }
 
   .chip {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     flex: none;
     padding: var(--elsa-spacing-1) var(--elsa-spacing-2);
     border: var(--elsa-border-widths-hairline) solid var(--tier-chip-border);
@@ -383,7 +395,6 @@
   }
 
   .foil-rim,
-  .foil-chip,
   .foil-etch,
   .foil-glitter,
   .glint,
@@ -420,12 +431,18 @@
   }
 
   /* Chip foil: the rarity chip is the second non-colour backup, so it gets
-     its own sheen rather than riding the rim. */
+     its own sheen rather than riding the rim. Scoped to the chip — art-bible
+     §8 foil rule 1 sanctions foil on the chip, and rule 6 forbids it over the
+     plate text, so this is not a wash across the card. */
   .foil-chip {
-    z-index: 3;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
     background: var(--elsa-gradients-foil-pearl);
     mix-blend-mode: screen;
     opacity: var(--tier-glow-opacity);
+    pointer-events: none;
   }
 
   /* Etch: the fine line work over the photo and copy, never over the plate
@@ -435,8 +452,8 @@
     background-image: var(--elsa-gradients-foil-pastel);
     mask-image: linear-gradient(
       to bottom,
-      transparent 0 15.5%,
-      var(--elsa-colors-mask) 15.5%
+      transparent 0 var(--elsa-sizes-zone-header),
+      var(--elsa-colors-mask) var(--elsa-sizes-zone-header)
     );
     mix-blend-mode: soft-light;
     opacity: var(--tier-etch-opacity);
@@ -472,19 +489,14 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    /*
+     * Freeze, do not delete. The sweep is the only motion in this slice (tilt
+     * arrives with T7); art-bible §8 rule 5 asks for static foil at opacity
+     * ≤ 0.3, so the static layers keep their tier opacity and only the glint
+     * stops. The old `.glitter` selector was dead after the five-layer rename.
+     */
     .glint {
       animation: none;
-      opacity: 0;
-    }
-
-    .foil-etch,
-    .foil-glitter {
-      animation: none;
-      opacity: 0;
-    }
-
-    .glitter,
-    .foil-photo {
       opacity: 0;
     }
   }
