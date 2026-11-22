@@ -48,8 +48,9 @@ The three loop layers served:
 - **Meso (session):** a pulled card names its wing; the catalogue shows what's missing; a wing
   can genuinely be completed inside one visit, ending on a chime and a permanent frame.
 - **Macro (return visits):** the lap restarts with provably unseen cards; the owner curates
-  and keeps adding to the archive, surfacing as "Das Heft hat Zuwachs"; milestones and
-  finally Elsas Ehrenmensch accumulate.
+  and keeps adding to the archive, surfacing as the arrivals line ("{n} neue Schmuckstücke
+  sind da!" / "{n} new treasures have arrived!"); milestones and finally Elsas Ehrenmensch
+  accumulate.
 - **Micro (unchanged):** the pack ritual itself; this system only adds the "aus:" chip to it.
 
 ## Player Fantasy
@@ -103,7 +104,7 @@ work; they must not be re-pulled from the bank at runtime.
 when its photo id is in `lucky-elsa.seen.v1`. Both paths — pulled from a pack, opened from
 the catalogue — mark seen through the single existing "card seen" routine. Copy shifts from
 "gesehen/seen" to "gesammelt/collected" everywhere (progress label, tile state, dialog line);
-the unseen tile state reads "noch nicht gesammelt / not yet collected". The binder itself is
+the unseen tile state reads "noch nicht gesammelt / not yet collected". The catalogue itself is
 renamed **"Der Katalog" / "The Catalogue"**.
 
 **R-C · Wing progress is derived, never stored as a count.** Per-wing progress is computed at
@@ -129,7 +130,7 @@ lucky-elsa.sets.v1   : {                             // completion snapshots onl
 }
 lucky-elsa.flags.v1  : {
   milestones        : string[],                     // subset of ["25","50","75"]
-  lastManifestStamp : string,                       // powers "Das Heft hat Zuwachs"
+  lastManifestStamp : string,                       // powers the Zuwachs line (R8)
   diploma           : { completedAt: ISO-8601, cards: number, lap: number,
                         ownerLine: string } | null, // latest 100 % completion
   masterIndex       : boolean                       // "Das Gesamtverzeichnis" unlocked
@@ -155,7 +156,7 @@ colour alone. The announcement copy is the pattern library's single source
 EN *"Catalogue milestone reached: {pct} per cent."*); no competing copy lives in this
 document. Outfits are additive CSS inside the existing parlour palette — no new layout, no
 new colours outside the wing colour roles (R-A). Milestones are **overall-catalogue
-milestones with catalogue-level outfits**; per-room markers may appear inside binder rows as
+milestones with catalogue-level outfits**; per-room markers may appear inside catalogue rows as
 a display-only affordance, but there are **no per-set milestone events and no per-set
 milestone storage**.
 
@@ -191,7 +192,7 @@ Fantasiewerte aggregated (see Formulas), museum-plaque framed, still explicitly 
 **R-J · Reset (owner canon).** "Von vorn" clears **every `lucky-elsa.*` key** — collection
 state (`seen.v1`, `sets.v1`, `flags.v1`) *and* preferences (`lang.v1`, the sound key
 `lucky-elsa.sound.v1`) — and the page returns to its first-visit state: German default,
-sound on, empty binder. It requires a one-line confirmation that names what is lost,
+sound on, empty catalogue. It requires a one-line confirmation that names what is lost,
 including language and sound (UI Requirement R7), and is idempotent: clearing already-empty
 keys is a no-op, and reset never fires milestone/capstone logic as a side effect of clearing.
 
@@ -222,7 +223,7 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
 - **Photos Pipeline** (provides): manifest with per-photo id, bilingual copy, rarity, optional
   `set`, optional `chase`, optional `diplomaLine`. Requires: `npm run photos` passes the new
   optional fields through unchanged; unknown slugs fall back to `new-acquisitions`.
-- **Catalogue (binder)** (consumes): wing grouping, progress lines, frame states, milestone
+- **Catalogue** (consumes): wing grouping, progress lines, frame states, milestone
   outfit state. Catalogue card opens go through the shared "card seen" routine
   (systems-index circular-dep resolution).
 - **Persistence**: owns the three key contract in R-E; no other system writes those keys.
@@ -259,11 +260,11 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
   existence — a wing that has ever completed under the current reset cycle keeps its frame),
   and the catalogue progress line shows the new missing card. No re-chime until re-completion.
 - **E2 · Ehrenmensch re-locks with Zuwachs.** If a new photo arrives after 100 %, the diploma
-  card (if displayed) shows the note "Das Heft hat Zuwachs — der Ehrenmensch wartet auf
-  die neuen Karten." / "New cards in the catalogue — the Honorary Human is waiting for
-  them." It
+  card (if displayed) shows the note "Der Ehrenmensch wartet auf die neuen Karten. Er hat es
+  nicht eilig." / "The Honorary Human is waiting for the new cards. No rush." It
   re-issues (refreshes `completedAt`, `cards`, `lap`) when 100 % is reached again. The old
-  diploma is overwritten, never accumulated.
+  diploma is overwritten, never accumulated. A new arrival is announced once, by the Zuwachs
+  line (R8), and never restated here.
 - **E3 · Reset idempotence and re-fire.** Reset twice in a row: the second clears nothing and
   changes nothing. After reset, milestone and diploma logic re-fire from scratch; a wing's
   frame unlocks again on re-completion. Storage unavailable (Safari private mode): the site
@@ -367,7 +368,7 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   the rarity label; `new-acquisitions` cards show no chip (the shelf speaks only when spoken
   to). The chip is text-redundant: it never carries state on its own. *(Build phase:
   Vertical Slice — drop row + dialog.)*
-- **R2 · Catalogue grouping:** the binder renders as "Der Katalog / The Catalogue" with wings
+- **R2 · Catalogue grouping:** the catalogue renders as "Der Katalog / The Catalogue" with wings
   as sections, each with a divider (wing name, DE/EN per language) in fixed canonical order
   (R-A table) and its progress line "{x} von {y} gesammelt" / "{x} of {y} collected";
   `new-acquisitions` renders last; empty sections hidden. Keyboard order follows visual
@@ -384,8 +385,8 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   languages on toggle. *(Build phase: Phase 2.)*
 - **R5 · Elsas Ehrenmensch composition:** at 100 %, a dedicated diploma component — canon
   name **"Elsas Ehrenmensch" / "Elsa's Honorary Human"** — renders in
-  the catalogue header: collage of collected photos, subtitle "Katalog I · abgeschlossen" /
-  "Catalogue I · completed", completion date, lap number, the curator's `diplomaLine`
+  the catalogue header: collage of collected photos, subtitle "Katalog I · vollzählig" /
+  "Catalogue I · all present", completion date, lap number, the curator's `diplomaLine`
   (neutral fallback otherwise), share and save actions re-using existing plumbing;
   reduced-motion honoured; the "Gesamtverzeichnis" plaque sits beside it with its
   imaginary-stats label per PRD F2a. *(Build phase: Phase 3.)*
@@ -394,17 +395,21 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   not collection state); the stamp is decorative and announced nowhere separately — the
   dialog line is its text form. *(Build phase: Phase 3.)*
 - **R7 · Reset semantics:** one button "Von vorn / Start over"; on press, an inline
-  confirmation names exactly what is cleared — collection state, milestones, frames, the
-  Ehrenmensch, **language and sound** ("Karten im Katalog, Meilensteine, Rahmen, der
-  Ehrenmensch, Sprache und Ton." / "Cards in the catalogue, milestones, frames, the Honorary
-  Human, language and sound.") — and clears every `lucky-elsa.*` key on confirm; cancel
-  leaves everything
+  confirmation names exactly what is cleared — the catalogue, room progress (which takes the
+  unlocked frames with it), the milestones, the Ehrenmensch, **language and sound**. The
+  confirmation body *is* the deck's `reset.body`, quoted in full and never re-worded:
+  **"Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas
+  Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / "This clears the Catalogue,
+  room progress, the milestones and Elsa's Honorary Human — sound and language go back to
+  default."** A shorter button label is not this string and would need its own key. Confirm
+  clears every `lucky-elsa.*` key; cancel leaves everything
   untouched; the control is reachable by keyboard and announced by the live region on
-  completion.
-- **R8 · "Das Heft hat Zuwachs" line:** on load, if the manifest holds photo ids not
+  completion. No `!` anywhere in it (destructive confirmation).
+- **R8 · Zuwachs line (new arrivals):** on load, if the manifest holds photo ids not
   present in the stored seen-set *that were absent from `lastManifestStamp`*, one quiet line
-  above the catalogue, exact copy: **"Das Heft hat Zuwachs: {n} neue Karten." / "New in the
-  binder: {n} new cards."** It
+  above the catalogue, exact copy: **"{n} neue Schmuckstücke sind da!" / "{n} new treasures
+  have arrived!"** (cap **44**, both languages; this is the line's single `!`, neutralised to
+  `.` on the announcement path). It
   disappears once any of them is collected; it never blocks or redirects anything.
   *(Build phase: Vertical Slice — ships with the step-3 register pass.)*
 - **R9 · Copy set and brand (verb + badge canon):** the **progress verb** is
@@ -414,11 +419,13 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   fixed **location label** reading **"Im Katalog" / "In the catalogue"** — it names where the
   card lives, it is not a state verb, and the retired state string (the old verb) survives
   nowhere;
-  everything lives in the copy deck (PRD R5 index-aligned). The binder heading becomes "Der
+  everything lives in the copy deck (PRD R5 index-aligned). The catalogue heading becomes "Der
   Katalog / The
   Catalogue"; the brand "Elsa the Explorer" is identical in both languages with localized
   taglines; every new string exists in `COPY.de` and `COPY.en` at the same index (PRD R5);
-  German reads as *du*-register, dry and warm, zero exclamation marks. *(Build phase:
+  German reads as *du*-register, dry and warm; **at most one `!` per surface**, never in an
+  error message, a destructive confirmation or an accessibility string, and the terminal
+  `!` is removed before a string enters the live region. *(Build phase:
   Vertical Slice.)*
 - **R10 · Accessibility parity:** every state change in this document (seen, wing complete,
   milestone, diploma, Zuwachs, reset) is conveyed by at least one text/live-region update in

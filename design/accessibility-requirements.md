@@ -163,6 +163,7 @@ is rebindable — because there is essentially nothing to bind.
 | Reading time — pack reveal | Standard | Card reveal sequence | Built — verify | Cards appear one at a time (~200ms apart) but nothing is taken away and no choice expires; the dialog stays open. Reduced-motion shows all five at once. |
 | Language of the interface | Standard | Whole page | Built | German default, one-tap switch, announced via live region; `lang` attributes on the html element and per-button (`lang="de"/"en"`), so screen readers switch pronunciation. |
 | Consistent navigation patterns | Standard | Whole page | Built — verify | Header nav is constant; dialogs behave identically (Escape, close button, focus return). Verify focus return target after the *card* dialog closes too (currently specified for the pack dialog). |
+| Punctuation and announcements | Standard | All visible copy and live-region strings | Required | At most one exclamation mark per visible surface; never in an error, a destructive confirmation or an accessibility string. The terminal `!` is removed before text enters a live region. Sanctioned visible surfaces: the arrival line (`zuwachs.line`) and the set-complete note; announced strings carry none. |
 
 ---
 

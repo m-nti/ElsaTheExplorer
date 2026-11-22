@@ -251,6 +251,7 @@ source hashes and byte lengths from that ledger — never from a constant in the
 | `high-key.jpg` | 1600×1200, 4:3, near-white background | Contrast/legibility of card plate over bright art |
 | `stress-24mp.jpg` | **generated** 5712×4284 = **24,470,208 px (24.47 MP)**, EXIF Orientation 1, EXIF + XMP + GPS payload embedded, ~1.5–4 MB | Source-passthrough detection, byte ceiling, metadata-stripping stress, memory-ceiling case (`docs/photo-pipeline-implementation.md` §10.3) |
 | `stress-24mp-orient6.jpg` | same 24,470,208 px, EXIF Orientation 6 | Rotation path at the hero pixel count (the 3.2× worst-case bitmap projection) |
+| `stress-60mp.jpg` | **generated** 9000×6750 = **60,750,000 px (60.75 MP)**, valid JPEG | Above the 32 MP acceptance cap: asserts `413 source_too_many_pixels` with no decode and no source bytes (ADR-0008 checklist) |
 
 The stress fixtures are the canaries: any UI response whose SHA-256 matches a recorded
 source SHA-256, or whose byte length equals a recorded source length, is a failed delivery
@@ -259,33 +260,37 @@ which is why the old `3,983,035` constant is gone.
 
 ### 4.3 Image budget constants
 
-`tests/fixtures/image-budgets.json` is the single place budgets are tuned. It is committed
-and carries budgets only; the source byte lengths and hashes it is compared against come
+`tests/fixtures/image-budgets.json` is the single place the test harness **reads** the budgets
+from. It mirrors the ratified ceilings below and must not diverge from ADR-0008 / art-bible §8;
+it is a mirror, not a tuning surface (a change here without an ADR amendment is a defect). It
+carries budgets only; the source byte lengths and hashes it is compared against come
 from the generated `image-sources.json` (§4.2).
 
-| Tier | Consumer | Max long edge | Max bytes | Rationale |
-| --- | --- | --- | --- | --- |
-| `tile` | BinderShelf / catalogue grid | 360 px | 49,152 B (48 KiB) | 2–3 column mobile grid; doubles at DPR 2 within a 360 CSS-px cell |
-| `pack` | PackTheatre drop row | 720 px | 163,840 B (160 KiB) | PRD §5 display-copy cap; one card fills a phone viewport |
-| `detail` | CardDetail exhibit | 1200 px | 409,600 B (400 KiB) | Full-screen study table; still an order of magnitude below the 24.5 MP stress source |
-| `download` | "Foto speichern" — **explicit click only** | 1600 px | 512,000 B (500 KiB) | The only tier allowed above the UI ceiling: it is a download, never a rendered image |
-| `global` | Any UI image response (render path) | 1200 px | 409,600 B | Hard ceiling for every non-download image response |
+| Tier | Consumer | Max long edge | WebP ceiling | JPEG ceiling | Rationale |
+| --- | --- | --- | --- | --- | --- |
+| `tile` | BinderShelf / catalogue grid | 360 px | 36,000 B (36 KB) | 55,000 B (55 KB) | 2–3 column mobile grid; doubles at DPR 2 within a 360 CSS-px cell |
+| `pack` | PackTheatre drop row | 720 px | 80,000 B (80 KB) | 110,000 B (110 KB) | card art / pack theatre; one card fills a phone viewport |
+| `detail` | CardDetail exhibit | 1200 px | 150,000 B (150 KB) | 210,000 B (210 KB) | Full-screen study table; still ~19× below the 3.98 MB source |
+| `download` | "Foto speichern" — **explicit click only** | 1600 px | 350,000 B (350 KB) | 500,000 B (500 KB) | User-initiated download, never a rendered image |
+| `global` | Any UI image response (render path) | 1200 px | 150,000 B | 210,000 B | The largest display-rung ceiling (detail); no non-download response may exceed it |
 
-Ceilings are **starting values** calibrated against the generated base fixtures at
-JPEG quality 80–82. Tightening is a one-line fixture edit; loosening requires an ADR
-amendment. A tier ceiling must never be loosened to make a test pass.
+**These are the ratified ceilings** (art-bible §8, 2026-11-22; ADR-0008): hard per file, per
+format, and the test must not be relaxed to a looser number. KB = 1,000 bytes. Aim ~20 % under
+every ceiling; a rung at 95–100 % of its ceiling is a flagged warning, not a pass.
 
-`download` is not a UI tier: nothing requests it on render (§7.3), and its 512,000 B budget
-is asserted only after an explicit activation. The pipeline's 4 MiB per-rendition discard
-cap (`docs/photo-pipeline-implementation.md` §9) is a safety valve for a pathological
-render, not a delivery budget — the 500 KiB figure is the contract.
+Ceilings are **delivery budgets**, not safety caps. The pre-decode limits (20 MiB compressed,
+32 MP acceptance, 8000 px edge, 28.5 MP GD render ceiling) live in
+`docs/photo-pipeline-implementation.md` §10 and are asserted as `413` cases, never as the
+delivery number. The pipeline's 4× safety discard guard (§9) is likewise a safety valve for a
+pathological render, not a delivery budget — the ceilings in the table above are the contract.
+A tier ceiling must never be loosened to make a test pass; loosening requires an ADR amendment.
 
 ### 4.4 Deterministic copy fixture
 
 `tests/fixtures/copy-canon.json` pins the exact strings that are declared SSOT in a
 spec (reset confirmation body, progress label, empty-state instruction, the `P` hint).
 It exists to make copy drift a test failure rather than a review opinion. See
-contract conflict **C4** in §15 before pinning the progress label.
+contract conflict **C4** (now RESOLVED: "gesammelt/collected" is canon) before pinning the progress label.
 
 ---
 
@@ -422,9 +427,10 @@ The gate computes WCAG 2.2 relative luminance and contrast ratio **from
 | U-I18N-11 | Language resolution: `?lang=en` beats stored `de`; `?lang=de` beats stored `en`; invalid/absent param falls back to stored, then `de` |
 | U-I18N-12 | `?lang=` is persisted after use (F9) |
 | U-I18N-13 | No dictionary value contains a hardcoded brand alternate (the brand name is fixed; taglines localize) |
-| U-I18N-14 | Copy canon fixture: reset confirmation body lists catalogue + set progress + milestones + Honorary Human + sound/language reset (C4 dependent) |
+| U-I18N-14 | Copy canon fixture: reset confirmation body is the ratified `reset.body` — DE "Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN twin, cap 140 |
 | U-I18N-15 | No water vocabulary in either dictionary (rain, mud, bath, wet, nass, Regen, Schlamm, Bad) | AGENTS.md canon, content audit |
 | U-I18N-16 | Departments are exactly the six canon rooms + `Neuzugänge`, in fixed order, in both languages (C7) |
+| U-I18N-17 | At most one `!` per string; none in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region |
 
 ### 5.7 Normalization and manifest merge — `tests/unit/normalize.property.spec.ts`
 
@@ -587,7 +593,7 @@ net for the refactor, because v1 passed focus checks only by accident.
 | E-ERR-09 | 3 invalid entries among 8 | Ready with inline "N cards were skipped (malformed)" in both languages |
 | E-ERR-10 | Manifest `rarity: "legendary"` | Entry normalized to hash-derived rarity or dropped per normalize policy; never rendered raw |
 | E-ERR-11 | Error copy exists in DE and EN; switching language while in error state re-renders copy | F15 |
-| E-ERR-12 | `photos.json` cached 200 with stale `generated` but valid photos | Ready; no Zuwachs nag unless stamp differs and unseen cards exist |
+| E-ERR-12 | `photos.json` cached 200 with stale `generated` but valid photos | Ready; no Zuwachs line unless `lastManifestStamp` differs and unseen cards exist. When shown: `{n} neue Schmuckstücke sind da!` / `{n} new treasures have arrived!` (cap 44), terminal `!` neutralised in the live region |
 | E-ERR-13 | Manifest fetch abort (user navigates away) | No unhandled rejection, no state stuck in `loading` |
 
 ### 6.6 Image error states — `tests/e2e/errors.images.spec.ts`
@@ -731,14 +737,14 @@ styling hook.
 
 | ID | Assertion |
 | --- | --- |
-| E-DLV-01 | Every UI image response has `bytes <= 409,600` (global ceiling) |
-| E-DLV-02 | Every tile response: long edge ≤ 360 px and `bytes <= 49,152` |
-| E-DLV-03 | Every pack response: long edge ≤ 720 px and `bytes <= 163,840` |
-| E-DLV-04 | Every detail response: long edge ≤ 1200 px and `bytes <= 409,600` |
+| E-DLV-01 | Every non-download UI image response has `bytes <= 210,000` (Largest display-rung JPEG ceiling: detail) |
+| E-DLV-02 | Every tile response: long edge ≤ 360 px and `bytes <= 36,000` (WebP) / `<= 55,000` (JPEG) |
+| E-DLV-03 | Every pack response: long edge ≤ 720 px and `bytes <= 80,000` (WebP) / `<= 110,000` (JPEG) |
+| E-DLV-04 | Every detail response: long edge ≤ 1200 px and `bytes <= 150,000` (WebP) / `<= 210,000` (JPEG) |
 | E-DLV-05 | **No response's SHA-256 equals a recorded source SHA-256** (every generated fixture, from `image-sources.json`) |
 | E-DLV-06 | **No response's byte length equals a recorded source byte length** (cheap secondary canary) |
 | E-DLV-07 | Aspect ratio preserved within 0.5 % of the source; no stretching |
-| E-DLV-08 | Response `Content-Type` is `image/jpeg` (or `image/webp` if the pipeline adopts it); never `image/heic` in the UI |
+| E-DLV-08 | Response `Content-Type` is `image/webp` for `<source type="image/webp">` requests and `image/jpeg` for the `<img>` fallback; every rung is emitted in both; never `image/heic` in the UI |
 | E-DLV-09 | Decoded pixel dimensions match the declared `width`/`height` attributes (no CLS surprise) |
 | E-DLV-10 | Each element requests exactly one image URL (no duplicate fetches, no 404 retry storm) |
 | E-DLV-11 | Off-screen binder tiles are not requested on first paint (`loading="lazy"` respected); request count ≤ visible tiles + 1 |
@@ -755,19 +761,21 @@ styling hook.
 | --- | --- |
 | E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/|converted/|\.cache/|derived/)` — assert the set is empty for the whole journey |
 | E-ORG-02 | No `<img src>`, `<source srcset>`, CSS `url()`, or `fetch()` targets a bare `/photos/<original>` path |
-| E-ORG-03 | The save/download affordance points at the **1600 px download derivative** — static: `photos/derived/download/<id>.jpg`; runtime: `photos.php?image=…&size=detail&download=1` — and **never** at `/photos/<original>`; no request is issued until the user activates it |
-| E-ORG-04 | After an explicit download click: exactly one request to the download URL, `200`, `Content-Disposition: attachment`, long edge **1600 px** (or the source's long edge when smaller — never upscaled), **response SHA-256 ≠ the source fixture's recorded SHA-256**, **response bytes ≠ the source's recorded byte length**, and **bytes ≤ 512,000 (500 KiB)**. Exempt from E-DLV-01..04 only |
-| E-ORG-05 | `?view=` is never used for an `<img>` in any render context (detail included) |
-| E-ORG-06 | A heuristic backstop: any response > 409,600 B that is not the explicit download (itself capped at 512,000 B and asserted in E-ORG-04) fails the run with the URL printed |
+| E-ORG-03 | The save/download affordance points at the **1600 px download derivative** — static: `photos/derived/download/<id>.jpg`; runtime: `photos.php?download=<name>` — and **never** at `/photos/<original>`; no request is issued until the user activates it |
+| E-ORG-04 | After an explicit download click: exactly one request to the download URL, `200`, `Content-Disposition: attachment`, long edge **1600 px** (or the source's long edge when smaller — never upscaled), **response SHA-256 ≠ the source fixture's recorded SHA-256**, **response bytes ≠ the source's recorded byte length**, and **bytes ≤ 500,000 (JPEG) / ≤ 350,000 (WebP)**. Exempt from E-DLV-02..04 only |
+| E-ORG-05 | `?view=` is never used for an `<img>` in any render context (detail included), and a direct `?view=<name>` request returns **`302`** with a `?download=` `Location` — never `200`, never source bytes |
+| E-ORG-06 | A heuristic backstop: any non-download image response > 210,000 B fails the run with the URL printed |
 | E-ORG-07 | **The download is a derivative, not a passthrough**: fetch it twice (warm cache) and assert identical bytes, `Content-Length` == body length, and decoded pixels at the download rung (1600 px long edge for the 5712×4284 stress fixture) — never 5712×4284 themselves |
+| E-ORG-08 | **`ver` changes on replacement**: replace a photo with new bytes (same name, new mtime/size) on the runtime path, re-fetch `?list=1`, and assert the photo's `ver` changed **and** every URL in its `images` block carries the new `&v=`; the old URL is a different cache entry. Static path: the regenerated `photos.json` carries the new `ver` |
+| E-ORG-09 | **60 MP source → `413`**: `photos.php?image=stress-60mp.jpg&size=tile` returns `413` (`source_too_many_pixels`), `no-store`, empty/JSON body, no source bytes, and no decode attempt (timing/memory flat) |
 
-> **Contract conflict C1 (blocking):** `docs/architecture.md` currently states
-> "CardDetail uses `view`, never `thumb`" and "Originals: detail dialog + save".
-> A ≤1200 px detail tier contradicts that, and the save action now serves a 1600 px
-> derivative rather than the original. This plan enforces the three-tier + download
-> contract from the owner brief. The delivery endpoint must gain a width/clamp parameter
-> (or a `view&w=1200` variant) and the architecture + ADR must be amended. Until the
-> pipeline lands, E-DLV-04, E-ORG-03 and E-ORG-05 are expected red; they are not to be
+> **Contract conflict C1 — resolved by ADR-0008 (2026-11-22).** The earlier note proposed a
+> width/clamp parameter (a `view&w=1200` variant) to reconcile a ≤1200 px detail tier with the
+> old "dialog uses the original" behaviour. That is **withdrawn**: the ratified contract has a
+> **closed ladder with no `w=`/`h=`/`q=` surface**, the dialog uses the `detail` rung
+> (`?image=…&size=detail`), "Foto speichern" uses `?download=` (1600), and `?view=` `302`s to
+> `?download=` — no path returns the source. `docs/architecture.md` and ADR-0008 carry this
+> contract; E-DLV-02..04, E-ORG-03 and E-ORG-05 assert it. They are **not** to be loosened,
 > skipped or deleted.
 
 ---
@@ -789,7 +797,7 @@ any step stops the pipeline.
 | 6 | Build | `vite build` | Build error; also emits `reports/size.json` |
 | 7 | Playwright | `playwright test --project=chromium --project=webkit --project=mobile-chrome --project=mobile-safari` | Any journey, keyboard, motion, focus, error, overflow, browse or reset failure |
 | 8 | axe | `playwright test tests/e2e/a11y.axe.spec.ts` (dedicated stage, reuses the build) | Any critical/serious violation; any new moderate outside the dated baseline |
-| 9 | Bundle + byte budget | `node scripts/budget-check.mjs` reading `reports/size.json` + the image ledger | JS gzip > 100 KB hard cap (60 KB target reported); CSS gzip > 30 KB including `styled-system/`; any render response over a §4.3 ceiling; any download response over 512,000 B; any original in the UI ledger |
+| 9 | Bundle + byte budget | `node scripts/budget-check.mjs` reading `reports/size.json` + the image ledger | JS gzip > 100 KB hard cap (60 KB target reported); CSS gzip > 30 KB including `styled-system/`; any render response over its §4.3 per-format ceiling; any download response over 500,000 B JPEG / 350,000 B WebP; any original in the UI ledger |
 
 Notes:
 
@@ -998,8 +1006,11 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 ### Delivery and privacy
 
-- [ ] Every tile ≤ 360 px / 48 KiB; pack ≤ 720 px / 160 KiB; detail ≤ 1200 px / 400 KiB
-- [ ] Download is the 1600 px derivative: ≤ 500 KiB, not byte-identical to the source, `attachment`
+- [ ] Every tile ≤ 360 px / 36 KB WebP / 55 KB JPEG; pack ≤ 720 px / 80 / 110 KB; detail ≤ 1200 px / 150 / 210 KB
+- [ ] Download is the 1600 px derivative (`?download=`): ≤ 350 KB WebP / 500 KB JPEG, not byte-identical to the source, `attachment`
+- [ ] `?view=` returns `302` → `?download=`, never source bytes
+- [ ] A 60 MP fixture returns `413`; a missing name returns `404`; both `no-store`
+- [ ] A replaced photo changes `ver` and therefore every rendition URL
 - [ ] No UI response matches a recorded source hash (generated 24.47 MP stress fixture)
 - [ ] No request for a bare `/photos/<original>` during the journey
 - [ ] Off-screen binder images are lazy-loaded
@@ -1068,10 +1079,10 @@ These are findings from writing the plan. Test code must not silently choose a s
 
 | ID | Conflict | Impact | Resolution needed |
 | --- | --- | --- | --- |
-| **C1** | `docs/architecture.md` says CardDetail uses the **original** (`view`), while the plan's delivery contract caps detail at 1200 px, serves a 1600 px derivative as the download, and forbids UI requests for originals | Blocks E-DLV-04, E-ORG-01..07 | Owner + technical-director: add a clamped width to the view endpoint and a `download=1` rung, amend architecture + ADR-0004. Until then those tests are expected red. |
+| **C1** | **Resolved (ADR-0008).** Earlier text said CardDetail used the **original** and proposed a clamped width / `download=1` rung. The ratified contract closes the ladder: no `w=`/`h=`/`q=`, detail = `size=detail` (1200), save = `?download=` (1600), `?view=` = 302 → download | No longer blocks; E-DLV-02..04, E-ORG-03/05/09 assert the ratified contract | None. Architecture and ADR-0008 carry the closed-ladder contract; do not reintroduce a width parameter. |
 | **C2** | `architecture.md` says "No swipe gestures"; interaction-patterns v2 specifies swipe **and** chevrons as three redundant inputs | Blocks E-BRW-05..07 | UX spec v2 wins (later, owner ruling on chevrons). Architecture text must be corrected. |
 | **C3** | Architecture renders the pack as inline `PackTheatre`; UX v2 specifies a **pack dialog** with backdrop rules and skip semantics | Focus/backdrop tests need one surface definition | Behaviour tests are role-first; E-FOC-04/05 assume dialog semantics. Confirm the surface before implementing focus tests. |
-| **C4** | Progress copy: PRD F13 and architecture say "gesehen/seen"; interaction-patterns v2 declares **"gesammelt/collected"** canon | `copy-canon.json` cannot be pinned both ways | Owner/UX: ratify one string. The plan pins the ratified key, not the literal, until decided. |
+| **C4** | Progress copy: PRD F13 and architecture say "gesehen/seen"; interaction-patterns v2 declares **"gesammelt/collected"** canon | `copy-canon.json` cannot be pinned both ways | **RESOLVED 2026-11-22** — the copy deck canonises "gesammelt/collected" and retires the old verb; pin that. |
 | **C5** | Storage keys: architecture lists `{lang,sound,seen}.v2`; UX v2 also names `sets.v1` and `flags.v1` | U-PST-20 cannot pin a list | ADR-0003 must ratify the key set before persistence tests are written. Migration covers unknown legacy keys defensively meanwhile. |
 | **C6** | `qa.level` resolves to `minimal`; `AGENTS.md` and the brief require production rigor | If taken literally, most automated rows would be dropped | Recorded override to `full` (§header). No action. |
 | **C7** | Architecture mentions "set" as an optional grouping; UX v2 fixes six named departments + `Neuzugänge` | U-I18N-16 and set-progress tests need the canon | Treat interaction-patterns v2 as copy SSOT; add the department names to `copy-canon.json` once confirmed. |
