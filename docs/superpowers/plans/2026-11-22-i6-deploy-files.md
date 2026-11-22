@@ -18,7 +18,7 @@
 - `photos/` originals stay unreachable; `photos/thumbs/` and `photos/derived/` stay reachable, because the PHP-less static fallback renders from them (ADR-0004 §3).
 - `photos.php` stays reachable and keeps its own `Cache-Control`, `ETag` and error taxonomy (ADR-0008 §2).
 - No `ExpiresByType image/<raster>` entry: a derivative URL is immutable only when it carries `&v=` (ADR-0008 §1/§6), so the TTL belongs to the emitter, not the server.
-- Canon (`AGENTS.md`): at most one `!` per surface and none here; no water content; `Der Abfahrtsaal`; no `Heft`; no `Katalog`/`Catalogue` in new prose.
+- Canon (`AGENTS.md`): at most one `!` per surface and none here; no water content; `Der Abfahrtsaal`; the retired booklet noun and the collection-naming ban stay out of new prose.
 - JSON has no comment syntax: `photos.json` is emitted by `scripts/photo-derivatives.mjs` (ADR-0004 §1), so its ADR provenance is asserted by the gate, not written into the body.
 - The gate lives in `tests/unit/` (already the enforced `unit` gate) — no `gates.json`/`ci.yml` change, so there is no new gate to keep in sync.
 
