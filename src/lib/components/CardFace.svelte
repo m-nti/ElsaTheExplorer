@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { CardFaceModel } from "$lib/domain/card";
+  import { STAR_SCALE_MAX, starLabel } from "$lib/domain/card-stars";
+  import { i18n } from "$lib/stores/i18n.svelte";
   import { rarity as rarityRecipe } from "styled-system/recipes/rarity";
 
   interface Props {
@@ -10,6 +12,12 @@
 
   const rarityClass = $derived(rarityRecipe({ rarity: model.rarity }));
   const titleId = $derived(`card-title-${model.id}`);
+  /** Spoken against the fixed scale in the page's language — never a literal. */
+  const starsLabel = $derived(starLabel(model.stars, i18n.locale));
+  /** The row is always `STAR_SCALE_MAX` slots; the filled ones lead. */
+  const starSlots = $derived(
+    Array.from({ length: STAR_SCALE_MAX }, (_, index) => index < model.stars),
+  );
 </script>
 
 <div class="card-shell">
@@ -41,9 +49,9 @@
 
     <div class="zone strip">
       <span class="edition">{model.edition}</span>
-      <span class="stars" role="img" aria-label={`${model.stars} von 3 Sternen`}>
-        {#each Array.from({ length: model.stars }) as _, index (index)}
-          <span aria-hidden="true">★</span>
+      <span class="stars" role="img" aria-label={starsLabel}>
+        {#each starSlots as filled, index (index)}
+          <span class={filled ? "star star-filled" : "star star-empty"} aria-hidden="true">★</span>
         {/each}
       </span>
     </div>
@@ -254,8 +262,20 @@
   .stars {
     display: flex;
     gap: var(--elsa-spacing-1);
-    color: var(--tier-star-color);
     line-height: var(--elsa-line-heights-display);
+  }
+
+  /* Five slots on every card: the empty ones are the comparison. */
+  .star {
+    line-height: inherit;
+  }
+
+  .star-filled {
+    color: var(--tier-star-color);
+  }
+
+  .star-empty {
+    color: var(--elsa-colors-line-strong);
   }
 
   .story {

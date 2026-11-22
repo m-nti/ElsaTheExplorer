@@ -482,7 +482,7 @@ requirements depends on it.
 
 | Element | Colorblind Risk | Mitigation |
 |---------|----------------|------------|
-| Rarity | Hue-only foil would fail | Foil is material (texture/glare/glitter) **and** the chip prints the word; stars count 3/4/5 |
+| Rarity | Hue-only foil would fail | Foil is material (texture/glare/glitter) **and** the chip prints the word; the strip prints five slots, filled 3/4/5 (Häufig / Selten / Holo-Pracht) |
 | Flipped state | Back/front confusion | `aria-pressed`, distinct faces, and the flip is announced |
 | Holo dressing (halo, glitter) | Decorative | `aria-hidden`; carries no information |
 

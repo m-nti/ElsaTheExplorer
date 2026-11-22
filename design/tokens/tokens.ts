@@ -19,6 +19,7 @@
 
 import { defineRecipe, defineTokens } from "@pandacss/dev";
 import type { ContrastPair } from "../../src/lib/domain/contrast";
+import type { StarCount } from "../../src/lib/domain/card-stars";
 import type { RarityTier } from "../../src/lib/domain/rarity";
 import { motionCssVars } from "./motion";
 
@@ -95,7 +96,12 @@ export interface RarityTierSpec {
   readonly foilStrength: number;
   readonly glint: Readonly<{ duration: string; opacity: number }>;
   readonly rays: number;
-  readonly stars: number;
+  /**
+   * Filled slots in the card strip — 3 / 4 / 5 of five (#51). The union comes
+   * from the domain so an out-of-scale value is a compile error, and
+   * `tests/unit/card-stars.test.ts` pins each row to `RARITY_STARS`.
+   */
+  readonly stars: StarCount;
   readonly starColor: string;
   readonly chip: Readonly<{ background: string; color: string; border: string }>;
   readonly name: Readonly<{ color: string; fill: string; image: string; shadow: string }>;
@@ -115,7 +121,7 @@ export const RARITY_TIERS: Readonly<Record<RarityTier, RarityTierSpec>> = {
     foilStrength: 0,
     glint: { duration: "0s", opacity: 0 },
     rays: 0,
-    stars: 1,
+    stars: 3,
     starColor: palette.starCommon,
     chip: {
       background: "rgb(245 240 234 / 6%)",
@@ -140,7 +146,7 @@ export const RARITY_TIERS: Readonly<Record<RarityTier, RarityTierSpec>> = {
     foilStrength: 0.28,
     glint: { duration: "5.2s", opacity: 0.34 },
     rays: 0,
-    stars: 2,
+    stars: 4,
     starColor: palette.starRare,
     chip: {
       background: `var(--elsa-gradients-foil-pastel)`,
@@ -165,7 +171,7 @@ export const RARITY_TIERS: Readonly<Record<RarityTier, RarityTierSpec>> = {
     foilStrength: 0.56,
     glint: { duration: "5.2s", opacity: 0.56 },
     rays: 0.5,
-    stars: 3,
+    stars: 5,
     starColor: palette.starHolo,
     chip: {
       background: `var(--elsa-gradients-foil-spectrum)`,
