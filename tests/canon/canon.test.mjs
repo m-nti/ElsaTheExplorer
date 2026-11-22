@@ -331,7 +331,9 @@ describe("canon-check: the real tree (D12b)", () => {
     const { report } = run([]);
     expect(report.templates).toEqual([
       "src/App.svelte",
+      "src/lib/components/CardDialog.svelte",
       "src/lib/components/CardFace.svelte",
+      "src/lib/components/CardTile.svelte",
     ]);
   });
 
