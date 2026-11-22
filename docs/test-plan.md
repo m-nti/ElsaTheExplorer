@@ -894,7 +894,7 @@ styling hook.
 
 | ID | Assertion |
 | --- | --- |
-| E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/|converted/|\.cache/|derived/)` — assert the set is empty for the whole journey |
+| E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/\|converted/\|\.cache/\|derived/)` — assert the set is empty for the whole journey |
 | E-ORG-02 | No `<img src>`, `<source srcset>`, CSS `url()`, or `fetch()` targets a bare `/photos/<original>` path |
 | E-ORG-03 | The save/download affordance points at the **1600 px download derivative** — static: `photos/derived/download/<id>.jpg`; runtime: `photos.php?download=<name>` — and **never** at `/photos/<original>`; no request is issued until the user activates it |
 | E-ORG-04 | After an explicit download click: exactly one request to the download URL, `200`, `Content-Disposition: attachment`, long edge **1600 px** (or the source's long edge when smaller — never upscaled), **response SHA-256 ≠ the source fixture's recorded SHA-256**, **response bytes ≠ the source's recorded byte length**, and **bytes ≤ 500,000 (JPEG) / ≤ 350,000 (WebP)**. Exempt from E-DLV-02..04 only |
