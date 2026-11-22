@@ -3,7 +3,7 @@
 > **Status**: Draft · Reframe 3 (reveal camera; four-card pack)
 > **Owned By**: art-director
 > **Last Updated**: 2026-11-22
-> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-22 — §2/§7 (motion model, pack size 4, confetti rule); sign-off pending re-run
+> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-22 — gate run: CONCERNS with five findings, all fixed in the same pass: §4 `--quiet` `#978fa0` + credit `#9a8da0`; §2/§6 Sammlung naming; §6/§7 wing progress line, "aus:" chip and "In der Sammlung" badge specified; §5 LOD rung; §7 rays tokenised (`--elsa-dur-rays`). Re-run pending.
 
 Scope note: this is a **refinement** of the shipped dark parlour look, not a redesign —
 but the *product definition* has been sharpened, and with it every visual sentence below.
@@ -79,7 +79,7 @@ lighting signature. Rarity, foil and chase rules are untouched by this reframe.
 | **1 · Eintreten / Admittance** | Arrival (landing, `.stage`) | Entering the library after hours. Nothing is open yet; the room is waiting for a reader. | One cool overhead beam (`rgb(228 211 255/14%)`, blur 24px) from top-centre; a wide violet reading pool `rgb(111 77 142 / 20%)` beneath it; a low amber whisper `rgb(192 152 119 / 6%)` bottom-left; dust motes drifting at sleep speed. No foil colour anywhere except on the sealed volume itself. | hushed, stacks-cool, expectant, warm-dark, still | **2 / 10** |
 | **2 · Aus dem Magazin / From the Stacks** | Pack anticipation (`pack-dialog` sachet) | A volume fetched from the closed stacks and set down in front of you, still wrapped. The request slip was honoured. | Light narrows to the packet: saturated foil sheen (the `118deg` band family), crimped serrated edge catching white, one seam flash. The room recedes into `rgb(8 7 12 / 90%)` + blur 18px. | crisp, fetched, paper-cold, tight-focus, tensile | **4 → 7** |
 | **3 · Am Lesetisch / At the Reading Table** | The reveal (four cards, one in focus) | The reading-table moment: four documents dealt face-up one at a time, each held in focus, then the camera pulls back to lay the set out — a reader who just sat down, shown the accession. | Brightest state in the product. White flash (`pack-flash`, ≤ 0.92, one frame), jagged rainbow tear, cards entering with glint shadows; violet table glow `rgb(118 91 139 / 20%)` warms the desk. | bright, generous, dealt, giggly, shiny | **8 / 10** (the only high-energy state) |
-| **4 · In den Regalen / Among the Shelves** | Browsing the binder (`.album`) | Walking the stacks. No theatre; the shelf rows are the pleasure — the *catalogue* is browsable. | Coldest, flattest state: desk surface `#15131b` with a 2% white top sheen, even dim light, tiles asleep until hover lifts them 5px. | even, archival, patient, browsable, tidy | **3 / 10** |
+| **4 · In den Regalen / Among the Shelves** | Browsing Die Sammlung (`.album`) | Walking the stacks. No theatre; the shelf rows are the pleasure — the *catalogue* is browsable. | Coldest, flattest state: desk surface `#15131b` with a 2% white top sheen, even dim light, tiles asleep until hover lifts them 5px. | even, archival, patient, browsable, tidy | **3 / 10** |
 | **5 · Unter der Lampe / Under the Lamp** | Card detail (`.lightbox`) | The card under study: pulled from the shelf, laid under the single lamp, examined. Reverence, not excitement. | The spotlight returns: card centred on `#1d1924 → #131119`, violet halo `rgb(151 119 175 / 14%)`, everything else falls into `rgb(7 6 10 / 82%)` + blur 12px. Holo cards may glint; nothing else moves. | reverent, close-reading, glassy, warm-centred, deliberate | **4 / 10** |
 | **6 · Sammlung geschlossen / The Collection Closed** | Completion (Elsas Ehrenmensch — *not built; art direction for round two*) | The collection is closed: every entry seen. The archive hands the reader a certificate and thanks them for their thoroughness. | The only state whose ambience is **warm**: an accent-gold wash (`--accent #e8c9a5`, `--metal #d4c2a8`) replaces the violet pool; plate, seal and stamp language promoted to the page; serial + "Erste Auflage" typography scaled into a catalogue-certificate. | golden, catalogued, stamped, quietly proud, complete | **6 / 10**, calm not bouncy |
 
@@ -169,7 +169,7 @@ glow to be noticed, the hierarchy is wrong — promote it or delete it.
 | --- | --- | --- |
 | `#f5f0ea` | `--ink` | All primary text; solid button face; 14–28% alpha versions are the hairlines. |
 | `#aaa3b2` | `--muted` | Secondary text (7.7:1 on `--bg` — the default for anything a reader must read). |
-| `#756e7d` | `--quiet` | Tertiary text. **Decision (owner, 2026-11-22): the token is raised to ≥ 4.5:1 contrast** — no decorative/redundant-text exemption class exists. The final hex is measured at the build-phase token spike and must pass the contrast belt; the shipped `#756e7d` (3.86:1) is the pre-spike measurement only (see §7). |
+| `#978fa0` | `--quiet` | Tertiary text. **Resolved (owner, 2026-11-22): raised from the shipped `#756e7d` (3.86:1, out of spec) to `#978fa0` — 6.08:1 on `--bg`, 5.62 raised, 5.30 surface, 4.66 surface-light; passes the contrast belt on every structural surface.** |
 | `#d4c2a8` / `#8e7c67` | `--metal`, `--metal-dark` | Brass: eyebrows, counters, captions ("✦" marker). Edition authority. |
 | `#e8c9a5` / `#f7e0c2` | `--accent`, `--accent-bright` | Warm gold: focus rings, hover lifts, print status. **Completion/chase gold** — reserve for earned or interactive things. The Collection Closed state (§2) is its home turf. |
 | `#ead7b7` / `#eccba9` / `#f0dcb9` | `--star-color` tiers | Star fill: common / rare / holo — one warm metal, three brightnesses. |
@@ -185,7 +185,7 @@ glow to be noticed, the hierarchy is wrong — promote it or delete it.
 **Card print colours** (fixed tokens on the indigo plates): name `#fbf5ed`, number
 `#c4b7aa`, mood `#c5b8c6`, rarity text `#e5d7c6`, keyword `#f0d5bd`, copy `#d6cdd7`,
 print-line `#b7aab8`, stat-key `#b8adbb`, stat-value `#f6eee5`, serial `#b7aaba`,
-credit `#928697`, stats-label `#bfb1ca`, kind `#c2b7c5`. All measured ≥ 4.5:1 against
+credit `#9a8da0`, stats-label `#bfb1ca`, kind `#c2b7c5`. All measured ≥ 4.5:1 against
 their plate except the credit (4.56:1 — pass, but flagged small; see §7).
 
 ### Semantic usage
@@ -280,7 +280,7 @@ untouched by grading (foil over it is capped and masked per the material rules a
 | Sound on/off | accent border | icon swap: waves ↔ slash (shipped — keep as the model pattern) |
 | Focus | `--accent-bright` outline | 2px + 4px offset, non-colour by definition |
 | Rare/holo in the pack row | foil strength | glint sweep + chip label; under reduced motion the static etch texture (opacity ≤ 0.3) plus label carries it |
-| Catalogue slot seen / unseen | (no colour cue — deliberate) | the **sleeve-placeholder carries it by shape**: an unseen slot shows the flat sleeved-plate silhouette with its `No.` field, a seen slot shows the actual tile — silhouette + texture, never colour; for readers the slot's aria-label states "noch ungesichtet / not yet catalogued" vs the card's entry |
+| Sammlung slot collected / not yet | (no colour cue — deliberate) | the **sleeve-placeholder carries it by shape**: an uncollected slot shows the flat sleeved-plate silhouette with its `No.` field, a collected slot shows the actual tile — silhouette + texture, never colour; for readers the slot's aria-label states "noch nicht gesammelt / not yet collected" vs the card's entry |
 | Destructive Reset | **no danger colour exists in this palette, by decision — Reset is never colour-coded red** | ① explicit text label ("Alles löschen" / "Reset everything" — words carry the danger), ② isolation: Reset lives alone in the colophon, never beside ordinary actions, ③ two-step confirmation dialog that names the consequence and requires an affirmative second action; focus moves into the dialog. Danger here is typographic and structural, not chromatic |
 | Wing completion frame | gold-glint frame treatment — a glint sweep in the `--accent` family on the frame rim (Catalogue Closed gold language, earned-only per the gold rule; never the holo spectrum) | ① frame geometry: a second etched hairline plus the corner registration ticks promoted to all four corners (greyscale-legible), ② text "Flügel komplett / Wing complete" on the plate, ③ live-region announcement on unlock |
 | Collection milestones 25 / 50 / 75 % — outfit cards | **no new colour tier** — the milestone is *print*, not hue: a percentage stamp + badge rendered in the card's existing print language on the pearl rim; the photograph itself stays untouched (§5: never costume the dog) | ① the percentage as text ("25 %"), ② one stamp motif whose notch count (1/2/3) differs by shape, so the steps read in greyscale, ③ constant print-colour tokens at every step — no step is colour-coded |
@@ -335,7 +335,7 @@ applied *in type*, never *on the dog*.
 human environments, and anything whose joke needs a caption to be understood — the card
 caption is the punchline, not the setup.
 
-**Detail survival ("LOD") for photos:** the 720px display copy must keep fur texture and
+**Detail survival ("LOD") for photos:** the 1200 px detail rung (720 px pack rung) must keep fur texture and
 eye catchlight at card size (340px); the ~180px shelf tile only needs silhouette + eye.
 The original (dialog only, `Foto speichern`) is ungraded and uncropped.
 
@@ -352,7 +352,7 @@ built from three surface depths plus printed ephemera:
 - **Furniture surfaces:** `--bg-raised` → `--surface` → `--surface-light`, always with the
   1px inset top highlight. These are shelves and glass cases, lit from above.
 - **The reading table:** `.album` on `#15131b` with its 2% white top sheen — the felt desk
-  where the binder lies open.
+  where Die Sammlung lies open.
 - **The beam:** `.ambient-beam`, a 72vw conic spotlight, blurred 24px, from top-centre —
   the archive's one overhead lamp. Its width may vary per state (narrow during From the
   Stacks, wide at Admittance); its position never moves.
@@ -371,7 +371,12 @@ with dual-angle interference and a pointer-tracked highlight (§4). Both must st
 *materials*: they respond to tilt and light like a physical object, never flatten into
 UI gradients.
 
-**The binder as an object.** The album is the library's catalogue: pages = grid cells
+**Surfaces introduced by build step 4 (visual direction).**
+- **Wing progress line** (`{x} von {y} gesammelt`): Label type step, tabular figures, `--muted` on the room header; a 2 px `--metal-dark` rule under it at 40 % width, filling with `--metal` as the room progresses. No colour-only state: the numerals are the carrier.
+- **"aus: [Wing]" chip**: Chip type step on the plate's edition strip; 1 px `--line-strong` outline, `--chip-text` on the pearl stop, 2 px radius, never foil-filled (rarity owns foil). Reads as a printed stamp, not a button.
+- **"In der Sammlung" badge**: Location label on the tile's lower-left, Label step, `--muted`, sitting on a 60 % `--surface` scrim so it survives any photo; never the only collected indicator — the tile's collected state also carries the desaturated sleeve and the accessible name.
+
+**Die Sammlung as an object.** The album is the library's collection: pages = grid cells
 (4 → 3 → 2 columns), tiles = sleeved plates waiting on the shelf, the "Von vorn" button =
 closing the collection and starting a new lap. The progress bar is the ledger line under
 the page; a restarted lap is announced by the ledger, not a modal.
@@ -451,7 +456,7 @@ the archive is a tripod. Every animation still has a physical rationale: the pac
 light moved*. The one licensed decoration is the confetti burst: **a single small burst,
 ≤ 1.2 s, once per pack and only when a holo is present**. The capstone may run the larger
 celebration, still inside state 6's calm register. No burst on an ordinary pull, a tile
-entrance or a milestone. Nothing loops except holo glint (5.2 s) and rays (35 s), both
+entrance or a milestone. Nothing loops except holo glint (`--elsa-dur-glint`, 5.2 s) and rays (`--elsa-dur-rays`, 35 s), both
 frozen under reduced motion. UI never enters a card's motion budget.
 
 ### UX view (readability, contrast, targets, reduced motion) — measured
@@ -462,9 +467,9 @@ Contrast measured against shipped values (WCAG relative-luminance):
 | --- | --- | --- |
 | `--ink #f5f0ea` on `--bg #111017` | 16.7:1 | pass (body) |
 | `--muted #aaa3b2` on `--bg` | 7.7:1 | pass (body) — **the default for all essential small text** |
-| `--quiet #756e7d` on `--bg` | **3.86:1** | shipped value fails 4.5:1 — **decision: the token is raised to ≥ 4.5:1** (final hex measured at the build-phase token spike; must pass the Vitest contrast gate). Used for `progress__note`, `stage__hint`, `print__hint` at 10–11px |
+| `--quiet #978fa0` on `--bg` | **6.08:1** | resolved value (shipped `#756e7d` measured 3.86:1 and is retired). 5.62 on raised, 5.30 on surface, 4.66 on surface-light — passes the Vitest contrast gate. Used for `progress__note`, `stage__hint`, `print__hint` at 10–11px |
 | card copy tokens on plates | 7.1–13.5:1 | pass |
-| credit `#928697` at 8px | 4.56:1 | numerically passes, practically fragile |
+| credit `#9a8da0` at 8px | 5.02:1 body / 4.65:1 header | raised from `#928697` (4.23:1 on the lightest header stop) and now passes on every plate it can sit on |
 
 Rules and flags:
 

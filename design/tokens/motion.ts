@@ -23,6 +23,8 @@ export const motionDurations = {
   flip: "420ms",
   flourish: "520ms",
   capstone: "520ms",
+  glint: "5.2s",
+  rays: "35s",
 } as const;
 
 export const motionIntervals = {
@@ -65,6 +67,3 @@ export const motionCssVars = {
   ...intervals,
   ...easings,
 } as const;
-
-export type MotionDurationName = keyof typeof motionDurations;
-export type MotionEasingName = keyof typeof motionEasings;
