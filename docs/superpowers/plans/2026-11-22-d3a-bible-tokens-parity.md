@@ -182,7 +182,7 @@ git commit -m "docs(art): art bible declares the print palette as rows (#30)"
 - [ ] **Step 2: Prove the wiring agrees three ways**
 
 Run: `npm run ci:gates`
-Expected: `ci-gates: 14 enforced (… bible-tokens-parity …)`.
+Expected: the enforced count rises by one and the list names `bible-tokens-parity`. The count is not written here: it moves as the project adds gates, and the manifest prints it.
 
 - [ ] **Step 3: Prove the gate fails on a real seeded divergence through the npm entry point**
 
@@ -198,4 +198,28 @@ Expected: green for this scope; any pre-existing red is named in the PR, not hid
 ```bash
 git add package.json .github/gates.json .github/workflows/ci.yml docs/test-plan.md
 git commit -m "ci(gate): enforce art bible <-> token parity (#30)"
+```
+
+---
+
+## Delivery note (2026-11-22)
+
+Task 3 is authored but **not pushed** from the implementing session: the branch's
+token is an OAuth app token with scopes `gist, read:org, repo` and no `workflow`, so
+Git refuses any commit that touches `.github/workflows/ci.yml` (`refusing to allow an
+OAuth App to create or update workflow`) and the Contents API answers 404 for the same
+write. `scripts/ci-gates.mjs` requires a bare `run: npm run gate:parity` step in
+`ci.yml` — verified on `33c5c90`, where the check also rejects `npm run <g> | tee` and
+`continue-on-error` — so the gate cannot be declared enforced in `gates.json` alone.
+
+What that means for the pushed branch: `scripts/bible-tokens-parity.mjs`, the canon
+self-tests and the bible's declaration table are landed, and the *rule* is already
+enforced in CI through `canon-self-test`, whose repository case fails on drift. The
+named, early-running `gate:parity` step is the piece waiting on the scope.
+
+Owner action, one command and one push:
+
+```
+gh auth refresh -s workflow
+git push origin feat/d3a-bible-tokens-parity
 ```
