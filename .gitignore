@@ -11,4 +11,41 @@ photos/*
 !photos/thumbs/
 photos/thumbs/*
 !photos/thumbs/.gitkeep
+
+# Derived image cache — docs/photo-pipeline-implementation.md §8.
+# Cache CONTENTS are never committed (derived data, §8.1). The deny file and the
+# directory skeleton MUST be, because §8.8 forbids mkdir() on the request path and an
+# FTP deploy from this repo has no shell: the 16 shard directories and locks/ have to
+# arrive with the upload. Production deploys should still put the cache outside the
+# webroot (§8.1 primary); the in-webroot .htaccess is the documented fallback.
 photos/.cache/
+!photos/.cache/
+photos/.cache/*
+!photos/.cache/.htaccess
+!photos/.cache/.gitkeep
+!photos/.cache/locks/
+photos/.cache/locks/*
+!photos/.cache/locks/.gitkeep
+!photos/.cache/[0-9a-f]/
+photos/.cache/[0-9a-f]/*
+!photos/.cache/[0-9a-f]/.gitkeep
+
+# Generated test fixtures — docs/test-plan.md §4.2. Image fixtures are produced at test
+# setup; a source photo (EXIF/XMP, GPS) is never committed, and neither is its hash ledger
+# (it changes with the sharp/libvips build).
+tests/fixtures/images/generated/
+tests/fixtures/image-sources.json
+
+# duplicate-code reports
+reports/
+
+# svelte-check artifacts
+.svelte-check/
+
+# Generated toolchain artifacts (Panda css/recipes, Vite output, coverage)
+styled-system/
+dist/
+coverage/
+
+# Subagent-driven-development workspace (per-plan ledgers, briefs, reports).
+.superpowers/

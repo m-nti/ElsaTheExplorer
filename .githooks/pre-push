@@ -1,0 +1,28 @@
+#!/bin/sh
+# Pre-push: the push must contain exactly what was verified.
+#
+# Three failure classes this blocks (all observed on PR #2):
+#   1. a commit that adds a script before the file it runs (MODULE_NOT_FOUND in CI)
+#   2. a lockfile that installs on the author's platform but not on CI's
+#   3. a commit made from a shared tree, where the tested files were not all staged
+#
+# SKIP_VERIFY=1 bypasses it deliberately (hotfix), and is visible in the log.
+set -e
+
+if [ "${SKIP_VERIFY:-}" = "1" ]; then
+  echo "pre-push: SKIP_VERIFY=1 — gates not run (deliberate bypass)."
+  exit 0
+fi
+
+if [ -n "$(git status --porcelain)" ]; then
+  echo "pre-push: working tree is dirty." >&2
+  echo "The hook verifies the tree, but the push sends the commit — commit or stash first," >&2
+  echo "or run from the ticket's own worktree." >&2
+  exit 1
+fi
+
+echo "pre-push: lockfile installable on CI's platform (linux/x64)…"
+npm run --silent lockfile:check
+
+echo "pre-push: running the CI gate set (npm run verify)…"
+npm run --silent verify

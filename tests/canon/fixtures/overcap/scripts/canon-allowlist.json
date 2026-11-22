@@ -1,0 +1,12 @@
+{
+  "maxBaseline": 0,
+  "entries": [
+    {
+      "file": "design/spec.md",
+      "match": "\"Das Heft hat Zuwachs.\" is live",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "fixture: one baseline entry against a zero cap must fail"
+    }
+  ]
+}

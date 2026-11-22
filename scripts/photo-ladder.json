@@ -1,0 +1,12 @@
+{
+  "_note": "Single source of truth for the rendition ladder (docs/photo-pipeline-implementation.md §7.3, §13.2). Read by photos.php and scripts/photos.mjs. Bump PHOTO_PIPELINE_VERSION in photos.php when an edge or quality changes: the cache key carries the rendition and quality but not the edge (§8.3).",
+  "tile": { "edge": 360 },
+  "pack": { "edge": 720 },
+  "detail": { "edge": 1200 },
+  "download": { "edge": 1600 },
+  "quality": {
+    "jpeg": { "tile": 78, "pack": 80, "detail": 82, "download": 85 },
+    "webp": { "tile": 72, "pack": 74, "detail": 76, "download": 80 }
+  },
+  "paper": "#F6EFDF"
+}

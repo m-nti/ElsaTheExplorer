@@ -1,0 +1,104 @@
+name: Task
+description: A unit of work with acceptance criteria and evidence
+title: "[AREA] "
+labels: ["type:chore"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every unit of work is a ticket. Fill the fields; the PR that closes it must link this issue.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence. What changes for the product or the build?
+      placeholder: "Expose 360/720/1200 derivatives from photos.php"
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options: [feature, bug, chore, spike, docs]
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [design, frontend, backend, qa, docs, infra, narrative, audio]
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options: [foundation, design-gates, scaffold, build, polish, release]
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: [P0, P1, P2]
+      default: 1
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why this exists. Link the canon or review finding it comes from.
+      placeholder: "From docs/action-plan.md I1; review blocker B1."
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / non-goals
+      description: What is in, and what is explicitly out.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Binary, testable. One per line.
+      placeholder: |
+        - [ ] tile 360 never exceeds 55 KB JPEG
+        - [ ] no UI path returns source bytes
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / definition of done
+      description: What proves it — tests, commands, screenshots, measurements.
+      placeholder: "Playwright E-ORG-04 passes; byte table in the PR."
+    validations:
+      required: true
+  - type: input
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Issues, ADRs, or external facts this needs.
+      placeholder: "#12, ADR-0008, IONOS GD verification"
+  - type: textarea
+    id: deferral
+    attributes:
+      label: Deferral evidence (only if this was not fixed now)
+      description: Per the fix-now rule — if this could have been fixed in the change that found it, say exactly what blocked that (dependency, migration, host fact, design change, unreviewable diff). A vague answer means it should have been fixed, not filed.
+      placeholder: "Needs a script + CI wiring (not a 2-line edit); full parity check is a new tool."
+  - type: input
+    id: refs
+    attributes:
+      label: References
+      description: Files, sections, or decisions.
+      placeholder: "docs/architecture.md §photos.php; docs/decisions.md D-01"
+  - type: dropdown
+    id: estimate
+    attributes:
+      label: Estimate
+      options: [S, M, L]
+    validations:
+      required: true

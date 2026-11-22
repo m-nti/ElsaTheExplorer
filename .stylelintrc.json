@@ -2,10 +2,17 @@
   "extends": [
     "stylelint-config-standard"
   ],
+  "plugins": [
+    "stylelint-declaration-strict-value"
+  ],
   "ignoreFiles": [
-    "demo/**",
-    "qa-shots/**",
-    "node_modules/**"
+    "legacy/**",
+    "node_modules/**",
+    "dist/**",
+    "styled-system/**",
+    "coverage/**",
+    "reports/**",
+    "qa-shots/**"
   ],
   "rules": {
     "declaration-block-no-redundant-longhand-properties": true,
@@ -20,13 +27,126 @@
     ],
     "comment-empty-line-before": null,
     "custom-property-empty-line-before": null,
-    "selector-class-pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:__[a-z0-9-]+)?(?:--[a-z0-9-]+)?$",
-    "declaration-block-single-line-max-declarations": null,
+    "selector-class-pattern": null,
     "rule-empty-line-before": null,
     "at-rule-empty-line-before": null,
     "property-no-vendor-prefix": null,
     "no-descending-specificity": null,
-    "max-line-length": null,
-    "declaration-empty-line-before": null
-  }
+    "declaration-empty-line-before": null,
+    "media-feature-range-notation": null,
+    "color-no-hex": true,
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla",
+      "oklch",
+      "oklab",
+      "lab",
+      "lch",
+      "color",
+      "color-mix"
+    ],
+    "color-named": "never"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.svelte"
+      ],
+      "customSyntax": "postcss-html",
+      "rules": {
+        "scale-unlimited/declaration-strict-value": [
+          [
+            "color",
+            "background",
+            "background-color",
+            "background-image",
+            "background-position",
+            "background-size",
+            "border",
+            "border-color",
+            "border-top-color",
+            "border-right-color",
+            "border-bottom-color",
+            "border-left-color",
+            "border-radius",
+            "outline",
+            "outline-color",
+            "box-shadow",
+            "text-shadow",
+            "fill",
+            "stroke",
+            "font",
+            "font-family",
+            "font-size",
+            "font-weight",
+            "line-height",
+            "letter-spacing",
+            "gap",
+            "row-gap",
+            "column-gap",
+            "padding",
+            "padding-top",
+            "padding-right",
+            "padding-bottom",
+            "padding-left",
+            "margin",
+            "margin-top",
+            "margin-right",
+            "margin-bottom",
+            "margin-left",
+            "opacity",
+            "filter",
+            "mask-image",
+            "width",
+            "height",
+            "min-width",
+            "min-height",
+            "max-width",
+            "max-height",
+            "aspect-ratio"
+          ],
+          {
+            "ignoreValues": [
+              "transparent",
+              "currentColor",
+              "inherit",
+              "initial",
+              "unset",
+              "none",
+              "auto",
+              "normal",
+              "0",
+              "0%",
+              "100%",
+              "100svh",
+              "100dvh",
+              "solid",
+              "inset",
+              "content-box",
+              "exclude",
+              "screen",
+              "soft-light",
+              "hard-light",
+              "cover",
+              "center",
+              "row",
+              "column",
+              "flex",
+              "grid",
+              "space-between",
+              "uppercase",
+              "nowrap",
+              "ellipsis",
+              "hidden",
+              "visible"
+            ],
+            "ignoreFunctions": true,
+            "ignoreVariables": true
+          }
+        ]
+      }
+    }
+  ]
 }

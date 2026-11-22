@@ -1,0 +1,427 @@
+{
+  "$comment": [
+    "Canon register for scripts/canon-check.mjs. Every entry excuses exactly one line and",
+    "must carry a reason. An entry that stops matching is a stale entry and fails the gate",
+    "(exit 2), so this file cannot rot into a blanket permission.",
+    "",
+    "status: \"allowed\"  — canon-legal: the archival concept (D-04b), a key or identifier, a",
+    "                       history/retired row, a rule declaration, or audit evidence.",
+    "status: \"baseline\" — a known canon defect in a file ticket #5 may not edit. Baseline",
+    "                       entries must name their issue and are capped by maxBaseline.",
+    "",
+    "New live copy goes in src/ and design/copy/copy-deck.md with the canon name. Do not add",
+    "entries for new text; rewrite it."
+  ],
+  "maxBaseline": 7,
+  "entries": [
+    {
+      "file": "AGENTS.md",
+      "match": "NO wet-dog, rain, mud or bathing content",
+      "status": "allowed",
+      "reason": "Canon declaration: the water ban itself (AGENTS.md, canon — water)."
+    },
+    {
+      "file": "AGENTS.md",
+      "match": "replacing Die Nassabteilung / The",
+      "status": "allowed",
+      "reason": "Canon declaration naming the retired room (Der Abfahrtsaal replaced it)."
+    },
+    {
+      "file": "AGENTS.md",
+      "match": "Legacy card-bank water jokes",
+      "status": "allowed",
+      "reason": "Canon declaration naming the retired water jokes by example."
+    },
+    {
+      "file": "PRD.md",
+      "match": "\"gesehen\" to \"katalogisiert\"",
+      "status": "allowed",
+      "reason": "History: the preamble describes the v1 verb being replaced, not a live string."
+    },
+    {
+      "file": "design/art/art-bible.md",
+      "match": "lovingly over-catalogued archive",
+      "status": "allowed",
+      "reason": "Adjectival archive description; the banned word is the progress verb, not this register word."
+    },
+    {
+      "file": "design/art/art-bible.md",
+      "match": "Six states, catalogued.",
+      "status": "allowed",
+      "reason": "Art-state register description (entries recorded), not the progress verb."
+    },
+    {
+      "file": "design/art/art-bible.md",
+      "match": "golden, catalogued, stamped",
+      "status": "allowed",
+      "reason": "Visual register words for the completed state, not the progress verb."
+    },
+    {
+      "file": "design/art/motif-sheet.md",
+      "match": "a wave scroll is a meander that got wet",
+      "status": "allowed",
+      "reason": "Canon declaration: the water ban's motif list, quoting why the motif is refused."
+    },
+    {
+      "file": "design/audio/sound-bible.md",
+      "match": "No wet/water texture anywhere",
+      "status": "allowed",
+      "reason": "Canon declaration in the sound bible (dry paper, never a splash)."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "~~katalogisiert / catalogued~~",
+      "status": "allowed",
+      "reason": "History row: retired progress verb shown struck through in §0.1."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "~~Sammelheft / binder / Heft~~",
+      "status": "allowed",
+      "reason": "History row: retired collection names shown struck through in §0.2."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "5. **No water content** (canon",
+      "status": "allowed",
+      "reason": "Canon declaration: the copy deck's own water rule (§0.5)."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "\"nass\" — not in a card",
+      "status": "allowed",
+      "reason": "Canon declaration: the copy deck's own water rule (§0.5)."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "\"Heft\", \"binder\", a second name",
+      "status": "allowed",
+      "reason": "Rule declaration: forbidden synonyms for the collection (§0.3)."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "\"Heft\" is gone",
+      "status": "allowed",
+      "reason": "Rule note: records that Heft is retired; not a live value."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "GDD R8: \"Das Heft hat Zuwachs: {n} neue Karten.\"",
+      "status": "allowed",
+      "reason": "History: the D5 decision row quotes the superseded GDD R8 wording."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Sammelheft, binder, \"das Heft\"",
+      "status": "allowed",
+      "reason": "History row: retired collection names in §13."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "katalogisiert / catalogued | gesammelt / collected",
+      "status": "allowed",
+      "reason": "History row: the retired verb in the §13 retired-terms table."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Das Heft hat Zuwachs. (count-free)",
+      "status": "allowed",
+      "reason": "History row: retired count-free arrival line in §13."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "| D5 — the GDD R8 wording is superseded",
+      "status": "allowed",
+      "reason": "History row: retired GDD R8 arrival line in §13."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Die Nassabteilung / The Wet Collection",
+      "status": "allowed",
+      "reason": "History row: retired room name replaced by Der Abfahrtsaal, kept as the rename record."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "\"Badegast des Jahres\"",
+      "status": "allowed",
+      "reason": "History row: retired card-bank water jokes, kept so they are not re-imported."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "no wet dog, rain, mud, bathing, puddles, towelling",
+      "status": "allowed",
+      "reason": "Canon declaration: the copy deck's water vocabulary rule (§0.6)."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Zero occurrences of `Heft` / `binder`",
+      "status": "allowed",
+      "reason": "Checklist line that asserts the Heft ban."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "nass, Regen, Schlamm, baden, Wet",
+      "status": "allowed",
+      "reason": "Checklist line: the water vocabulary list this gate enforces."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "rain, mud, bath, wet dog, Pfütze, Handtuch",
+      "status": "allowed",
+      "reason": "Checklist line: the water vocabulary list this gate enforces."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "No entry still says gesehen / seen / katalogisiert / catalogued",
+      "status": "allowed",
+      "reason": "Checklist line that asserts the verb canon."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "den Katalog vervollständigen",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "meta.description re-voice row: both the current and the proposed value still carry the retired entity name."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "| `zuwachs.line` | Das Heft hat Zuwachs",
+      "status": "allowed",
+      "reason": "History row: §14 change log quotes the superseded arrival line."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Sein Rahmen leuchtet im Katalog.",
+      "status": "allowed",
+      "reason": "History row: §14 change log quotes the superseded set-complete line."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "| `catalogue.milestone` | Katalog-Meilenstein",
+      "status": "allowed",
+      "reason": "History row: §14 change log quotes the superseded milestone line (D-04b rename came later)."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Katalog I · abgeschlossen",
+      "status": "allowed",
+      "reason": "History row: §14 change log quotes the superseded capstone subtitle."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Katalog komplett. Elsas Ehrenmensch",
+      "status": "allowed",
+      "reason": "History row: §14 change log quotes the superseded capstone announcement."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "Das Heft hat Zuwachs — der Ehrenmensch",
+      "status": "allowed",
+      "reason": "History row: §14 change log quotes the superseded capstone-waiting line."
+    },
+    {
+      "file": "design/features/archive-fiction.md",
+      "match": "`Serie`, `Set`, `Deck`, `Kollektion`",
+      "status": "allowed",
+      "reason": "Rule declaration: the banned-vocabulary list itself."
+    },
+    {
+      "file": "design/features/archive-fiction.md",
+      "match": "still carries retired water content",
+      "status": "allowed",
+      "reason": "Legacy-content audit list: names the card-bank lines that must be rewritten, so they are not re-imported."
+    },
+    {
+      "file": "design/features/archive-fiction.md",
+      "match": "~~Accession-notice wording conflicts",
+      "status": "allowed",
+      "reason": "History row: resolved conflict quoting both retired Zuwachs forms."
+    },
+    {
+      "file": "design/features/archive-fiction.md",
+      "match": "retired that form together with `Heft`",
+      "status": "allowed",
+      "reason": "History: resolution note recording that Heft is retired with no exception."
+    },
+    {
+      "file": "design/features/feature-slate.md",
+      "match": "\"catalogue pass\"",
+      "status": "allowed",
+      "reason": "Feature concept name for the export pass (a pass that encodes the collection), not the entity's name."
+    },
+    {
+      "file": "design/features/mechanics.md",
+      "match": "Bad clock → UTC date",
+      "status": "allowed",
+      "reason": "False positive: English sentence-initial 'Bad', not the German noun Bad."
+    },
+    {
+      "file": "design/features/mechanics.md",
+      "match": "no longer in the catalogue.",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "Live import copy (X5) names the collection; canon is 'no longer in the collection'."
+    },
+    {
+      "file": "design/features/mechanics.md",
+      "match": "print as mud",
+      "status": "allowed",
+      "reason": "Metaphor for ink saturation in print, not water content."
+    },
+    {
+      "file": "design/gdd/collection-meta.md",
+      "match": "wet-dog, rain, mud or bathing content",
+      "status": "allowed",
+      "reason": "Canon declaration: the merged water ruling."
+    },
+    {
+      "file": "design/gdd/collection-meta.md",
+      "match": "\"Badegast des Jahres\"",
+      "status": "allowed",
+      "reason": "History: retired card-bank water jokes named so they stay retired."
+    },
+    {
+      "file": "design/gdd/collection-meta.md",
+      "match": "\"nasses Hund und Stolz\"",
+      "status": "allowed",
+      "reason": "History: retired card-bank water joke named so it stays retired."
+    },
+    {
+      "file": "design/narrative/greek-origin.md",
+      "match": "one goddess, one catalogue.",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "Live `myth:frame:lede` copy names the collection; canon is 'one collection' (the line also has a DE grammar defect)."
+    },
+    {
+      "file": "design/narrative/greek-origin.md",
+      "match": "Water is not catalogued.",
+      "status": "allowed",
+      "reason": "The taboo line: water's only permitted mention is this refusal; the verb is archival, not the progress verb."
+    },
+    {
+      "file": "design/narrative/greek-origin.md",
+      "match": "No sea, no rain, no bathing",
+      "status": "allowed",
+      "reason": "Canon declaration: states that no water image appears in any myth string."
+    },
+    {
+      "file": "design/narrative/greek-origin.md",
+      "match": "no sea, rain, bathing, wet dog, boat",
+      "status": "allowed",
+      "reason": "Canon rule row: the water constraint's acceptance check."
+    },
+    {
+      "file": "design/player-journey.md",
+      "match": "\"What's new in the Catalogue?\"",
+      "status": "allowed",
+      "reason": "Narrative paraphrase of the visitor's question, not a shipped string; the journey row describes the session start."
+    },
+    {
+      "file": "design/ux/binder.md",
+      "match": "no wet-dog, rain, mud or bathing content exists",
+      "status": "allowed",
+      "reason": "Canon declaration in the room table: Der Abfahrtsaal replaced the wet collection."
+    },
+    {
+      "file": "design/ux/binder.md",
+      "match": "\"Catalogue: {pct} per cent done",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
+    },
+    {
+      "file": "design/ux/binder.md",
+      "match": "This clears the Catalogue",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "Live `reset.body` EN not renamed; the copy deck's `reset.body` says 'This clears the Collection'."
+    },
+    {
+      "file": "design/ux/binder.md",
+      "match": "Die Nassabteilung/The Wet Collection was replaced",
+      "status": "allowed",
+      "reason": "History: resolved owner ruling recording the retired room name."
+    },
+    {
+      "file": "design/ux/interaction-patterns.md",
+      "match": "This clears the Catalogue",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "Live `reset.body` EN not renamed; the copy deck's `reset.body` is the SSOT."
+    },
+    {
+      "file": "design/ux/interaction-patterns.md",
+      "match": "the archive contains no wet-dog, rain, mud or bathing content",
+      "status": "allowed",
+      "reason": "Canon declaration in the room list (Der Abfahrtsaal note)."
+    },
+    {
+      "file": "design/ux/interaction-patterns.md",
+      "match": "\"Catalogue: {pct} per cent done",
+      "status": "baseline",
+      "issue": 31,
+      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
+    },
+    {
+      "file": "docs/adr/ADR-0009-pwa.md",
+      "match": "the catalogue is from Tuesday",
+      "status": "allowed",
+      "reason": "Behaviour paraphrase (the snapshot's date is the subject), not a shipped string."
+    },
+    {
+      "file": "docs/adr/ADR-0009-pwa.md",
+      "match": "shows \"no catalogue yet\" and says one online visit",
+      "status": "allowed",
+      "reason": "Paraphrase of the `state.offline.nocache` copy; the ADR owns behaviour, the copy deck owns the string."
+    },
+    {
+      "file": "docs/adr/ADR-0009-pwa.md",
+      "match": "the shell already knows how to say \"no catalogue yet\"",
+      "status": "allowed",
+      "reason": "Paraphrase of the `state.offline.nocache` copy in a rejected-alternative row."
+    },
+    {
+      "file": "docs/adr/ADR-0009-pwa.md",
+      "match": "the \"no catalogue yet\" copy, no spinner",
+      "status": "allowed",
+      "reason": "Paraphrase of the `state.offline.nocache` copy in an acceptance checklist."
+    },
+    {
+      "file": "docs/architecture.md",
+      "match": "Shell + \"no catalogue yet\"",
+      "status": "allowed",
+      "reason": "Paraphrase of the `state.offline.nocache` copy in the offline error taxonomy."
+    },
+    {
+      "file": "docs/audits/a11y-baseline.md",
+      "match": "still ships wet-dog/rain lines",
+      "status": "allowed",
+      "reason": "Audit evidence: quotes the legacy defects that must be rewritten, not new content."
+    },
+    {
+      "file": "docs/decisions.md",
+      "match": "\"Sammlung/catalogue\" survives only",
+      "status": "allowed",
+      "reason": "D-04b rule declaration itself: defines where the archival concept survives."
+    },
+    {
+      "file": "docs/lessons.md",
+      "match": "the \"Heft\" retirement",
+      "status": "allowed",
+      "reason": "Lesson evidence: records the retirement as a worked example."
+    },
+    {
+      "file": "docs/test-plan.md",
+      "match": "No water vocabulary in either dictionary",
+      "status": "allowed",
+      "reason": "Test row (U-I18N-15) that asserts the water ban this gate enforces."
+    },
+    {
+      "file": "docs/test-plan.md",
+      "match": "Bad parameters → `400`",
+      "status": "allowed",
+      "reason": "False positive: English 'Bad parameters' (E-ORG-10), not the German noun Bad."
+    }
+  ]
+}

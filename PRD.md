@@ -17,7 +17,7 @@
 > 3. **Collection meta is approved in full**: six themed sets + loose cards ("Neuzugänge"),
 >    holo-last reveal order, "2. Auflage" stamps, per-set frame unlocks, 25/50/75 % milestones,
 >    Das Entdecker-Diplom / The Explorer's Diploma at 100 %, one chase card (Das
->    Hauptporträt). The binder becomes **Der Katalog / The Catalogue**; copy shifts from
+>    Hauptporträt). The binder becomes **Die Sammlung / The Collection**; copy shifts from
 >    "gesehen" to "katalogisiert". Storage stays first-party `localStorage` (`lucky-elsa.*`),
 >    no accounts, no analytics.
 >
@@ -26,7 +26,7 @@
 > `design/accessibility-requirements.md` (committed tier: Standard). §5 (privacy) and
 > §7 (scope/constraints) remain binding except where explicitly replaced above.
 
-**Product:** Elsen, a static website where you open a pack and get five collectible cards of the
+**Product:** Elsa the Explorer, a static website where you open a pack and get four collectible cards of the
 dog Elsa. Each card pairs one supplied photo with its bilingual, photo-specific name, mood and
 caption; optional `/10` values are manually matched jokes, visibly marked as imaginary.
 **Audience for this document:** the owner, plus whoever helps build, design, write and ship it.
@@ -38,7 +38,9 @@ caption; optional `/10` values are manually matched jokes, visibly marked as ima
 1. The site is personal and private by default: friends and family get a link, search engines get
    nothing.
 2. Hosting is the existing IONOS webspace with FTP and the webspace explorer, plus PHP if the host
-   offers it. No build pipeline, no database, no service worker.
+   offers it. A local build pipeline exists (Vite/Svelte — ADR-0001), the deploy target is still
+   static files, and an installable offline shell (PWA) is approved (ADR-0009). No database. Owner
+   drops photos by FTP and reloads; `photos.php` remains the runtime manifest source.
 3. Photos arrive by FTP, through the IONOS webspace explorer, or later through a visitor upload.
    Dropping the file and reloading the page stays the whole workflow.
 4. **German is the default language; English is a full second language, switchable in the header.**
@@ -58,7 +60,7 @@ reason to be looked at again, and the family wants one reason to look.
 **Problem statement:** *"I have hundreds of Elsa photos that nobody gets to enjoy, because sharing
 them is either work for me or boring for them."*
 
-**Why a pack:** five cards at once gives a small payoff per click and something to keep and compare,
+**Why a pack:** four cards gives a small payoff per click and something to keep and compare,
 without pretending to be a product. Each supplied photo gets its own title and caption, so it becomes
 "my" card rather than the fourth picture in a folder.
 
@@ -79,7 +81,7 @@ without pretending to be a product. Each supplied photo gets its own title and c
 
 **Core**
 
-- As a visitor, I want to tap one big thing and get five cards at once, so that I do not have to
+- As a visitor, I want to tap one big thing and get four cards, so that I do not have to
   decide where to look.
 - As a visitor, I want a pack to hold cards I have not had yet, so that opening another one is worth
   it.
@@ -111,7 +113,7 @@ without pretending to be a product. Each supplied photo gets its own title and c
 **Edge cases**
 
 - As a visitor with JavaScript off, I want to know why nothing opens.
-- As a visitor with reduced motion on, I want the five cards without the reveal animation.
+- As a visitor with reduced motion on, I want the four cards without the reveal animation.
 - As a visitor, I want to look through every card in the binder if I prefer browsing over opening
   packs.
 
@@ -123,12 +125,12 @@ without pretending to be a product. Each supplied photo gets its own title and c
 
 | # | Requirement | Done when |
 | --- | --- | --- |
-| F1 | Opening the pack produces five cards at once (all of them, if there are fewer photos) | One click fills the drop row with five cards |
+| F1 | Opening the pack produces four cards, revealed one after another then laid out 2×2 (all of them, if there are fewer photos) | One click fills the drop row with four cards |
 | F2 | Every supplied card shows its photo-specific bilingual name, mood and caption | All ten current images use their explicit overrides; missing real-photo captions fall back to neutral copy, not invented activities |
 | F2a | Optional `/10` values are explicitly imaginary and matched to the depicted photo | A visible "Fantasiewerte · nur zum Spaß" / "Imaginary stats · just for fun" label precedes them |
 | F3 | A photo's rarity belongs to the photo: it comes from its own id, not from the shuffle | The same photo is always häufig, selten or holo — after a reload, after another pack, and in a deep link |
 | F4 | Every pack holds at least one rare or holographic card | If the draw is all commons, one card in that pack is promoted to holographic |
-| F5 | No card appears twice inside one pack | With five cards, five different photos come out |
+| F5 | No card appears twice inside one pack | With four cards, four different photos come out |
 | F6 | Unseen cards come first; every card comes up once before the set starts over | Opening packs walks through the whole binder; when it starts over, it is shown in the progress line and announced |
 | F7 | German is the default on first visit | `<html lang="de">` and German card text before any interaction |
 | F8 | `DE` / `EN` toggle switches every visible string immediately | Headline, buttons, card names, sentences, moods, rarity labels, aria labels, `<title>`, progress and `og:locale` all switch |
@@ -149,8 +151,8 @@ without pretending to be a product. Each supplied photo gets its own title and c
 | F18 | Big card dialog with the printed card, plus save, share and "another pack" |
 | F19 | WebAudio rip when the pack opens, a tick per card, a chime for rare and holographic cards, and a sound toggle that remembers the choice |
 | F20 | Keyboard support: `P` opens a pack, `←` / `→` moves through the cards, focus returns to the pack button when the dialog closes |
-| F21 | Live region announcements for the opening, the five card names, the restart and the language switch |
-| F22 | `prefers-reduced-motion` support: the five cards appear at once, no foil movement, no confetti |
+| F21 | Live region announcements for the opening, the four card names, the restart and the language switch |
+| F22 | `prefers-reduced-motion` support: the four cards appear in the final grid, no camera motion, no foil movement, no confetti |
 | F23 | Optional per-photo overrides from `photos/captions.json`: caption and alt text, and the card's name, sentence, mood and rarity |
 | F24 | Thumbnails: generated locally into `photos/thumbs/`, or built on demand by PHP into `photos/.cache/` |
 | F22b | **HEIC support:** iPhone HEIC and HEIF files are listed, converted once to JPEG in `photos/converted/` (macOS `sips` locally, Imagick on the server) and converted in the visitor's own browser when the server cannot (`assets/vendor/heic2any`, loaded only for HEIC files). From the owner's side nothing changes: drop the file and reload. |
@@ -196,11 +198,11 @@ owner's own counters.
 | # | Metric | Target | How to measure |
 | --- | --- | --- | --- |
 | M1 | It ships and stays up | Public URL opens without an error, 100% of manual checks after each upload | Manual load on desktop and phone |
-| M2 | A pack is complete and fair | 5 cards, none repeated inside the pack, at least one rare or holographic | `npm run qa` |
+| M2 | A pack is complete and fair | 4 cards, none repeated inside the pack, at least one rare or holographic | `npm run qa` |
 | M3 | A card keeps its identity | The same photo retains its bilingual caption, stable rarity and manually assigned imaginary play values | Reopen it by deep link in either language |
 | M4 | Both languages are complete | 0 untranslated strings after switching; German default confirmed every session | Manual pass plus `npm run qa` assertions |
 | M5 | Nobody gets stuck | Every person who receives the link opens a pack unaided | Watch 3–5 people once, do not explain |
-| M6 | Cards actually get opened | More than one card out of the five gets opened big | Ask which card they liked; count the "gesehen" marks when someone hands the phone back |
+| M6 | Cards actually get opened | More than one card out of the four gets opened big | Ask which card they liked; count the "gesammelt" marks when someone hands the phone back |
 | M7 | Adding photos is cheap | A new photo is a card within 5 minutes of the first attempt, by file drop only | Owner times themselves once |
 | M8 | Nothing leaked | No search result for the domain after one month; no `/photos/` listing | Search once, try `yourdomain/photos/` |
 | M9 | Accessibility floor | Keyboard-only and screen-reader spot check can open a pack and read a card | Manual check with VoiceOver or similar |
@@ -211,7 +213,7 @@ owner's own counters.
 
 **In scope (v1, built)**
 
-- Static one-page site: pack, five-card drop, big card dialog, binder grid, progress, start over.
+- Static one-page site: pack, four-card drop, big card dialog, binder grid, progress, start over.
 - Cards with photo-specific bilingual name, mood, caption and clearly imaginary per-photo play values.
 - Fixed rarity per photo from its own id, with at least one rare or holographic card per pack.
 - German default and English option with a `DE` / `EN` toggle, persisted and URL-overridable.
@@ -254,7 +256,7 @@ All of v1 was built in one session. Remaining work is content, not code: put rea
 | R1 | Photos become publicly findable (search, image search, directory listing) | High | `noindex` meta, `robots.txt` disallow, `Options -Indexes`, no scripts in `photos/`; re-check after each upload |
 | R2 | Adding photos gets annoying and the site goes stale | High | File drop plus either PHP live listing or one `npm run photos` command; nothing else to remember |
 | R3 | A pack repeats a card too soon and the visitor thinks it is broken | Medium | Unseen-first draw, no repeat inside a pack, automatic new round with an announcement, progress display, manual "Von vorn" |
-| R4 | Very large originals make the binder slow on mobile | Medium | 720 px display copies on cards and tiles; the original only in the dialog and in "Foto speichern" |
+| R4 | Very large originals make the binder slow on mobile | Medium | Fixed derivative ladder only: tile 360 / pack 720 / detail 1200 / download 1600 px. No UI surface serves the original; "Foto speichern" downloads the 1600 px compressed derivative. `photos.php` generates the renditions at runtime (FTP drop, no redeploy) and never falls back to source bytes. |
 | R5 | German and English drift apart after an edit | Medium | One copy deck and one card bank with both languages next to each other; index-aligned arrays; `npm run qa` checks key strings in both |
 | R6 | A new photo gets inaccurate or generic copy | Medium | Add bilingual per-photo name, mood, description and alt text in `photos/captions.json`; unknown real photos use neutral copy until then |
 | R7 | HEIC cannot be converted anywhere (no Imagick on the host, decoder fails in the browser) | Medium | Owner converts to JPEG locally; the site still lists the file, and the card frame stays readable without the picture |
@@ -285,8 +287,9 @@ Use the sessions to find usability problems, not to make a statistical claim fro
 6. **Rarity mix:** about one in eight cards is rare and one in eight holographic today, decided by
    the photo's own id. Should the owner be able to hand-pick the holographic ones instead?
 7. **Share text:** should a shared link include the card's sentence, or only its printed name?
-8. **Download vs. keep:** "Foto speichern" downloads the original. Is a smaller version better for
-   sharing over messaging apps — and should the site keep every card forever, or retire old ones?
+8. **Download vs. keep:** "Foto speichern" downloads a 1600 px compressed derivative, never the
+   original. If a full-resolution copy is ever wanted, it needs its own explicit action and is
+   out of scope for v2. Resolved 2026-11-22 with ADR-0008.
 
 ---
 
@@ -299,7 +302,7 @@ of this document's plan.
 
 | Skill | Owns |
 | --- | --- |
-| `skill-router` | Matching each task to a skill or agent, keeping the catalogue honest |
+| `skill-router` | Matching each task to a skill or agent, keeping the collection honest |
 | `create-prd` | This document's structure, the "specify only what changes a decision" discipline |
 | `product-designer` | Design critique, component hierarchy, usability checks and visual handoff |
 | `brainstorm-experiments` | A low-cost pack-opening usability experiment with a pre-set threshold |
@@ -335,10 +338,10 @@ of this document's plan.
 
 ### 10.3 Definition of done for v1
 
-- `npm run qa` passes: German default, English switch and persistence, five cards per pack, no card
+- `npm run qa` passes: German default, English switch and persistence, four cards per pack, no card
   twice in a pack, at least one rare or holographic card, a printed name on every card,
   `?photo=` deep link, no horizontal overflow at 390 and 1280, empty state, no-JS notice.
-- Open a pack at desktop and phone sizes; the wrapper tears away and the five cards reveal in order.
+- Open a pack at desktop and phone sizes; the wrapper tears away and the four cards reveal one after another, then settle into the grid.
 - Opened card fits the phone dialog without scrolling; card flip, share and download controls work.
 - Real photos in `photos/`, `npm run photos` run, uploaded together with `index.html`, `assets/`,
   `photos.php`, `.htaccess`, `robots.txt`.

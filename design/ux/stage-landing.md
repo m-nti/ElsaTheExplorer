@@ -8,7 +8,7 @@
 > **Platform Target**: Web — mouse / touch / keyboard (no gamepad; static IONOS site)
 > **Related GDDs**: `PRD.md` §1 Problem, §3 User stories (core), §4.1 F1, F7–F13, F17, §5 Design row
 > **Related ADRs**: ADR-0001 (owner decision): Svelte 5 + Vite 8 + TypeScript strict, built locally, deployed statically to IONOS; `photos.php` stays the runtime manifest source (owner FTP-drop workflow preserved). Further constraints from `PRD.md` §5 (no third-party runtime deps) and §7 (privacy, DE default)
-> **Related UX Specs**: `pack-opening.md` (child, accession flow), `card-detail.md` (child, card lightbox), `binder.md` (sibling, the catalogue)
+> **Related UX Specs**: `pack-opening.md` (child, accession flow), `card-detail.md` (child, card lightbox), `binder.md` (sibling, the collection)
 > **Accessibility Tier**: Standard
 > **Template**: UX Spec
 
@@ -35,21 +35,21 @@ A friend or family member has just tapped a link in the family chat. They did no
 come to browse a website — they came to meet the collection. What they need in the
 first five seconds is an entrance that says *there is a library here, you may read
 it* — one unmistakable invitation to pull a new accession (the pack), and visible
-proof that the catalogue grows with every visit (the catalogue line "3 von 24
+proof that the collection grows with every visit (the collection line "3 von 24
 gesammelt"). Nobody here wants to read, log in, or choose. The entrance hall
 must make the first pack irresistible and make the return visit feel like walking
 back into a wing that has grown since last time.
 
 **The player goal** (what the player wants to accomplish):
 
-Pull a new accession — five cards of Elsa — with one obvious action, without
+Pull a new accession — four cards of Elsa — with one obvious action, without
 reading anything first.
 
 **The game goal** (what the game needs to communicate or capture):
 
-Communicate the library's promise — five cards per accession, at least one in
+Communicate the library's promise — four cards per accession, at least one in
 foil, every card is collected once before any repeats — and surface the
-visitor's catalogue progress so returning readers see the catalogue filling and
+visitor's catalogue progress so returning readers see the collection filling and
 first-time visitors understand nothing is missing yet.
 
 ---
@@ -62,7 +62,7 @@ first-time visitors understand nothing is missing yet.
 | What is their emotional state? | Curious, impatient, zero tolerance for friction. Grandparents may be slightly anxious about "breaking something" in a museum-like place. |
 | What cognitive load are they carrying? | Low — but they are on a phone, possibly one-handed. Nothing they were tracking carries over. |
 | What information do they already have? | Elsa is a dog they know. Nothing about packs, foil rarities, sets or the catalogue. Repeat visitors know the loop and their own count. |
-| What are they most likely trying to do? | First visit: tap the big shiny thing. Repeat visit: pull another accession and check whether the catalogue line moved. |
+| What are they most likely trying to do? | First visit: tap the big shiny thing. Repeat visit: pull another accession and check whether the collection line moved. |
 | What are they likely afraid of? | That nothing happens when they tap; that they need an account; that the foil motion is dizzying; that a museum register means rules and barriers ("may I touch this?"). |
 
 **Emotional design target for this screen**:
@@ -80,7 +80,7 @@ crate myself."
 Root — StageLanding (single-page site, document scroll; the entrance hall)
       ├── Child — PackOpening (#pack-dialog, modal)      → pack-opening.md
       │         └── Child — CardDetail (#card-dialog)    → card-detail.md
-      └── Sibling section — Binder (#katalog, same page)   → binder.md (the catalogue)
+      └── Sibling section — Binder (#katalog, same page)   → binder.md (the collection)
                 └── (opens CardDetail for any tile)
 ```
 
@@ -95,8 +95,8 @@ The stage remains scrollable behind them; the dialogs themselves do not scroll
 |-------------|-------------|-------|
 | Direct URL (family chat link) | Visitor taps shared link | German default, `lang=de` |
 | `?lang=en` / `?lang=de` | URL parameter | Beats stored preference (F9); stage renders in that language before copy paint |
-| Stored language | Returning visitor | `lucky-elsa.lang.v1`, applied by the inline head script pre-render |
-| `?photo=<id>` deep link | Shared card link | Stage renders normally; CardDetail opens above it after the catalogue loads |
+| Stored language | Returning visitor | `lucky-elsa.lang.v2`, applied by the inline head script pre-render |
+| `?photo=<id>` deep link | Shared card link | Stage renders normally; CardDetail opens above it after the collection loads |
 | Wordmark click | Visitor taps "Elsa the Explorer" | Scroll back to the entrance (anchor `./`) |
 
 ---
@@ -116,9 +116,9 @@ The stage remains scrollable behind them; the dialogs themselves do not scroll
 | Exit Action | Destination | Transition Type | Data Returned / Saved | Notes |
 |-------------|------------|-----------------|----------------------|-------|
 | Tap "Pack öffnen" / seal / press `P` | PackOpening (#pack-dialog) | Modal open + wrapper theatre | none yet; catalogue updates happen when the accession completes | Disabled while an accession is resolving |
-| Tap "Zum Katalog" | Binder section (`#katalog`) | Anchor scroll | — | Also reachable from the masthead nav |
+| Tap "Zur Sammlung" | Binder section (`#katalog`) | Anchor scroll | — | Also reachable from the masthead nav |
 | `?photo=` deep link resolves | CardDetail | Modal open above stage | opens card, marked collected via the card system | Only after catalogue load succeeds |
-| Language switch DE/EN | Same screen, re-rendered | Instant re-copy | `lucky-elsa.lang.v1` updated by persistence | Announced in live region |
+| Language switch DE/EN | Same screen, re-rendered | Instant re-copy | `lucky-elsa.lang.v2` updated by persistence | Announced in live region |
 
 ---
 
@@ -132,21 +132,21 @@ Desktop (≥1120px wide viewport):
 ┌──────────────────────────────────────────────────────────────────────┐
 │ ambient beam + mote canvas (aria-hidden, behind everything)          │
 │ ┌── masthead ─────────────────────────────────────────────────────┐  │
-│ │ 🐾 ELSA THE EXPLORER    3 von 24 gesammelt   Zum Katalog DE|EN 🔊│  │
+│ │ 🐾 ELSA THE EXPLORER    3 von 24 gesammelt   Zur Sammlung DE|EN 🔊│  │
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ ┌── stage (#stage, entrance hall) ───────────────────────────────┐   │
 │ │  ┌── stage__copy ─────────────┐   ┌── stage__crate ─────────┐  │   │
-│ │  │ ELSA THE EXPLORER ·        │   │  ╔═══════════════════╗  │  │   │
-│ │  │ DAS KARTENWERK  (eyebrow)  │   │  ║ ╭─ foil frame ─╮  ║  │  │   │
+│ │  │ KATALOG I  (eyebrow)       │   │  ╔═══════════════════╗  │  │   │
+│ │  │                            │   │  ║ ╭─ foil frame ─╮  ║  │  │   │
 │ │  │                            │   │  ║ │ photo teaser  │  ║  │   │
 │ │  │ WAS STECKT                 │   │  ║ │   (cover)     │  ║  │   │
-│ │  │ IM REGAL?       (h1, 2 ln) │   │  ║ ╰───────────────╯  ║  │  │   │
+│ │  │ IM KATALOG?     (h1, 2 ln) │   │  ║ ╰───────────────╯  ║  │  │   │
 │ │  │                            │   │  ║  🐾  ELSA THE      ║  │  │   │
-│ │  │ Fünf Karten pro Pack, min- │   │  ║      EXPLORER      ║  │  │   │
-│ │  │ destens eine in Folie. Jede│   │  ║  1. Auflage        ║  │  │   │
+│ │  │ Vier Karten pro Pack, min- │   │  ║      EXPLORER      ║  │  │   │
+│ │  │ destens eine glänzt. Jede  │   │  ║  1. Auflage        ║  │  │   │
 │ │  │ kommt einmal dran ...      │   │  ╚═══════════════════╝  │  │   │
 │ │  │                            │   │  (button .pack__seal —   │  │   │
-│ │  │ [ Pack öffnen ]  Zum Katalog │   │   the accession crate)  │  │   │
+│ │  │ [ Pack öffnen ]  Zur Sammlung │   │   the accession crate)  │  │   │
 │ │  │ ┌── catalogue line ─────┐  │   │                         │  │   │
 │ │  │ │ 3 von 24 gesammelt│  │   │                         │  │   │
 │ │  │ │ ▰▰▰░░░░░░░░░░░░░░░░░  │  │   │                         │  │   │
@@ -155,7 +155,7 @@ Desktop (≥1120px wide viewport):
 │ │  │ Drück P, um ein Pack ...   │   │                         │  │   │
 │ │  └────────────────────────────┘   └─────────────────────────┘  │   │
 │ └────────────────────────────────────────────────────────────────┘   │
-│ ┌── Der Katalog (#katalog, next fold) ─ ... ────────────────────┐   │
+│ ┌── Die Sammlung (#katalog, next fold) ─ ... ────────────────────┐   │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -164,10 +164,10 @@ the seal is still ≥280px tall so it stays the visual anchor. No horizontal
 scroll at 320px.
 
 **Refactor decisions for this screen** (free to deviate from current DOM):
-- The masthead count and the catalogue line show the same number from one
+- The masthead count and the collection line show the same number from one
   source; today `#masthead-count` and `#progress-label` are separately keyed —
   the refactor keys both to one catalogue-state render.
-- The binder section is anchored `#katalog` ("Zum Katalog"); `#album` and the
+- The binder section is anchored `#katalog` ("Zur Sammlung"); `#album` and the
   interim `#regal` remain legacy alias redirects for old shared anchors.
 - The pack CTA keeps its label **"Pack öffnen"** (canon, and `P` is bound to
   it), but the surrounding copy frames the pack as the **Neuzugang** — the
@@ -178,11 +178,11 @@ scroll at 320px.
 | Zone Name | Description | Approximate Size | Scrollable? | Overflow Behavior |
 |-----------|-------------|-----------------|-------------|-------------------|
 | Ambient layer | Beam gradient + mote canvas, decorative | 100% × 100%, fixed | No | Clipped, `aria-hidden`, never receives pointer events |
-| Masthead | Wordmark, catalogue count, nav (Zum Katalog, DE/EN, sound) | 100% × ~64px | No | Nav wraps on ≤380px; count truncates with ellipsis, full text in `title` |
+| Masthead | Wordmark, catalogue count, nav (Zur Sammlung, DE/EN, sound) | 100% × ~64px | No | Nav wraps on ≤380px; count truncates with ellipsis, full text in `title` |
 | Hall copy | Eyebrow, H1, lede, actions, catalogue line, keyboard hint | ~55% width desktop, 100% mobile | No | Text wraps; H1 uses two fixed lines via the copy deck, both lines fit at 320px (font clamps) |
 | Catalogue line | Count label, track+fill, rule note | ~100% of copy column, ~90px tall | No | Label wraps to 2 lines max; track keeps 8px height |
 | Accession crate (seal) | The seal object (see 5.3) | ~min(340px, 38vw) square desktop, ~72vw mobile | No | Never overflows stage padding; image error → crest-only fallback state |
-| Page scroll | Stage → Katalog → footer | document | Yes | Native scroll; no scroll hijacking |
+| Page scroll | Stage → Sammlung → footer | document | Yes | Native scroll; no scroll hijacking |
 
 ### 5.3 Component Inventory
 
@@ -190,22 +190,22 @@ scroll at 320px.
 |----------------|------|------|---------|-----------|---------------------------|
 | `.skip-link` | Link | overlay | Jump focus straight to `#open-pack` (label and target agree) | Yes | Yes — exists, target retargeted |
 | `.masthead__wordmark` | Link | Masthead | "Elsa the Explorer", return to entrance | Yes | Yes (text updated) |
-| `.masthead__count` | Live text | Masthead | Compact catalogue count, mirrors the catalogue line | Yes | Yes |
-| `.nav-link` ("Zum Katalog") | Link | Masthead | Anchor to the catalogue | Yes | Yes (relabelled) |
+| `.masthead__count` | Live text | Masthead | Compact catalogue count, mirrors the collection line | Yes | Yes |
+| `.nav-link` ("Zur Sammlung") | Link | Masthead | Anchor to the collection | Yes | Yes (relabelled) |
 | `.lang-switch` DE/EN | Button group (`aria-pressed`) | Masthead | Switch all copy instantly | Yes | Yes |
 | `.sound-toggle` | Toggle button (`aria-pressed`) | Masthead | Sound on/off, persists | Yes | Yes |
-| `.stage__eyebrow` | Text | Hall copy | "Elsa the Explorer · Das Kartenwerk" | Yes | Yes (copy updated) |
-| `.display` H1 | Heading | Hall copy | "Was steckt im Katalog?" — the exploration invitation, two lines | Yes | Yes (copy updated) |
+| `.stage__eyebrow` | Text | Hall copy | "Sammlung I" / "Collection I" (D1) | Yes | Yes (copy updated) |
+| `.display` H1 | Heading | Hall copy | "Was steckt im Sammlung?" — the exploration invitation, two lines | Yes | Yes (copy updated) |
 | `.stage__lede` | Text | Hall copy | Loop rules in one sentence, library register | Yes | Yes (copy updated) |
 | `#open-pack` | Primary button | Hall copy | Text CTA, same action as the seal | Yes | Yes |
-| "Zum Katalog" | Text link | Hall copy | Browse-first path for the reader persona | Yes | Yes (relabelled) |
+| "Zur Sammlung" | Text link | Hall copy | Browse-first path for the reader persona | Yes | Yes (relabelled) |
 | `#catalogue-line` (label/track/fill/note) | Progress composite | Hall copy | Collected-count + bar + unseen-first reminder | Yes | Yes (relabelled from progress block) |
 | `.stage__hint` | Text + `<kbd>` | Hall copy | Teaches the `P` shortcut | Yes | Yes |
 | `.pack__seal` | Large button | Stage crate | THE accession crate; opens a pack | Yes | Yes |
 | `.pack__seal-art` (frame, top band, preview img, crest SVG, wordmark, edition label) | Composite visual | Inside seal | Makes the crate read as a foil-wrapped accession | Yes | Yes |
 | `.pack__seal-tear` | Decorative span | Inside seal | Pre-cut tear line affordance | Yes | Yes |
-| `#pack-preview` | Image | Inside seal | Photo teaser (cover of the catalogue) | Yes | Yes |
-| "Das Heft hat Zuwachs" accession line | Text | Above catalogue line, returning visitors only | "N neue Karten" since last visit | No (round 2) | No — new |
+| `#pack-preview` | Image | Inside seal | Photo teaser (cover of the collection) | Yes | Yes |
+| "{n} neue Schmuckstücke sind da!" accession line (`zuwachs.line`) | Text | Above catalogue line, returning visitors only | Cards added since last visit, stated as a count (EN "{n} new treasures have arrived!"; copy-deck sync 2026-11-22, D5 — both "… hat Zuwachs" forms retired) | No (round 2) | No — new |
 | `#live` live region | Visually hidden status | Body end | Announcements | Yes | Yes |
 | `EntranceHall` | **Svelte 5 component** (one line: stage shell — masthead wiring, hero copy, catalogue line, seal, catalogue-state subscription) | all | The stage as one mount boundary | Yes | Refactor of the current stage DOM |
 
@@ -225,14 +225,14 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 
 1. **First: the crate + "Pack öffnen"** — the only action that matters; 90% of
    visitors should never need to read past it (M5: everyone opens a pack unaided).
-2. **Second: the catalogue line** — proves continuing is worth it; the returning
+2. **Second: the collection line** — proves continuing is worth it; the returning
    reader's eye goes here before the headline. It is written as a museum
    catalogue entry ("3 von 24 gesammelt"), which quietly teaches the
    collection-is-the-product frame.
 3. **Third: the lede** — one sentence of loop rules for those who read
    (unseen-first, ≥1 foil card). Sets expectations so a repeated card later is
    not read as a bug (R3 mitigation).
-4. **Fourth: keyboard hint and the catalogue link** — for the keyboard user and the
+4. **Fourth: keyboard hint and the collection link** — for the keyboard user and the
    reader persona; both may wait below the fold of attention.
 
 ---
@@ -242,12 +242,12 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | State Name | Trigger | What Changes Visually | What Changes Behaviorally | Notes |
 |------------|---------|----------------------|--------------------------|-------|
 | Loading (catalogue) | Page load until `photos.php`/`photos.json` resolves (≤3s/≤4s timeouts) | Catalogue label "Karten werden gesucht"; seal shows crest with placeholder photo | CTA + seal disabled; `P` inert | Must resolve or fall through to Empty or Error within 4s; no spinner layer beyond the label text |
-| First visit (populated) | Catalogue loaded, `seen.v1` empty/missing | Catalogue line "0 von 24 gesammelt", bar 0; seal fully intact | All input active | The default state; German copy (F7) |
-| Returning | Catalogue loaded, `seen.v1` non-empty | Catalogue line shows real count + fill; seal identical (the crate never shows fake wear — the catalogue grows instead) | All input active | Masthead count mirrors the line |
-| New in the binder ("Das Heft hat Zuwachs") | Returning visitor; **mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids that were absent from the stamp of the visitor's previous visit | Line above catalogue: "Das Heft hat Zuwachs: N neue Karten." | Line disappears **once any new card is collected** (not on pack open); flag updated by persistence | **Vertical Slice (GDD R8)**; owner = persistence system |
-| Sample / Mixed | All or some catalogue entries flagged `demo` | Demo/mixed note line visible in the catalogue zone | Packs work normally | Copy per `demoNote`/`mixedNote`, updated to library register |
-| Empty | Catalogue resolves to 0 photos (both sources exhausted cleanly) | CTA label becomes "Noch keine Karten" and disabled; seal disabled (greyscale foil, no glow); catalogue line "Noch keine Karten" | `P`, CTA, seal inert; the catalogue shows the owner instruction ("npm run photos") | F14/F15 — owner-instruction copy lives **only** in the true-empty state, never in the failure state |
-| Error (load failure) | Both fetches fail (network/server fault, non-JSON, abort) — distinct from Empty | Catalogue label "Der Katalog lädt nicht gerade."; seal greyed; stage intact (masthead, hero, hint all normal) | `P`, CTA, seal inert; a [Nochmal versuchen] retry sits with the catalogue's Error state (`binder.md` §6), which is the same failure surfaced there | Never tells a visitor to run npm commands; **the stage governs during load failure** — the stage is the entry surface and shows the failure line, while the retry affordance lives in the catalogue section; both render from one failure state |
+| First visit (populated) | Catalogue loaded, `seen.v2` empty/missing | Catalogue line "0 von 24 gesammelt", bar 0; seal fully intact | All input active | The default state; German copy (F7) |
+| Returning | Catalogue loaded, `seen.v2` non-empty | Catalogue line shows real count + fill; seal identical (the crate never shows fake wear — the collection grows instead) | All input active | Masthead count mirrors the line |
+| New in the collection ("{n} neue Schmuckstücke sind da!") | Returning visitor; **mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids that were absent from the stamp of the visitor's previous visit | Line above catalogue: "N neue Schmuckstücke sind da!" (EN "N new treasures have arrived!"; copy-deck sync 2026-11-22, D5) | Line disappears **once any new card is collected** (not on pack open); flag updated by persistence | **Vertical Slice (GDD R8)**; owner = persistence system |
+| Sample / Mixed | All or some catalogue entries flagged `demo` | Demo/mixed note line visible in the collection zone | Packs work normally | Copy per `demoNote`/`mixedNote`, updated to library register |
+| Empty | Catalogue resolves to 0 photos (both sources exhausted cleanly) | CTA label becomes "Noch keine Karten" and disabled; seal disabled (greyscale foil, no glow); catalogue line "Noch keine Karten" | `P`, CTA, seal inert; the collection shows the owner instruction ("npm run photos") | F14/F15 — owner-instruction copy lives **only** in the true-empty state, never in the failure state |
+| Error (load failure) | Both fetches fail (network/server fault, non-JSON, abort) — distinct from Empty | Catalogue label "Die Sammlung kommt gleich wieder." (EN "The collection will be back shortly."; copy-deck sync 2026-11-22 — no `!` in an error); seal greyed; stage intact (masthead, hero, hint all normal) | `P`, CTA, seal inert; a [Nochmal versuchen] retry sits with the collection's Error state (`binder.md` §6), which is the same failure surfaced there | Never tells a visitor to run npm commands; **the stage governs during load failure** — the stage is the entry surface and shows the failure line, while the retry affordance lives in the collection section; both render from one failure state |
 | Storage refused | `localStorage` throws (private mode) | No visual change | Catalogue works for this visit only; no error surfaced | Silent per existing implementation |
 | Reduced motion | `prefers-reduced-motion: reduce` | Seal foil static (no animated background-position), ambient motes static, no idle shimmer | Hover = static glow change only | Reduced motion never removes information, only movement |
 | Seal: opening | CTA/seal activated, pack resolving | `is-opening` class: seal compresses + tear line flashes, 700ms | CTA label "Pack wird geöffnet"; all open-triggers disabled | One-shot; dialog takes over |
@@ -264,7 +264,7 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | Tab / Shift+Tab | Keyboard | Move through: skip link → wordmark → catalogue link → DE → EN → sound → CTA → catalogue link → seal → (page flow) | Visible focus ring (2px `#fff0d9` offset) per element | none | Order = visual reading order |
 | `P` | Keyboard | Open pack (no dialog open, catalogue non-empty, not busy) | Seal `is-opening`, dialog opens | rip sound (if sound on) | Ignored while a dialog is open (child specs handle keys there) |
 | `Enter` / `Space` on seal or CTA | Keyboard | Open pack | same as above | rip | Native button semantics |
-| Scroll | Mouse/Touch/Keyboard | Page scroll to the catalogue | Native | none | No scroll-jacking |
+| Scroll | Mouse/Touch/Keyboard | Page scroll to the collection | Native | none | No scroll-jacking |
 | `Escape` | Keyboard | (No dialogs open) no-op on stage | none | none | Escape must never navigate away or reload — it only closes dialogs |
 
 ### 7.2 Action Inputs
@@ -273,9 +273,9 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 |-------|----------|-------------------------------|--------|----------|-----------|-----------|-------|
 | Click seal / CTA | Mouse | hover on either | Open pack | Dialog opens with wrapper theatre | Seal 700ms press; theatre in dialog | Rip + ticks per card | Pack logic in pack-opening.md |
 | Tap seal / CTA | Touch | — | Open pack | Same | Same; seal hover styles skipped | Same | Hit target ≥280px (seal) / ≥44px (CTA) |
-| Click "Zum Katalog" / nav link | Mouse/Touch | — | Anchor to `#katalog` | Smooth scroll | 300ms; instant under reduced motion | none | |
+| Click "Zur Sammlung" / nav link | Mouse/Touch | — | Anchor to `#katalog` | Smooth scroll | 300ms; instant under reduced motion | none | |
 | Click DE / EN | Mouse/Touch | — | Switch language | All visible strings swap immediately incl. `<title>`, aria-labels | Instant (no fade — F8) | none | Announced: "Auf Deutsch umgestellt." / "Switched to English." |
-| Click sound toggle | Mouse/Touch | — | Toggle sound | Icon slash + label "Ton an/aus", `aria-pressed` flips | Instant | tick on enabling | Persists via `lucky-elsa.sound.v1` |
+| Click sound toggle | Mouse/Touch | — | Toggle sound | Icon slash + label "Ton an/aus", `aria-pressed` flips | Instant | tick on enabling | Persists via `lucky-elsa.sound.v2` |
 | `P` while disabled/empty | Keyboard | — | No-op | none | none | none | Guarded by busy/empty state |
 | Right-click anywhere | Mouse | — | Browser context menu | Default | — | — | Defined as no custom handling |
 
@@ -295,17 +295,19 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 
 | Data Element | Source System | Update Frequency | Who Owns It | Format | Null / Missing Handling |
 |--------------|--------------|-----------------|-------------|--------|------------------------|
-| Card catalogue (photos, names, moods, captions, rarity, setId, demo flag) | Card source system: `photos.php?list=1` → `photos.json` → empty | On page load only | Card source system (file drop + `npm run photos`) | JSON array → normalized photo objects | Empty → Empty state; fetch/server failure after both sources → **Error state** (retry in the catalogue); PHP failure → JSON fallback silently |
-| Collected set (which cards the visitor has) | Persistence system, key `lucky-elsa.seen.v1` | When a card is collected (after pack reveal / card open) | Persistence system | JSON array of ids | Missing → empty set, First-visit state |
+| Card catalogue (photos, names, moods, captions, rarity, setId, demo flag) | Card source system: `photos.php?list=1` → `photos.json` → empty | On page load only | Card source system (file drop + `npm run photos`) | JSON array → normalized photo objects | Empty → Empty state; fetch/server failure after both sources → **Error state** (retry in the collection); PHP failure → JSON fallback silently |
+| Collected set (which cards the visitor has) | Persistence system, key `lucky-elsa.seen.v2` | When a card is collected (after pack reveal / card open) | Persistence system | JSON array of ids | Missing → empty set, First-visit state |
 | Set-completion snapshots (per completed room) | Persistence system, key `lucky-elsa.sets.v1` | On room completion | Persistence system | JSON map setId → {completedAt, memberCount, manifestStamp} — **snapshots only; no seen/total counts, no diploma records** | Missing → room not completed |
 | Milestone/visit flags | Persistence system, key `lucky-elsa.flags.v1` | On relevant events (load, pack complete, completion) | Persistence system | JSON map {milestones, lastManifestStamp, diploma, masterIndex} — **no lap integer, no lastSeenTotal** | Missing → treated as first visit |
-| Language | Persistence system, key `lucky-elsa.lang.v1` | On switch | Persistence system | `"de"` \| `"en"` | Missing → `"de"` (F7) |
-| Sound preference | Persistence system, key `lucky-elsa.sound.v1` | On toggle | Persistence system | boolean | Missing → `true` |
+| Language | Persistence system, key `lucky-elsa.lang.v2` | On switch | Persistence system | `"de"` \| `"en"` | Missing → `"de"` (F7) |
+| Sound preference | Persistence system, key `lucky-elsa.sound.v2` | On toggle | Persistence system | boolean | Missing → `true` |
 | Cover photo for the seal preview | Card source system (first catalogue entry / setId cover) | On catalogue load | Card source system | URL | Missing → crest-only seal variant |
 
 > **Rule**: The stage never writes `localStorage` directly. Every player action
 > fires an event (Section 9); the persistence system is the only writer of
-> `seen.v1` / `sets.v1` / `flags.v1` / `lang.v1` / `sound.v1`. All keys are
+> `seen.v2` / `sets.v1` / `flags.v1` / `lang.v2` / `sound.v2`. Key suffixes follow
+> ADR-0003: the suffix **is** the envelope version (`{ "v": n, "data": … }`), and a key
+> introduced after the v1→v2 migration starts at `.v1`. All keys are
 > first-party, on-device, no cookies (PRD privacy row).
 
 ---
@@ -317,7 +319,7 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | Tap seal / CTA / press `P` | `pack:open-request` | `{ source: "seal" \| "button" \| "keyboard" }` | Pack system | Pack system decides the draw; the stage only disables itself while busy |
 | Language switch | `lang:change-request` | `{ lang }` | Persistence system | Persists + re-renders; UI re-renders on the system's confirmation |
 | Sound toggle | `sound:toggle-request` | `{ on }` | Persistence system + audio system | |
-| Anchor to the catalogue | `nav:katalog` | — | UI only (scroll) | No state change |
+| Anchor to the collection | `nav:katalog` | — | UI only (scroll) | No state change |
 | (Vertical Slice) Zuwachs line dismissed once any new card is collected | `flags:zuwachs-ack` | `{ ackedIds }` | Persistence system | Clears the line via a flags update — dismissal key is cataloguing, not pack opening (R8) |
 | (none) | — | — | — | No analytics exist on this project by explicit PRD decision; no event may add telemetry |
 
@@ -381,7 +383,7 @@ column is filled by the accessibility audit before Approved):
 | CTA label on pearl-gradient button | Button gradient (lightest stop governs) | 4.5:1 | verify — dark ink on light gradient | [ ] audit |
 | Keyboard hint + `<kbd>` | Page velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 | Masthead count | Masthead strip | 4.5:1 | ≈ 9:1 | [x] |
-| Seal edition label (decorative dup of eyebrow) | Seal art (dark) | 3:1 (large/graphical) | ≈ 6:1 | [x] |
+| Seal edition label ("1. Auflage" — the seal's own edition line, no longer a duplicate of the eyebrow after D1/D25) | Seal art (dark) | 3:1 (large/graphical) | ≈ 6:1 | [x] |
 
 **Colorblind-unsafe elements and mitigations**:
 
@@ -395,14 +397,14 @@ column is filled by the accessibility audit before Approved):
 
 1. Skip link ("Direkt zum Pack" — targets `#open-pack` directly, so label and destination agree)
 2. Wordmark ("Elsa the Explorer")
-3. "Zum Katalog" nav link
+3. "Zur Sammlung" nav link
 4. DE button
 5. EN button
 6. Sound toggle
 7. "Pack öffnen" CTA
-8. "Zum Katalog" text link
+8. "Zur Sammlung" text link
 9. Catalogue track (`role="progressbar"` — status only, **not** focusable, skipped)
-10. Pack seal (last interactive element of the stage; Tab continues into the catalogue section per `binder.md` §12)
+10. Pack seal (last interactive element of the stage; Tab continues into the collection section per `binder.md` §12)
 
 Cycle: natural page Tab order, no trap (no modal here).
 
@@ -414,8 +416,8 @@ Cycle: natural page Tab order, no trap (no modal here).
 | Pack opened (stage-side handoff) | "Das Pack geht auf." | On `pack:open-request` accepted |
 | Second lap begins | "Das waren alle Karten. Jetzt beginnt das Pack von vorn." | When persistence reports the lap restart |
 | Language switch | "Auf Deutsch umgestellt." / "Switched to English." | Immediately after swap |
-| New in the binder (round 2) | "Das Heft hat Zuwachs: {n} neue Karten." | After load, once per visit (R8 `lastManifestStamp` mechanism) |
-| Load failed | "Der Katalog lädt nicht gerade." | On error-state entry; retry lives with the catalogue's Error state |
+| New in the collection (round 2) | "{n} neue Schmuckstücke sind da." — `zuwachs.line` with the terminal `!` neutralised to `.` on the announcement path (D26; copy-deck sync 2026-11-22) | After load, once per visit (R8 `lastManifestStamp` mechanism) |
+| Load failed | "Die Sammlung kommt gleich wieder." | On error-state entry; retry lives with the collection's Error state (copy-deck sync 2026-11-22 — `state.error.catalogue`, no `!` in an error) |
 | Empty catalogue | "Noch keine Karten." + catalogue owner instruction | Only in the true-empty state — never in the failure state |
 
 **Cognitive load assessment**:
@@ -437,24 +439,39 @@ the museum register lives in the words, not in new required reading.
 - Layout budgets are set so **DE at +40 % over the EN baseline still fits**; DE
   strings longer than the EN baseline are the design driver.
 - No RTL language is targeted (de/en only); the layout is not mirrored.
-- Copy-deck updates required by the reframe (owner: writer, both languages in
-  the same edit): eyebrow → "Elsa the Explorer · Das Kartenwerk" /
-  "Elsa the Explorer · The Card Library"; H1 → "Was steckt im Katalog?" /
-  "What's in the catalogue?"; the binder is **Der Katalog / The Catalogue**
-  (owner canon 2026-11-22); the lede keeps the loop rules; "gesehen"-copy becomes
-  "gesammelt"-copy; document titles → "Elsa the Explorer — Das Kartenwerk" /
-  "Elsa the Explorer — The Card Library".
+- **4-card canon 2026-11-22**: the pack is **four cards** (owner canon, mobile-first).
+  The lede opens "Vier Karten pro Pack" / "Four cards per pack"; every count on this
+  screen reads four, and the holo/rare still lands late (3rd or 4th). The H1 is
+  untouched — it never stated a count.
+- Copy mapping is now fixed in the deck: eyebrow → "Sammlung I" / "Collection I"
+  (D1 — "Das Kartenwerk" survives only inside `meta.title`); H1 → "Was steckt im
+  Sammlung?" / "What's in the collection?" (D2); the collection is **Die Sammlung /
+  The Collection** (owner canon 2026-11-22); the lede keeps the loop rules and gains
+  the wink ("… bevor eine wiederkommt — Ordnung muss sein." / "… before any repeats —
+  as is only proper."); "gesehen"-copy becomes "gesammelt"-copy; document titles →
+  "Elsa the Explorer — Das Kartenwerk" / "Elsa the Explorer — The Card Library" (D24);
+  `brand.tagline` (the same key as `stage.tagline`) → "Das Leben einer Hündin, die
+  weiß, dass sie wichtig ist." / "The life of a dog who knows she is important.";
+  `meta.description` → "Ein Kartenarchiv für eine sehr wichtige Hündin: Pack öffnen,
+  vier Karten lesen, die Sammlung füllen. Sechs Säle, ein Hauptporträt. Ohne Konto,
+  ohne Tracking." / "A card archive for a very important dog: open a pack, read four
+  cards, fill the catalogue. Six rooms, one Portrait of Record. No account, no
+  tracking." (copy-deck sync 2026-11-22).
+
+> *Copy-deck sync 2026-11-22 (D1, D2, D5):* the page eyebrow is "Sammlung I" /
+> "Collection I"; the accession line always states the count; "1. Auflage" survives
+> only as the seal's edition label and the card credit.
 
 | Text Element | English Baseline Length | Max Characters | Expansion Budget | RTL Behavior | Overflow Behavior | Risk |
 |--------------|------------------------|----------------|-----------------|--------------|-------------------|------|
-| H1 line 1/2 ("What's in / the catalogue?") | ~9 / 14 | 13 / 19 | 40 % | n/a | `<br>` split from the copy deck; H1 font clamps at 320px; a 3rd wrapped line is acceptable | Low |
-| Lede | ~85 | 120 | 40 % | n/a | Wraps to 4 lines max | Low |
+| H1 line 1/2 ("What's in / the collection?") | ~9 / 14 | 13 / 19 | 40 % | n/a | `<br>` split from the copy deck; H1 font clamps at 320px; a 3rd wrapped line is acceptable | Low |
+| Lede (`stage.lede`) | ~101 | 120 | 40 % | n/a | Wraps to 4 lines max | Low |
 | CTA "Open a pack" / "Pack öffnen" | 11 | 16 | 40 % | n/a | Button grows horizontally, min-height fixed | Low |
 | Catalogue label "{seen} of {total} collected" / "{seen} von {total} gesammelt" | ~26 | 36 + digits | 40 % | n/a | Wraps to 2 lines; track stays the same size | Medium — "gesammelt" is long; tested at 2 digits |
 | Catalogue note | ~58 | 82 | 40 % | n/a | Wraps to 3 lines | Low |
 | Masthead count (same string, truncated) | ~26 | 18 + ellipsis | 40 % | n/a | Ellipsis, full text in `title` | Low |
 | Seal edition label ("1. Auflage" / "1st edition") | 12 | 17 | 40 % | n/a | Shrinks letter-spacing one step, then wraps | Low |
-| Zuwachs line (round 2) | "New in the binder: {n} new cards." ~33 | 47 | 40 % | n/a | Wraps to 2 lines | Low |
+| Arrival line (`zuwachs.line`, round 2) | "{n} new treasures have arrived!" ~31 | 44 | 40 % | n/a | Wraps to 2 lines | Low |
 | Empty-state CTA label ("No cards yet" / "Noch keine Karten") | 13 | 18 | 40 % | n/a | Button width auto | Low |
 
 ---
@@ -469,7 +486,7 @@ the museum register lives in the words, not in new required reading.
 **Layout & Rendering**
 - [ ] No horizontal overflow at 320, 390, 414, 640, 768, 1024, 1280, 1920 widths (F17), portrait and landscape
 - [ ] Seal and copy column never overlap at any listed width
-- [ ] All Section 6 states render correctly (verified by forcing each: empty catalogue, sample-only, mixed, storage-refused stub); **load-failure is forced** by stubbing both `photos.php` and `photos.json` with 500 responses — the stage shows "Der Katalog lädt nicht gerade.", the owner instruction ("npm run photos") appears nowhere, and the retry lives in the catalogue section
+- [ ] All Section 6 states render correctly (verified by forcing each: empty catalogue, sample-only, mixed, storage-refused stub); **load-failure is forced** by stubbing both `photos.php` and `photos.json` with 500 responses — the stage shows "Die Sammlung kommt gleich wieder.", the owner instruction ("npm run photos") appears nowhere, and the retry lives in the collection section
 - [ ] Catalogue bar fill visually matches `seen/total` to the nearest pixel
 
 **Input**
@@ -499,9 +516,9 @@ the museum register lives in the words, not in new required reading.
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| ~~Confirm the library-register copy rewrites~~ **RESOLVED 2026-11-22 (owner canon):** set names fixed to the archive-rooms register, binder = Der Katalog / The Catalogue, H1 "Was steckt im Katalog?", verb "gesammelt", accession line "Das Heft hat Zuwachs" | owner | 2026-11-22 | RESOLVED |
-| Final DE/EN tone read of the revised copy (Katalog register) for drift before launch | writer + user | before launch | — |
+| ~~Confirm the library-register copy rewrites~~ **RESOLVED 2026-11-22 (owner canon):** set names fixed to the archive-rooms register, binder = Die Sammlung / The Collection, H1 "Was steckt im Sammlung?", verb "gesammelt", accession line "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" (copy-deck sync 2026-11-22, D5 — both "… hat Zuwachs" forms retired) | owner | 2026-11-22 | RESOLVED |
+| Final DE/EN tone read of the revised copy (Sammlung register) for drift before launch | writer + user | before launch | — |
 | Should the seal preview rotate through the visitor's uncollected cards (a "what's waiting" teaser), or stay the fixed catalogue cover? | game-designer + user | before pack-opening implementation | — |
-| Does the stage need a set selector in round 2 (choose which set an accession draws from), or is the draw always global across the catalogue? | game-designer | before the set view ships | — |
+| Does the stage need a set selector in round 2 (choose which set an accession draws from), or is the draw always global across the collection? | game-designer | before the set view ships | — |
 | ~~Should browser language auto-detect override the German default~~ **RESOLVED 2026-11-22:** never auto-detect — always German first (Language Toggle pattern decision, PRD F7; `?lang=` remains the manual override) | owner + ux-designer | 2026-11-22 | RESOLVED |
 | Where does **Elsas Ehrenmensch** (the single capstone, catalogue header per owner canon) surface on the stage once earned — in the masthead count, or as a seal on the crate? | ux-designer + user | with binder.md review | — |

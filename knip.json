@@ -1,7 +1,25 @@
 {
   "$schema": "./node_modules/knip/schema.json",
-  "entry": ["index.html", "assets/js/app.js", "scripts/*.mjs"],
-  "project": ["assets/**/*.{js,css}", "scripts/**/*.mjs", "*.html"],
-  "ignore": ["demo/**", "qa-shots/**", "assets/vendor/**"],
+  "entry": [
+    "index.html",
+    "src/lib/stores/*.svelte.ts",
+    "tests/unit/**/*.test.ts",
+    "tests/canon/**/*.test.mjs",
+    "scripts/*.mjs"
+  ],
+  "project": [
+    "src/**/*.{ts,svelte}",
+    "design/**/*.ts",
+    "tests/**/*.{ts,mjs}",
+    "scripts/**/*.mjs",
+    "*.config.{ts,js}"
+  ],
+  "ignore": [
+    "tests/canon/fixtures/**"
+  ],
+  "ignoreDependencies": [
+    "sharp",
+    "heic2any"
+  ],
   "ignoreExportsUsedInFile": true
 }

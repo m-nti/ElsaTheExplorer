@@ -1,4 +1,4 @@
-# UX Spec: Der Katalog (Sammelwerk / Binder — #katalog)
+# UX Spec: Die Sammlung (Sammelwerk / Binder — #katalog)
 
 > **Status**: In Design
 > **Author**: user + ux-designer
@@ -13,15 +13,18 @@
 > **Template**: UX Spec
 
 > **Positioning note (binding)**: *Elsa the Explorer* is a card library /
-> Sammelwerk. This section **is the product**: the catalogue where the collection
+> Sammelwerk. This section **is the product**: the collection where the collection
 > lives. The visitor is an explorer and reader of the library — for them the
 > catalogue is browsable like an archive's rooms, not a scoreboard. Museum-catalogue
 > register, warm dry humour, *du* register in German. This spec is written as a
 > **refactor**: the current `#album` grid is the starting point; the target view
-> (set rooms) is new. Copy mapping used throughout: Sammelheft → **Der Katalog**
-> (EN: "The Catalogue"; owner canon, binding 2026-11-22); seen-copy → **"gesammelt"**
-> (collected) as the progress verb and **"Im Katalog"** as the tile badge;
-> new-photos line → **"Das Heft hat Zuwachs"** (EN: "New in the binder").
+> (set rooms) is new. Copy mapping used throughout: Sammelheft → **Die Sammlung**
+> (EN: "The Collection"; owner canon, binding 2026-11-22); seen-copy → **"gesammelt"**
+> (collected) as the progress verb **and the tile's state word** — the **"In der Sammlung"**
+> badge is the tile's *location* label and never stands in for the state (D16);
+> new-photos line → **"{n} neue Schmuckstücke sind da!"** (EN: "{n} new treasures
+> have arrived!"; D5 — copy-deck sync 2026-11-22: the count is required, and both
+> "… hat Zuwachs" forms are retired).
 
 **Set register (archive-rooms register, six rooms + loose — owner canon, binding 2026-11-22):**
 
@@ -41,13 +44,13 @@
 
 **What player need does this screen serve?**
 
-Some visitors prefer reading to pulling — they want to walk the catalogue and look
+Some visitors prefer reading to pulling — they want to walk the collection and look
 at every card one by one (F11, PRD edge case). Others come back the next day to
-check what grew: the catalogue must show, at a glance, how far the collection is
+check what grew: the collection must show, at a glance, how far the collection is
 filled — per room and in total — and make any card reachable in one tap. The
 catalogue is also where the library's honours live: a finished room is visibly
 different, milestone by milestone, and the single capstone — **Elsas Ehrenmensch /
-Elsa's Honorary Human** — appears in the catalogue header once the whole
+Elsa's Honorary Human** — appears in the collection header once the whole
 catalogue reaches 100 %. The reader should feel the collection growing under their hands,
 not be graded by it.
 
@@ -70,7 +73,7 @@ start over (F26) without ever risking an accidental wipe.
 
 | Question | Answer |
 |----------|--------|
-| What was the player just doing? | Scrolled down from the landing after a pack; navigated via "Zum Katalog"; or landed directly on a deep-linked card (dialog above). Repeat visitors often come only for this section. |
+| What was the player just doing? | Scrolled down from the landing after a pack; navigated via "Zur Sammlung"; or landed directly on a deep-linked card (dialog above). Repeat visitors often come only for this section. |
 | What is their emotional state? | Calm, browsing pace — the opposite of the pack's anticipation. After a good pull: pride, wanting to see the card "filed". |
 | What cognitive load are they carrying? | Low while browsing; higher while scanning for "what am I missing" — the design must answer that per room without counting. |
 | What information do they already have? | Their own pulls; nothing about set membership unless they read the chips. The owner additionally knows the folder workflow. |
@@ -97,15 +100,15 @@ Root — StageLanding (document)
 
 **Modal behavior**: Non-modal section of the page. Its children are modals:
 CardDetail (existing spec) and the reset confirmation (new; blocks until
-answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissable.
+answered, Escape/„Abbrechen" cancels). Nothing in the collection is undismissable.
 
 **Reachability — all entry points**:
 
 | Entry Point | Triggered By | Notes |
 |-------------|-------------|-------|
-| "Zum Katalog" (nav or landing link) | Anchor scroll | Primary path |
+| "Zur Sammlung" (nav or landing link) | Anchor scroll | Primary path |
 | Scroll past the fold | Page scroll | Natural discovery |
-| After a pack ("Zum Katalog" footer) | `pack-opening.md` §4 | Freshly pulled cards are highlighted once |
+| After a pack ("Zur Sammlung" footer) | `pack-opening.md` §4 | Freshly pulled cards are highlighted once |
 | `?photo=<id>` deep link | CardDetail auto-open | Catalogue renders underneath; the tile is scrolled into view after the dialog closes |
 
 ---
@@ -125,10 +128,10 @@ answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissab
 | Exit Action | Destination | Transition Type | Data Returned / Saved | Notes |
 |-------------|------------|-----------------|----------------------|-------|
 | Tap/Enter a tile | CardDetail | Modal open | photo id; URL gains `?photo=` | Tile stays scroll-anchored behind |
-| Dialog close | Back to the catalogue | Modal close | focus returns to the originating tile | §12 |
+| Dialog close | Back to the collection | Modal close | focus returns to the originating tile | §12 |
 | Toggle view (Alle Karten ↔ Nach Räumen) | Same section, other view | Crossfade (skipped reduced-motion) | view choice is session-only (not persisted — open question §15) | |
 | "Von vorn" → confirm | Same section, reset state | Confirmation modal → instant reset | `lucky-elsa.*` cleared by persistence | See §6 Reset states |
-| "Nochmal versuchen" | Same section, retry load | In-place reload of the catalogue | — | Error state only |
+| "Nochmal versuchen" | Same section, retry load | In-place reload of the collection | — | Error state only |
 
 ---
 
@@ -140,15 +143,15 @@ answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissab
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│ ALLE KARTEN            15 von 24 gesammelt     [Räume|Alle]    │
-│ Jede Karte, die es gibt — öffne eine für die ganze Geschichte.     │
-│ Das Heft hat Zuwachs: 3 neue Karten.            (round 2, when new)│
+│ ALLE KARTEN        Du hast 15 von 24 gesammelt  [Räume|Alle]    │
+│ Jedes Schmuckstück, das es gibt — öffne eines für die …            │
+│ 3 neue Schmuckstücke sind da!                   (round 2, when new)│
 │                                                     [ Von vorn ]   │
 │ ┌────────┐┌────────┐┌────────┐┌────────┐┌────────┐┌────────┐       │
 │ │plate   ││plate   ││plate   ││plate   ││plate   ││plate   │       │
 │ │photo   ││photo   ││photo   ││photo   ││photo   ││photo   │       │
 │ │strip   ││strip   ││strip   ││strip   ││strip   ││strip   │       │
-│ │Im Katalog││        ││Im Katalog││NEU    ││Im Katalog││         │      │
+│ │gesammelt││        ││gesammelt││NEU    ││gesammelt││         │      │
 │ └────────┘└────────┘└────────┘└────────┘└────────┘└────────┘       │
 │   ... 6–8 per row desktop, 2 per row mobile, lazy thumbnails ...   │
 └────────────────────────────────────────────────────────────────────┘
@@ -158,8 +161,8 @@ answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissab
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│ DER KATALOG · NACH RÄUMEN   15 von 24 gesammelt  [Räume|Alle]  │
-│ Die Sammlung nach Räumen. Jeder Raum wächst für sich.              │
+│ DER KATALOG · NACH RÄUMEN   Du hast 15 von 24 gesammelt  [Räume|Alle]  │
+│ Die Sammlung nach Räumen. Jeder Raum wächst für sich, in Ruhe.    │
 │ ┌──────────────────────────────────────────────────────────────┐   │
 │ │ 🐾 RUHESAAL · The Nap Wing              7 von 8 ▰▰▰▰▰▰▰░ 25%✦│   │
 │ │  ────────────────────────────────────────────────────────    │   │
@@ -168,7 +171,7 @@ answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissab
 │ │  └────┘└────┘└────┘└────┘└────┘└────┘└────┘└ ─ ─ ┘          │   │
 │ └──────────────────────────────────────────────────────────────┘   │
 │ ┌──────────────────────────────────────────────────────────────┐   │
-│ │ 🐾 GARTEN-ANNEXE · The Garden Annex   12 von 12 ▰▰▰▰▰▰▰▰     │   │
+│ │ 🐾 AUSSENSTELLE GARTEN · The Garden Annex  12 von 12 ▰▰▰▰▰▰▰▰  │   │
 │ │   ──── complete: gilt frame variant on all tiles ──────────── │   │
 │ │  ┌────┐┌────┐…┌────┐                                        │   │
 │ │  │tile││tile│  │tile│   ← gilt frame variant (announcement)│   │
@@ -188,8 +191,14 @@ Set row anatomy (both views share the tile): row header (crest + set name
 DE · EN + per-set count + per-set bar + milestone marker), a divider rule,
 then the row's tiles; a completed row's tiles carry the **frame variant**
 (gilt frame + one-line unlock announcement — there is **no per-set Diplom
-tile**; the single capstone lives in the catalogue header, §6). In "Alle
+tile**; the single capstone lives in the collection header, §6). In "Alle
 Karten" the set appears only as the `aus:` chip on each tile.
+
+*Copy-deck sync 2026-11-22 (D5, D6, D14, D16):* both view heads read
+`progress.overall` ("Du hast 15 von 24 gesammelt" / "You have collected 15 of 24");
+the second room is **Außenstelle Garten** — the wireframe's "GARTEN-ANNEXE" was
+layout shorthand; and each tile plate carries the state word **gesammelt / noch
+nicht gesammelt** with the **In der Sammlung** location badge and **NEU** beside it.
 
 ### 5.2 Layout Zones
 
@@ -217,10 +226,10 @@ open question §15.
 | `ShelfRow` | **Svelte 5 component** (one line: one set — header, divider, tiles, milestone markers; **GDD R2, Phase 2**) | set view | Per-set presentation | Yes | New |
 | `.shelf__milestone` | Marker chip | row header | Reading-room upgrade marker — **row affordance only**; the milestone announcements themselves are overall-catalogue (§6) | Phase 2 | New |
 | `CardTile` (variant `card--tile`) | **Svelte 5 component** (one line: shared card renderer, size-variant `tile`) | grids | Every card is a real `<button>` | Yes | Shared with pack-opening |
-| `.tile__badge` ("Im Katalog" / "In the catalogue" — **location label, not a state string**; "NEU") | Badge | on tile | Collected/new state | Yes | Exists as seen-tag, copy + behaviour updated |
+| `.tile__badge` ("In der Sammlung" / "In the collection" — **location label, not a state string**; "NEU") | Badge | on tile | Location label + new marker (the state word is separate) | Yes | Exists as seen-tag, copy + behaviour updated |
 | `.tile__set-chip` ("aus: {Set}") | Chip | on tile | Set membership (flat view) — GDD R1 | Vertical Slice | New |
 | `.shelf__gilt` | Frame variant | completed rows | Completion frame on tiles — GDD R3a | Phase 2 | CSS variant of `.card` |
-| `EhrenmenschCapstone` | **Svelte 5 component** (one line: the single 100 % capstone — Elsas Ehrenmensch collage in the catalogue header, "Das Gesamtverzeichnis" plaque beside it) | head | Capstone honour | Phase 3 (Full Vision) | New (replaces the former per-set DiplomCard) |
+| `EhrenmenschCapstone` | **Svelte 5 component** (one line: the single 100 % capstone — Elsas Ehrenmensch collage in the collection header, "Das Gesamtverzeichnis" plaque beside it) | head | Capstone honour | Phase 3 (Full Vision) | New (replaces the former per-set DiplomCard) |
 | `#reset-lap` + `ResetConfirmDialog` | Button + **Svelte 5 modal component** (one line: accessible confirm before persistence wipes) | head | Start over with confirmation | Yes | Button exists; dialog is new |
 | `#album-count` | Live text | head | Total count | Yes | Yes |
 | `#demo-note` | Note | head | Sample/mixed notice | Yes | Yes |
@@ -240,9 +249,9 @@ block.
 
 ### 5.4 Information Hierarchy
 
-1. **First: the count line** ("15 von 24 gesammelt") — the one number that
+1. **First: the count line** ("Du hast 15 von 24 gesammelt") — the one number that
    answers "how is my library doing".
-2. **Second: the catalogue itself** — cards are the content; the view toggle
+2. **Second: the collection itself** — cards are the content; the view toggle
    sits with the count so switching is one glance away.
 3. **Third: per-set progress + milestones** — visible per row header, but
    quieter than the tiles.
@@ -256,18 +265,18 @@ block.
 | State Name | Trigger | What Changes Visually | What Changes Behaviorally | Notes |
 |------------|---------|----------------------|--------------------------|-------|
 | Loading | Catalogue not yet resolved | Count line "Karten werden geladen"; single placeholder line | Tiles inert (none exist yet) | Current behaviour kept |
-| Populated — flat view | Catalogue loaded, view A | Grid of all tiles; badges "Im Katalog"/"NEU"; `aus:` chips (round 2) | Tap → CardDetail; toggle active | Default view |
+| Populated — flat view | Catalogue loaded, view A | Grid of all tiles; badges "In der Sammlung"/"NEU"; `aus:` chips (round 2) | Tap → CardDetail; toggle active | Default view |
 | Populated — set view | View B | One row per set in §3 order (loose row last); per-set bars | Same tile actions | **Empty rooms are OMITTED — hidden, never rendered as "0 von 0"** (R2 canon) |
-| Newly pulled | Return from a pack this visit | The five fresh tiles get a one-time highlight (soft ring, ~1.5s) | none | Session-only; skipped reduced-motion |
-| New in the binder ("Das Heft hat Zuwachs") | **Mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids absent from the stamp of the visitor's previous visit | "Das Heft hat Zuwachs: N neue Karten." above the grid; new tiles carry "NEU" | Line disappears **once any new card is collected**; NEU badge clears per tile once opened | **Vertical Slice (GDD R8)**; owner = persistence system |
-| Catalogue milestones | **Overall-catalogue** collected count crosses 25/50/75 % first time | Header line + marker swap: 25 % gilded door sign ("Türschild vergoldet"), 50 % reading lamp lit ("Leselampe angezündet"), 75 % velvet rope ("Samtband gespannt") — each with its text label, never colour alone | Announcement from the **`catalogue:milestone-reached { pct }` single source** (§12); acknowledged in `flags.v1` so it never re-fires | Phase 2; per-room markers remain row affordances only |
-| Set complete | Per-set collected = total | Row header shows full bar; that room's tiles switch to the **gilt frame variant** + one-line unlock note in the catalogue header | Announcement "{Set} ist komplett." | Phase 2 — no per-set Diplom tile; frame persists until reset |
-| Everything complete | Whole catalogue at 100 % | **Elsas Ehrenmensch / Elsa's Honorary Human** capstone renders in the catalogue header (collage of collected photos, "Katalog I · abgeschlossen", completion date, lap number); the **"Das Gesamtverzeichnis"** plaque sits beside it, separate | Announcement "Elsas Ehrenmensch — der Katalog ist komplett." | Phase 3 (Full Vision); GDD R5 composition; reduced motion honoured |
+| Newly pulled | Return from a pack this visit | The four fresh tiles get a one-time highlight (soft ring, ~1.5s) | none | Session-only; skipped reduced-motion |
+| New in the collection ("{n} neue Schmuckstücke sind da!") | **Mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids absent from the stamp of the visitor's previous visit | "N neue Schmuckstücke sind da!" above the grid (copy-deck sync 2026-11-22, D5); new tiles carry "NEU" | Line disappears **once any new card is collected**; NEU badge clears per tile once opened | **Vertical Slice (GDD R8)**; owner = persistence system |
+| Catalogue milestones | **Overall-catalogue** collected count crosses 25/50/75 % first time | Header line + marker swap: 25 % gilded door sign ("Türschild vergoldet"), 50 % reading lamp lit ("Leselampe angezündet"), 75 % velvet rope ("Samtband gespannt") — each with its text label, never colour alone | Announcement "Sammlung: {pct} Prozent geschafft — {outfit}." / "Catalogue: {pct} per cent done — {outfit}." from the **`catalogue.milestone` single source** (§12), emitted on `catalogue:milestone-reached` (copy-deck sync 2026-11-22 — "Meilenstein erreicht" retired, no `!`); acknowledged in `flags.v1` so it never re-fires | Phase 2; per-room markers remain row affordances only |
+| Set complete | Per-set collected = total | Row header shows full bar; that room's tiles switch to the **gilt frame variant** + one-line unlock note in the collection header | Announcement "{set} ist komplett. Alle da." / "{set} is complete. All present." (copy-deck sync 2026-11-22 — `set.complete.announce`; the visible frame note `set.complete.note` is where the surface's one `!` lives, never the announcement) | Phase 2 — no per-set Diplom tile; frame persists until reset |
+| Everything complete | Whole catalogue at 100 % | **Elsas Ehrenmensch / Elsa's Honorary Human** capstone renders in the collection header (collage of collected photos, "Sammlung I · vollzählig" / "Collection I · all present", completion date, lap number); the **"Das Gesamtverzeichnis"** plaque sits beside it, separate | Announcement "Sammlung komplett — Elsas Ehrenmensch ist eingetragen." / "Collection complete — Elsa's Honorary Human is entered." (copy-deck sync 2026-11-22 — one sentence, em dash, no `!`) | Phase 3 (Full Vision); GDD R5 composition; reduced motion honoured |
 | Chase card (Porträtsaal — Das Hauptporträt / The Portrait of Record) | Catalogue flags `chase: true` | Tile renders as holo material with a **gold-glint keystone frame** (GDD R-G) | Normal unseen-first draw otherwise | Special reveal treatment undecided (§15) |
 | Sample / Mixed | Catalogue flagged `demo` | Demo/mixed note replaces the Zuwachs slot | Tiles work | F15 register: owner-directed copy |
-| Empty (catalogue truly empty) | Both sources resolve to 0 photos | Owner instruction block: "Noch keine Karten. Leg Elsa-Fotos in den Ordner photos und führe dann npm run photos aus." with the command in `<code>` | Count "Noch nichts da" | Distinguishes from error (below) |
-| Error (load failed) | Both fetches fail non-emptily — network/server fault | "Der Katalog lädt nicht gerade." + [Nochmal versuchen] button | Retry re-runs the load chain | New in refactor; never tells a visitor to run npm commands |
-| Reset confirm | "Von vorn" tapped | Modal per the **library's Reset SSOT (title/buttons)**: title "Von vorn?" / "Start over?"; body DE "Das löscht den Katalog, die Set-Fortschritte, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN "This clears the Catalogue, set progress, milestones and Elsa's Honorary Human — sound and language return to their defaults." (owner ruling overrides the SSOT's "das Diplom"; library to be synced); confirm "Alles löschen" / "Delete everything" (destructive-styled, never "Ja"); cancel "Abbrechen" / "Cancel", **default focus** | Only confirm clears; Escape/Abbrechen cancels | F26; persistence clears **all** `lucky-elsa.*` keys — collection state and preferences (canon 2026-11-22) |
+| Empty (catalogue truly empty) | Both sources resolve to 0 photos | Owner instruction block: "Noch keine Karten. Leg Elsa-Fotos in den Ordner photos und führe dann npm run photos aus." with the command in `<code>` | Count "Leer, aber bereit" / "Empty, but ready" (copy-deck sync 2026-11-22 — count-line slot only; the owner instruction stays verbatim) | Distinguishes from error (below) |
+| Error (load failed) | Both fetches fail non-emptily — network/server fault | "Die Sammlung kommt gleich wieder." / "The collection will be back shortly." + [Nochmal versuchen] button (copy-deck sync 2026-11-22 — `state.error.catalogue`; no `!` in an error) | Retry re-runs the load chain | New in refactor; never tells a visitor to run npm commands |
+| Reset confirm | "Von vorn" tapped | Modal per the **reset SSOT (copy deck §9: title, body, buttons)**: title "Von vorn?" / "Start over?"; body DE "Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN "This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default." (copy-deck sync 2026-11-22: `reset.body` is the single source — the spec-sounding "Set-Fortschritte" is gone, and the retired per-set diploma wording does not return); confirm "Alles löschen" / "Delete everything" (destructive-styled, never "Ja"); cancel "Abbrechen" / "Cancel", **default focus** | Only confirm clears; Escape/Abbrechen cancels | F26; persistence clears **all** `lucky-elsa.*` keys — collection state and preferences (canon 2026-11-22) |
 | Reset done | Confirm accepted | Count returns to 0; badges reset; frame variants gone; **"Ehrenmensch zurückgesetzt"** (capstone cleared); language returns to German default (all keys cleared) | Announcement "Von vorn. Alle Karten können wieder kommen." | |
 | Reduced motion | System setting | No crossfade, no highlight pulse, no lamp/gilt animation — variants applied statically | unchanged | Variants never rely on animation to be legible |
 
@@ -313,14 +322,14 @@ block.
 | Data Element | Source System | Update Frequency | Who Owns It | Format | Null / Missing Handling |
 |--------------|--------------|-----------------|-------------|--------|------------------------|
 | Card catalogue + set membership (`set`, `chase`) | Card source system (`photos.php` → `photos.json` → empty) | Page load (and after retry) | Card source system | photo objects with optional `set` field | Missing `set` → Neuzugänge (loose row); catalogue empty → owner instruction |
-| Collected set | Persistence system (`seen.v1`) | On each card open / pack reveal | Persistence system | id array | Missing → nothing collected |
+| Collected set | Persistence system (`seen.v2`) | On each card open / pack reveal | Persistence system | id array | Missing → nothing collected |
 | Set-completion snapshots | Persistence system (`sets.v1`, **GDD R-E contract**): snapshots only `{completedAt, memberCount, manifestStamp}` per completed room | On room completion | Persistence system | JSON map | Missing → room not completed; **no seen/total counts, no milestoneAcks, no frameUnlocked, no diploma in sets.v1** |
-| Capstone record (100 % reached) | Persistence system (`flags.v1` `diploma` field) | When the catalogue reaches 100 % | Persistence system | {date, lap} | Missing → capstone not rendered |
+| Capstone record (100 % reached) | Persistence system (`flags.v1` `diploma` field) | When the collection reaches 100 % | Persistence system | {date, lap} | Missing → capstone not rendered |
 | Milestone/visit flags | Persistence system (`flags.v1`, **GDD R-E contract**): `{milestones, lastManifestStamp, diploma, masterIndex}` | On relevant events | Persistence system | JSON map | Missing → first-visit defaults; **no lap integer, no lastSeenTotal** |
 | Thumbnail / display URLs | Card source system (thumbs; ≤720px display copies) | Render | Card source system | URL | Missing thumb → falls back to src; HEIC → browser conversion |
 | Crop anchor | Card source system (manifest `focus` field; default center 42%) | Render | Card source system | {x,y} percentages | Missing → default anchor |
 
-> **Rule**: The catalogue never writes state. Badges, bars, frames and milestones
+> **Rule**: The collection never writes state. Badges, bars, frames and milestones
 > are renders of persistence-owned data; every mutation (open card, confirm
 > reset) fires an event to the owning system.
 
@@ -346,7 +355,7 @@ block.
 
 | Transition | Trigger | Direction / Type | Duration (ms) | Easing | Interruptible? | Skipped by Reduced Motion? |
 |------------|---------|-----------------|---------------|--------|----------------|---------------------------|
-| Grid fill-in | Catalogue resolved | Tiles appear in place (no cascade in the catalogue — the room is already lit) | 0–150 | ease-out | Yes | Yes |
+| Grid fill-in | Catalogue resolved | Tiles appear in place (no cascade in the collection — the room is already lit) | 0–150 | ease-out | Yes | Yes |
 | View switch | Toggle | Crossfade A↔B | 180 | ease | Yes | Yes — instant swap |
 | Tile hover | Pointer | Lift + foil tilt | spring | — | Yes | Yes — static |
 | Fresh-pull highlight | Return from pack | Soft ring pulse | ~1500, once | ease | Yes | Yes — static ring, no pulse |
@@ -397,7 +406,7 @@ implementation blocker for this project.*
 | Set row header name + count | Row header panel (slightly raised velvet) | 4.5:1 | ≈ 10:1 | [x] |
 | Milestone marker label | Row header | 4.5:1 | ≥ 4.5 required (small text) | [ ] audit |
 | Tile plate text (tile variant) | Indigo plate | 4.5:1 | ≈ 10:1 | [x] |
-| Badges "Im Katalog" / "NEU" | Badge chip on tile | 4.5:1 | ≥ 4.5 required | [ ] audit |
+| Badges "In der Sammlung" / "NEU" | Badge chip on tile | 4.5:1 | ≥ 4.5 required | [ ] audit |
 | Zuwachs line / demo note | Page velvet | 4.5:1 | ≈ 8:1 | [x] |
 | ResetConfirm modal copy | Modal velvet | 4.5:1 | ≈ 11:1 | [x] |
 
@@ -405,7 +414,7 @@ implementation blocker for this project.*
 
 | Element | Colorblind Risk | Mitigation |
 |---------|----------------|------------|
-| Collected vs not-yet-collected tile | Hue-only difference would fail | Text badge "Im Katalog"; not-yet-collected tiles additionally show a desaturated photo + dashed frame — two non-colour channels |
+| Collected vs not-yet-collected tile | Hue-only difference would fail | Text state "gesammelt" / "noch nicht gesammelt" beside the check (the "In der Sammlung" badge is a location label, never the state); not-yet-collected tiles additionally show a desaturated photo + dashed frame — three non-colour channels |
 | Gilt frame variant | Gold reads as "special" by hue | Frame texture change + count line in the header reads "12 von 12" |
 | Milestone markers | Icon-only would fail | Every marker carries its text label |
 | Capstone vs normal tiles | — | The capstone is a distinct header object with its own label ("Elsas Ehrenmensch") |
@@ -427,13 +436,18 @@ transfers into the modal and returns to the originating tile on close.
 
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
-| View switch | "Ansicht: Nach Räumen." / "View: by room." (equivalent per language) | After the swap |
-| New in the binder | "Das Heft hat Zuwachs: {n} neue Karten." | Once per visit |
-| Catalogue milestone first-crossed | "Der Katalog: {pct} Prozent gesammelt. {Marker label}." | On the seen-change that crosses it |
-| Set complete | "{Set} ist komplett. Sein Rahmen leuchtet im Katalog." | On completion |
-| Everything complete | "Elsas Ehrenmensch — der Katalog ist komplett." | Once, at 100 % |
+| View switch | "Nach Räumen sortiert." / "Grouped by room." | After the swap |
+| New in the collection | "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" | Once per visit |
+| Catalogue milestone first-crossed | "Sammlung-Meilenstein erreicht: {pct} Prozent — {outfit}." | On the count change that crosses it |
+| Set complete | "{Set} ist komplett." (the room's frame note is visible copy, `set.complete.note`, not an announcement) | On completion |
+| Everything complete | "Sammlung komplett. Elsas Ehrenmensch ist eingetragen." | Once, at 100 % |
 | Reset confirmed | "Von vorn. Alle Karten können wieder kommen." | Immediately |
-| Load failed | "Der Katalog lädt nicht gerade." | On error state entry |
+| Load failed | "Die Sammlung lädt nicht gerade." | On error state entry |
+
+> *Copy-deck sync 2026-11-22 (D10–D13):* the announcements above are the deck's
+> single-source strings; the former "Die Sammlung: … Prozent gesammelt", "Ansicht:
+> Nach Räumen." and "Elsas Ehrenmensch — die Sammlung ist komplett." phrasings are
+> retired.
 
 **Cognitive load assessment**:
 
@@ -456,15 +470,15 @@ requires comparison across rooms to act.
 
 | Text Element | English Baseline Length | Max Characters | Expansion Budget | RTL Behavior | Overflow Behavior | Risk |
 |--------------|------------------------|----------------|-----------------|--------------|-------------------|------|
-| Section title "The Catalogue" / "Der Katalog" | 11 | 15 | 40 % | n/a | Head wraps | Low |
+| Section title "The Collection" / "Die Sammlung" | 11 | 15 | 40 % | n/a | Head wraps | Low |
 | Lede | ~70 | 100 | 40 % | n/a | Wraps to 2 lines | Low |
-| Count "{seen} of {total} collected" / "{seen} von {total} gesammelt" | ~26 | 36 + digits | 40 % | n/a | Wraps to 2 lines; number never truncates | Low |
+| Count "You have collected {n} of {total}." / "Du hast {n} von {total} gesammelt." | ~30 | 36 + digits | 40 % | n/a | Wraps to 2 lines; number never truncates | Low |
 | Set name pair (e.g. "New Acquisitions · Neuzugänge"; longest "The Garden Annex · Außenstelle Garten") | ~30 | 46 | 40 % | n/a | Ellipsis; full name in `title`; count sits outside the truncating span | Medium — longest fixed-space string |
 | Milestone labels ("Velvet rope strung" / "Samtband gespannt"; "Gilded door sign" / "Türschild vergoldet") | ~19 | 27 | 40 % | n/a | Wraps under the marker | Low |
-| Location badge "In the catalogue" / "Im Katalog" (not a state string); "NEW" / "NEU" — **R9 copy canon** | 16 / 3 | 22 / 6 | 40 % | n/a | Badge grows; tile plate reserves the row (fixed zones, card-detail.md §14) | Low |
+| Location badge "In the collection" / "In der Sammlung" (not a state string); "NEW" / "NEU" — **R9 copy canon** | 16 / 3 | 22 / 6 | 40 % | n/a | Badge grows; tile plate reserves the row (fixed zones, card-detail.md §14) | Low |
 | Set chip "from: {Set}" / "aus: {Set}" | 12 + set | 17 + set | 40 % | n/a | Chip truncates the set name at 12 chars + ellipsis | Medium |
-| Zuwachs "New in the binder: {n} new cards." / "Das Heft hat Zuwachs: {n} neue Karten." | 33 | 47 | 40 % | n/a | Wraps to 2 lines | Low |
-| Reset modal copy + buttons | ~90 / 14 / 7 | 128 / 20 / 10 | 40 % | n/a | Modal copy wraps to 4 lines; buttons stack | Medium |
+| Zuwachs "New in the collection: {n} new treasures have arrived!" / "{n} neue Schmuckstücke sind da!" | 31 | 44 | 40 % | n/a | Wraps to 2 lines | Low |
+| Reset modal copy + buttons | ~90 / 14 / 7 | 140 / 20 / 10 | 40 % | n/a | Modal copy wraps to 4 lines; buttons stack | Medium |
 | Owner instruction + `npm run photos` | ~70 | 100 | 40 % | n/a | Wraps; code string never breaks mid-token | Low |
 
 ---
@@ -491,7 +505,7 @@ requires comparison across rooms to act.
 - [ ] `reset:confirmed` clears every `lucky-elsa.*` key (verify all keys gone) and the UI re-renders to 0 in one frame
 - [ ] Milestone events fire exactly once per threshold for the **overall catalogue** (25/50/75 %, event `catalogue:milestone-reached`; re-fire test: reload, re-cross — no repeat)
 - [ ] Empty rooms are omitted from the set view entirely (no "0 von 0" headers rendered, including the loose row)
-- [ ] A tile opened from the catalogue leaves `?photo=` in the URL and removes it on close
+- [ ] A tile opened from the collection leaves `?photo=` in the URL and removes it on close
 - [ ] No direct `localStorage` writes from this section (code review check)
 
 **Accessibility**
@@ -504,14 +518,18 @@ requires comparison across rooms to act.
 - [ ] No text overflows in German at +40 % over the EN baseline, including the longest set-name pair and the reset modal
 - [ ] All strings from the copy deck; set-name pairs never rendered from different sources
 
+> *Copy-deck sync 2026-11-22 (D6, D20):* the count string is `progress.overall`
+> ("Du hast {n} von {total} gesammelt."); the reset modal's ceiling is 140
+> characters — the owner's Ton-und-Sprache clause overruns the old 128.
+
 ---
 
 ## 15. Open Questions
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| ~~Confirm the explorer-register set names~~ **RESOLVED 2026-11-22 (owner canon):** set names fixed to the archive-rooms register (§3 table: Der Ruhesaal/The Nap Wing, Außenstelle Garten/The Garden Annex, **Der Abfahrtsaal/The Departure Hall** — *water ruling: Elsa hates water, Die Nassabteilung/The Wet Collection was replaced and no wet content exists* —, Der Ballsaal/The Ball Room, Der Porträtsaal/The Portrait Room with the chase card Das Hauptporträt/The Portrait of Record, Der Wachsaal/The Guard Room, Neuzugänge/New Acquisitions); binder = Der Katalog / The Catalogue | owner | 2026-11-22 | RESOLVED |
+| ~~Confirm the explorer-register set names~~ **RESOLVED 2026-11-22 (owner canon):** set names fixed to the archive-rooms register (§3 table: Der Ruhesaal/The Nap Wing, Außenstelle Garten/The Garden Annex, **Der Abfahrtsaal/The Departure Hall** — *water ruling: Elsa hates water, Die Nassabteilung/The Wet Collection was replaced and no wet content exists* —, Der Ballsaal/The Ball Room, Der Porträtsaal/The Portrait Room with the chase card Das Hauptporträt/The Portrait of Record, Der Wachsaal/The Guard Room, Neuzugänge/New Acquisitions); binder = Die Sammlung / The Collection | owner | 2026-11-22 | RESOLVED |
 | Should the view choice persist across visits (`flags.v1`) or stay session-only? (Session-only keeps the landing promise intact; persistence serves returning readers.) | ux-designer + user | with first playtest | — |
-| Paging threshold for the flat view (~200 photos, PRD §9.2): paginate per 60, or virtualize? Owner's real catalogue size decides | user + frontend | when the catalogue exceeds 150 | — |
-| Chase-card special treatment in the draw and in the catalogue (always the holo slot? etched chase mark on Das Hauptporträt?) | game-designer | before draw rules ship | — |
-| ~~Does the Diplom open as a CardDetail card or deserve its own honours page?~~ **RESOLVED 2026-11-22 (owner canon):** single capstone **Elsas Ehrenmensch / Elsa's Honorary Human** in the catalogue header at 100 %, with the "Das Gesamtverzeichnis" plaque beside it; per-set diplomas do not exist | owner + ux-designer | 2026-11-22 | RESOLVED |
+| Paging threshold for the flat view (~200 photos, PRD §9.2): paginate per 60, or virtualize? Owner's real catalogue size decides | user + frontend | when the collection exceeds 150 | — |
+| Chase-card special treatment in the draw and in the collection (always the holo slot? etched chase mark on Das Hauptporträt?) | game-designer | before draw rules ship | — |
+| ~~Does the Diplom open as a CardDetail card or deserve its own honours page?~~ **RESOLVED 2026-11-22 (owner canon):** single capstone **Elsas Ehrenmensch / Elsa's Honorary Human** in the collection header at 100 %, with the "Das Gesamtverzeichnis" plaque beside it; per-set diplomas do not exist | owner + ux-designer | 2026-11-22 | RESOLVED |

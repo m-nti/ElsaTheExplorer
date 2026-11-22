@@ -1,0 +1,22 @@
+{
+  "threshold": 2,
+  "minTokens": 50,
+  "minLines": 5,
+  "reporters": ["console", "json", "html"],
+  "output": "reports/jscpd",
+  "absolute": true,
+  "ignore": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/styled-system/**",
+    "**/qa-shots/**",
+    "**/photos/**",
+    "**/legacy/vendor/**",
+    "**/legacy/**",
+    "**/reports/**",
+    "**/docs/**",
+    "**/design/**",
+    "**/*.min.js"
+  ],
+  "format": ["typescript", "javascript", "svelte", "css", "markdown"]
+}

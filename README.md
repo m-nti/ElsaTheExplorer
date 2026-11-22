@@ -110,7 +110,8 @@ photos.php
 robots.txt
 .htaccess
 assets/          (css, js, fonts, favicon.svg, og.png) and assets/vendor/heic2any/
-photos/          (your photos, plus photos/thumbs/, photos/converted/, photos/.htaccess)
+photos/          (your photos, plus photos/thumbs/, photos/converted/, photos/.htaccess,
+                  and photos/.cache/.htaccess — the cache deny file)
 demo/            (only while photos/ holds fewer than eight photos)
 photos.json      (only when you rely on the static manifest)
 ```
