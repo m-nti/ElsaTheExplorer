@@ -422,6 +422,12 @@
       "match": "Bad parameters → `400`",
       "status": "allowed",
       "reason": "False positive: English 'Bad parameters' (E-ORG-10), not the German noun Bad."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "the former name `Katalog` / `Catalogue` is retired",
+      "status": "allowed",
+      "reason": "Rename history (D-04b): the row must name the retired name to record the rename; it is not live copy."
     }
   ]
 }
