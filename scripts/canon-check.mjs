@@ -385,9 +385,22 @@ function maskHtmlRegions(line, state) {
   return { masked: out, state };
 }
 
-/** Only the page shell is HTML; `.htm` is accepted because a host may serve it. */
+/** Only the page shell is HTML and only Svelte components are templates. */
 function isHtmlFile(file) {
   return file.endsWith(".html") || file.endsWith(".htm");
+}
+
+function isSvelteFile(file) {
+  return file.endsWith(".svelte");
+}
+
+/**
+ * Markup files get the region mask and the markup reader: `index.html` and any
+ * `.svelte` component. A `.svelte` file is a template, not a module — its copy
+ * lives between tags, which is the surface #49 added.
+ */
+function isMarkupFile(file) {
+  return isHtmlFile(file) || isSvelteFile(file);
 }
 
 /**
@@ -396,11 +409,16 @@ function isHtmlFile(file) {
  * - `src/**`: string literals only. A module named `catalogue` or a local
  *   `const catalog` is code, not copy; only the text a visitor can be shown is
  *   in scope.
+ * - `.svelte`: the template — text nodes and copy-bearing attributes. Its
+ *   `<script>` and `<style>` bodies are masked before this runs: a component body
+ *   is code, exactly as `index.html`'s is, and copy that belongs in code lives in
+ *   a `.ts` module where the literal reader above still reads it (#49).
  * - copy deck: the DE and EN value cells of a keyed row.
  * - HTML: copy-bearing attribute values and text nodes (see `htmlSegments`).
  * - other docs: quoted strings — `"…"`, `*"…"*`, and German „…“.
  */
 function liveSegments(line, file, relativeFile) {
+  if (isSvelteFile(file)) return htmlSegments(line);
   if (relativeFile === "src" || relativeFile.startsWith(`src${sep}`)) {
     const segments = [];
     const literal = /"([^"\\\n]{1,500})"|'([^'\\\n]{1,500})'|`([^`\\\n]{1,500})`/g;
@@ -665,15 +683,16 @@ function main() {
     const firstSegment = relativeFile.split(sep)[0];
     sources.set(file, lines);
     lineCount += lines.length;
-    // HTML only: script/style/comment bodies are masked before scanning, with the
-    // state carried across lines. `sources` keeps the raw text for the allowlist.
-    let htmlState = "text";
+    // HTML and Svelte: script/style/comment bodies are masked before scanning,
+    // with the state carried across lines. `sources` keeps the raw text for the
+    // allowlist.
+    let markupState = "text";
     for (let index = 0; index < lines.length; index += 1) {
       let line = lines[index];
-      if (isHtmlFile(file)) {
-        const masked = maskHtmlRegions(line, htmlState);
+      if (isMarkupFile(file)) {
+        const masked = maskHtmlRegions(line, markupState);
         line = masked.masked;
-        htmlState = masked.state;
+        markupState = masked.state;
       }
       const lineNumber = index + 1;
       const hits = scanLine(line, file, firstSegment, lineNumber);

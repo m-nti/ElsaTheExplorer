@@ -278,3 +278,48 @@ describe("canon-check: report paths", () => {
     expect(report.scanned.filter((path) => path.includes("\\"))).toEqual([]);
   });
 });
+
+describe("canon-check: Svelte template surface (D12b)", () => {
+  const svelteHits = () => {
+    const { report } = fixture("svelte-template");
+    return report.violations.filter((violation) => violation.file === "src/App.svelte");
+  };
+
+  it("flags template text for the German and the English entity rule", () => {
+    const { code } = fixture("svelte-template");
+    expect(code).toBe(1);
+    const rules = svelteHits()
+      .filter((violation) => violation.line === 7 || violation.line === 8)
+      .map((violation) => `${violation.line}:${violation.rule}`);
+    expect(rules).toEqual(["7:entity-de", "8:entity-en"]);
+  });
+
+  it("flags copy-bearing attributes: alt, aria-label, title, placeholder", () => {
+    const lines = svelteHits()
+      .filter((violation) => violation.line > 8 && violation.line < 16)
+      .map((violation) => violation.line);
+    expect(lines).toEqual([11, 13, 14, 15]);
+  });
+
+  it("never reads a <script>, <style> or comment body as copy", () => {
+    // Line 3 (script literal) and line 20 (stylesheet content) are the ones a
+    // string-literal reader would flag; a hit on them is the false positive this
+    // masks. Line 25 proves the state closes.
+    expect(svelteHits().map((violation) => violation.line)).toEqual([
+      7, 8, 11, 13, 14, 15, 25,
+    ]);
+  });
+
+  it("leaves class/id hooks alone", () => {
+    const terms = svelteHits().map((violation) => violation.term);
+    expect(terms).not.toContain("katalog-grid");
+    expect(terms).not.toContain("katalog-liste");
+    expect(svelteHits().some((violation) => violation.line === 6)).toBe(false);
+  });
+
+  it("keeps the archival concept legal in Svelte markup", () => {
+    const { code, report } = fixture("clean");
+    expect(code).toBe(0);
+    expect(report.scanned).toContain("src/Clean.svelte");
+  });
+});
