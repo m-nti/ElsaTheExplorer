@@ -1,10 +1,12 @@
 name: CI
 
 on:
+  # The umbrella branch carries the build; PRs into it must be gated too, not only
+  # PRs into main. Without this, every feature PR reported "no checks".
   pull_request:
-    branches: [main]
+    branches: [main, design/explorer-foundation]
   push:
-    branches: [main]
+    branches: [main, design/explorer-foundation]
   schedule:
     - cron: '0 6 * * *'
 
