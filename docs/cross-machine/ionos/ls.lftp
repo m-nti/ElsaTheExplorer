@@ -1,0 +1,5 @@
+source ~/.config/elsa/ionos/common.lftp
+open sftp://IONOS_HOST
+cd IONOS_REMOTE_DIR
+ls -l
+bye

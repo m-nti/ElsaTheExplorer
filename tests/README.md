@@ -22,7 +22,7 @@ tests/
 | `npm run test` | Alias for the full Vitest run (same project until integration lands) |
 | `npm run test:e2e` | Playwright against `vite preview` on `127.0.0.1:4173` |
 | `npm run check` | `svelte-check --tsgo` (compiler API via `@typescript/native` 7) |
-| `npm run check:ts` | `tsc --noEmit` with TS 7 native |
+| `npm run check:ts` | `node ./node_modules/@typescript/native/bin/tsc --noEmit` — the 7.0.2 compiler by path, not `.bin/tsc` (install order) |
 | `npm run gate:contrast` | The token contrast gate alone |
 
 ## Gate order (CI)

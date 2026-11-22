@@ -1,0 +1,11 @@
+{
+  "maxBaseline": 0,
+  "entries": [
+    {
+      "file": "design\\spec.md",
+      "match": "\"Das Heft hat Zuwachs.\" is retained",
+      "status": "allowed",
+      "reason": "fixture: key written with the Windows separator, as an author on a Windows checkout would"
+    }
+  ]
+}

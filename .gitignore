@@ -39,6 +39,9 @@ tests/fixtures/image-sources.json
 # duplicate-code reports
 reports/
 
+# Playwright run artifacts (traces, videos, failure screenshots)
+test-results/
+
 # svelte-check artifacts
 .svelte-check/
 
