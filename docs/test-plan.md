@@ -1242,7 +1242,7 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 | Requirement | Unit | Integration |
 | --- | --- | --- |
-| F1 four cards / all if fewer (owner canon 2026-11-22 — PRD F1 still reads "five") | U-PACK-01, U-PACK-11 | E-JRN-03, E-JRN-09 |
+| F1 four cards / all if fewer (owner canon 2026-11-22; PRD F1 reads four cards) | U-PACK-01, U-PACK-11 | E-JRN-03, E-JRN-09 |
 | F2/F2a/F10 bilingual card content + imaginary stats label | U-CV-06, U-I18N-02/04 | E-JRN-06, E-JRN-13, E-IMG-08 |
 | F3 rarity belongs to the photo | U-RAR-01/02/04 | E-JRN-13 |
 | F4 ≥ 1 rare/holo per pack | U-PROMO-01/02/05 | E-JRN-03 |
