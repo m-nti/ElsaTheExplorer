@@ -3,7 +3,7 @@
 > **Status**: Draft · Reframe 3 (reveal camera; four-card pack)
 > **Owned By**: art-director
 > **Last Updated**: 2026-11-22
-> **Art Director Sign-Off (AD-ART-BIBLE)**: APPROVED 2026-11-22 — gate re-run clean (5 findings + 3 residues fixed)
+> **Art Director Sign-Off (AD-ART-BIBLE)**: APPROVED 2026-11-22 · REVISED 2026-11-22 (D12a photo band + plate clamp; verdict APPROVE, 0 blocking findings)
 
 Scope note: this is a **refinement** of the shipped dark parlour look, not a redesign —
 but the *product definition* has been sharpened, and with it every visual sentence below.
@@ -702,24 +702,68 @@ the duplicated px override blocks that re-specify `.card--full` at ≤ 760px and
 ≤ max-height 780px. The foil geometry becomes intrinsically resolution-independent: an
 0.05em etch line on a 340px card and a 90px tile are the *same* physical foil.
 
-**Zone proportions — the overflow law (unchanged, now enforced by the em root).**
-Inner height = 100%. Grid rows are percentage bands with hard clamps:
+**Zone proportions — the overflow law (D12a ruling, #47: photo band + plate clamp; enforced by the em root).**
+Inner height = 100%. Grid rows are percentage bands with hard clamps. The reference frame for every
+pixel figure below is **340 × 485.71 px** (`sizes.card-max`, aspect `0.70`), plate inner height
+**469.71 px** (485.71 − 2 × 8 px), em root **13.6 px** (`4cqw` of 340):
 
 | Zone | Full card | Drop card | Binder tile | Clamp rules |
 | --- | --- | --- | --- | --- |
-| Plate (number/name/mood/rarity) | **15%** | 17% | 16% | name ≤ 2 lines (`-webkit-line-clamp: 2`), number 1, mood 1 (ellipsis) |
-| Photo window | **31%** | 36% | 42% | fixed band; window holds the §3 window-ratio (4:5 w:h) inside the band; `object-position` per-photo; foil caps apply |
-| Strip (edition + stars) | **4.5%** (min 24px) | 5% | 5% | stars never wrap; kind truncates |
-| Copy panel (keyword/copy/print) | **22%** | 18% | 16% | keyword 1, copy ≤ 3 (≤ 2 on drop, already clamped), print ≤ 2 |
-| Stats (label + 3 tiles) | **13%** | 12% | 11% | key 1 line, value 1 line; bar decorative |
-| Foot (serial/credit) | **4.5%** (min 22px) | 5% | 5% | serial 1; credit is first to be hidden under height pressure |
-| Gutters (distributed 4–8px steps) | **10%** | 7% | 5% | never collapses; the foil edge keeps its margin |
+| Plate (name; number + mood + rarity chip) | **15.5%** | 15.5% | 15.5% | **two rows** — row 1: name, ≤ 1 line (ellipsis); row 2: number 1, mood 1 (ellipsis), rarity chip shares the row |
+| Photo window | **41.5%** | 41.5% | 44% | fixed band; the §3 window-ratio (4:5 w:h) fills the band height — **no block padding**; `object-position` per-photo; foil caps apply |
+| Strip (edition + stars) | **5.5%** (min 24px) | 5.5% (min 24px) | 5.5% | stars never wrap; kind truncates |
+| Story / copy panel (keyword/copy/print) | **19.5%** | 19.5% | 16% | keyword 1, copy ≤ 3 (≤ 2 on drop, already clamped), print ≤ 2 |
+| Stats (label + 3 tiles) | **8.5%** | 8.5% | 9% | key 1 line, value 1 line; bar decorative |
+| Foot (serial/credit) | **5.0%** (min 22px) | 5.0% (min 22px) | 5.5% | serial 1; credit is first to be hidden under height pressure |
+| Gutters (distributed over the 5 gaps) | **4.5%** | 4.5% | 4.5% | never collapses; the foil edge keeps its margin |
+
+Each column sums to exactly 100% (15.5 + 41.5 + 5.5 + 19.5 + 8.5 + 5 + 4.5 = 100; 15.5 + 44 + 5.5
++ 16 + 9 + 5.5 + 4.5 = 100). **The drop card is the full column** — the 17/36 split was drift, and
+the drop card differs only in its copy clamp (≤ 2 lines). This table **supersedes** the
+15 / 31 / 4.5 / 22 / 13 / 4.5 / 10 % set that ADR-0011 §1 ratified verbatim; the amendment is
+recorded on PR #41, and §8 remains the source the ADR follows.
+
+**Arithmetic — every band, at the reference card (469.71 px plate):**
+
+| Band | Ratified | px | Δ vs 15/31/4.5/22/13/4.5/10 | Check |
+| --- | --- | --- | --- | --- |
+| Plate | 15.5% | 72.81 | +2.35 | holds its clamp column: 72.81 − 16 px padding − 4 px row gap = **52.81 px**; name line 25.65 (19 px × 1.35) + metadata row 21 (11 px chip text + 2 × 4 px padding + 2 × 1 px border) = **46.65 px** → **6.16 px slack** |
+| Photo | 41.5% | 194.93 | +49.32 | window width = 194.93 × 0.8 = **155.94 px** = **45.87 % of 340 px** (≥ 153 px) |
+| Strip | 5.5% | 25.83 | +4.70 | floor 24 px → **+1.83 px**; no payer needed |
+| Story | 19.5% | 91.59 | −11.74 | need 88.80 px → **+2.79 px** |
+| Stats | 8.5% | 39.93 | −21.14 | need 34 px → **+5.93 px** |
+| Foot | 5.0% | 23.49 | +2.35 | floor 22 px → **+1.49 px**; no payer needed |
+| Gutters | 4.5% | 21.14 | −25.83 | 5 gaps × **4.23 px** — above R3's 4 px minimum, so **R3 is unused** |
+| **Sum** | **100%** | **469.71** | **0.00** | the px column sums to the plate inner height |
+
+The photo's **+49.32 px** is paid for by the gutters (−25.83) and the stats bay (−21.14); the plate,
+strip and foot take +2.35 / +4.70 / +2.35 and the story gives −11.74, so the column nets to zero.
+Against the shipped card the photograph **loses 2.6 %, not 35 %**: 160.05 px in the 46 % band (with
+its 16 px block padding) → 155.94 px here; against ADR-0011's ratified 31 % it **gains 50.4 %**
+(103.69 → 155.94 px). The photo is the only lit object on the card (§1), which is why the band
+moved and why it now fills its band edge to edge.
+
+The plate's one-line name is the ruling, not a shortfall: a second name line needs 25.65 px more,
+i.e. 72.3 px of a 52.81 px column. The shipped component already renders the name
+`white-space: nowrap`, so nothing on the card changes shape to meet this — the clamp is declared
+honestly. The number + mood + chip row is what the 15.5 % buys: at 15 % the same column is 46.5 px
+against a 55.4 px three-row stack, which is why mood used to be dropped.
+
+**Floors and R3.** Both px floors hold at the reference card (strip 25.83 ≥ 24, foot 23.49 ≥ 22), so
+no bay falls back on R3's designated payer and the gutters keep their full 4.5 %: 21.14 px over
+5 gaps = **4.23 px per gap**, inside the 4–8 px step and above R3's 4 px minimum.
+
+**Below the reference size the proportions are scale-free.** Every internal length is in `em`
+against the `4cqw` root, so at the 180 px `card-min` (root 7.2 px, 0.529 ×) the photo band is
+103.20 px tall and its window 82.56 px wide — still **45.87 % of 180 px**; the strip and foot px
+floors scale with the root under R1.
 
 Height-pressure order (what gets cut first, in order): credit → mood → print line →
-copy clamp tightens. The photo band and the plate name never cut. The card body keeps
-the §3 card-ratio `0.70` in every variant. The frame wins: zones reserve fixed
-proportions; text that doesn't
-fit clamps, never clips, never crosses a zone boundary, never pushes a neighbour.
+copy clamp tightens. **D12a:** the mood step no longer frees height — the rarity chip keeps row 2 —
+so dropping mood costs a line of text, not a band. The photo band and the plate name never cut. The
+card body keeps the §3 card-ratio `0.70` in every variant. The frame wins: zones reserve fixed
+proportions; text that doesn't fit clamps, never clips, never crosses a zone boundary, never pushes
+a neighbour.
 
 **Material language retained through the refactor** (non-negotiable inventory): the pearl
 rim band gradient; the `#2c2636 → #17151c` plate ramp; the 118° band family and its
