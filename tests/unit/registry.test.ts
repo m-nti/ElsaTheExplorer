@@ -20,8 +20,10 @@
  *    the deck. When an owner document changes, this gate names the entry to
  *    update instead of letting the registry rot into a second source of truth.
  *
- * No copy values live in the registry — the deck is SSOT, including the
- * one-exclamation rule (§0.4.4) — and no YAML library is added for it.
+ * The registry carries no copy value except a set's own name (`display_de`/
+ * `display_en`/`chip_de`/`chip_en`), which is the cross-document fact itself and
+ * is mirrored against deck §6.2 above. The deck stays SSOT for the string, the
+ * budget and the one-exclamation rule (§0.4.4). No YAML library is added.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
