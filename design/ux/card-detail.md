@@ -138,7 +138,7 @@ Desktop (≥1120px, ≥850px tall — side-by-side layout, current behaviour kep
 ║   │  Noch ein    │   │ │ PLATE  Nr 04 · name (foil) │ │          ║
 ║   │  Pack        │   │ │        Laune · aus: Ruhesaal  │ │  ← plate │
 ║   │              │   │ ├────────────────────────────┤ │          ║
-║   │  Foto        │   │ │        PHOTO WINDOW        │ │  ~40–46% │
+║   │  Foto        │   │ │        PHOTO WINDOW        │ │  41.5%   │
 ║   │  speichern   │   │ │      (focus-anchored)      │ │   height │
 ║   │              │   │ ├────────────────────────────┤ │          ║
 ║   │  Teilen      │   │ │ Elsa the Explorer · 1. Aul │ │  ← credit│
@@ -181,32 +181,23 @@ everything fits from 320×480 up.
 The card face is a **fixed set of proportional bands**. These requirements are
 binary and testable; they exist to kill the reported defect permanently.
 
-**Wireframe — the six bands (percentages of card inner height):**
+**Bands — seven bays (six content + gutters), percentages of the card plate's inner height.**
+These are the D12a values from `design/art/art-bible.md` §8, which is the authority; the
+photograph is the only lit object, so it takes the largest content band.
 
-```
-┌────────────────────────────────┐  ─┐
-│ ███ PLATE ███                  │   │ 1 · plate — auto, ≤18%
-│   Nr 04 · KARTENNAME (≤2 ln)   │   │   number, name, mood, rarity chip,
-│   Laune: messiwoll · aus: Ruhesaal│   │   set chip, 2.-Auflage stamp (r2)
-├────────────────────────────────┤  ─┤
-│                                │   │ 2 · photo window — flexible,
-│         PHOTOGRAPH             │   │   min 34% of card height;
-│         (cover, focus anchor)  │   │   nothing ever overlaps it
-│                                │   │
-├────────────────────────────────┤  ─┤
-│ Elsa the Explorer · 1. Auflage │   │ 3 · credit strip — fixed band
-│ ●●●●○ (stars, own row)         │   │   (~7%): edition credit + stars;
-├────────────────────────────────┤  ─┤   never painted over the photo
-│ ELSA-MOMENT                    │   │ 4 · Elsa-Moment — keyword +
-│ sentence (wraps in band)       │   │   sentence + "Im Bild" note,
-│ Im Bild: …                     │   │   clamp 14% max
-├────────────────────────────────┤  ─┤
-│ FANTASIEWERTE · NUR ZUM SPASS  │   │ 5 · Fantasiewerte label +
-│ [7/10]  [9/10]  [3/10]         │   │   3 stat chips (~12%); every
-├────────────────────────────────┤  ─┤   value fully inside its chip
-│ 04/24         Elsa the Ex · 1A │   │ 6 · serial foot — fixed ≥5%:
-└────────────────────────────────┘  ─┘   serial + credit + edition
-```
+| Bay | % | Content and clamp |
+|---|---|---|
+| 1 · plate | **15.5** | row 1: name, **one line with ellipsis**; row 2: number, mood (one line), rarity chip |
+| 2 · photo window | **41.5** | 4:5 window filling its band (no block padding), `object-position` from the focus anchor; nothing overlaps it |
+| 3 · credit strip | **5.5** | edition credit + stars, own row, never painted over the photo |
+| 4 · story | **19.5** | keyword + sentence (≤ 3 lines) + "Im Bild" note |
+| 5 · stats | **8.5** | Fantasiewerte label + 3 stat chips, every value inside its chip |
+| 6 · foot | **5.0** | serial + credit + edition |
+| 7 · gutters | **4.5** | five gaps, never collapses; the foil edge keeps its margin |
+
+At the 340 × 485.71 px reference the plate's inner height is 469.71 px and the photo window is
+**155.94 px wide (45.87 % of card width)**. Tile cards use the Binder-tile column from §8
+(15.5 / 44 / 5.5 / 16 / 9 / 5.5 / 4.5).
 
 **L1 — Fit formula owns the chrome, not a magic number.**
 The card slot width is `min(340px, 38vw, (100svh − chrome) × 0.70)` where
@@ -218,10 +209,9 @@ Rationale: the defect class "stat clipped at the bottom" comes from the slot
 being sized for a chrome estimate that broke at small heights.
 
 **L2 — Every zone is a band in a fixed grid.**
-`card--full` keeps `aspect-ratio: 0.70` (0.58 below 380px width) and lays its
-six zones out on `grid-template-rows` with the proportions above; zones may
-shrink their *inner* font (§5.3 zone rules) but may never push, overlap or
-starve a neighbour. Absolute positioning inside a band may not escape the
+`card--full` keeps `aspect-ratio: 0.70` (the 0.58 narrow-width variant is retired, ADR-0011 R5)
+and lays its seven bays out on `grid-template-rows` with the proportions above; zones may
+shrink their *inner* font (§5.3 zone rules) but may never push, overlap or starve a neighbour. Absolute positioning inside a band may not escape the
 band. Decorative foil layers (rays, glitter, glare) may cover the card but
 never carry content.
 
@@ -248,8 +238,9 @@ scripted geometry checks, not by eyeballing.
 The photograph uses `object-fit: cover` with a **focus anchor**: the manifest's
 optional `focus` field `{x, y}` percentages, default `center 42%` (faces sit
 high in Elsa's photos). There is no in-card user zoom in this round — pinch
-zooms the page (browser default, allowed and unblocked). Display copies stay
-≤720px (`view`); the **original** is used only by "Foto speichern". A photo
+zooms the page (browser default, allowed and unblocked). Display copies are the
+`detail` rung (1200 px) per ADR-0008 — `view` is the deprecated download alias, not
+a display rendition; the **original** is used only by "Foto speichern". A photo
 zoom/magnify affordance is deliberately deferred (§15).
 
 **Holo / foil treatment — adopted from the reference study** (`holo-card-ref.html`,
@@ -272,11 +263,11 @@ what follows is what the card should additionally adopt):
 | Component Name | Type | Zone | Purpose | Required? | Reuses Existing Component? |
 |----------------|------|------|---------|-----------|---------------------------|
 | `CardDetail` | **Svelte 5 component** (one line: dialog shell — chrome rows, card slot, chevrons, status/hint, focus + key handling) | dialog | The reading room | Yes | Refactor of `#card-dialog` |
-| `CardFace` (variant `card--full`) | **Svelte 5 component** (one line: the six-band card renderer shared with tiles/pack via size variants) | card slot | The full card | Yes | Refactor of `cardElement(size="full")` |
+| `CardFace` (variant `card--full`) | **Svelte 5 component** (one line: the seven-bay card renderer shared with tiles/pack via size variants) | card slot | The full card | Yes | Refactor of `cardElement(size="full")` |
 | `.card__plate` (+ number, name, mood, rarity chip) | Composite | band 1 | Identity | Yes | Yes |
 | `.card__set-chip` ("aus: {Set}") | Chip | band 1 | Set membership — **GDD R1, Vertical Slice** (also on drop cards); `new-acquisitions` cards show no chip | Yes (VS) | New |
 | `.card__stamp` ("2. Auflage") | Stamp chip | band 1 | Second-lap pulls — **GDD R6, Phase 3** (lap derived per R-H at pull time); decorative, the dialog stamp line is its text form | Phase 3 | New |
-| `.card__wing-frame` | Frame variant | card frame (band-independent) | **GDD R3b — completed-room frame variant on the six-band face (Vertical Slice)**: the same gilt frame the room's tiles wear, rendered around the dialog card; **decorative only (R10)** — announced nowhere, carries no state | Yes (VS) | Same frame tokens as `.shelf__gilt` |
+| `.card__wing-frame` | Frame variant | card frame (band-independent) | **GDD R3b — completed-room frame variant on the seven-bay face (Vertical Slice)**: the same gilt frame the room's tiles wear, rendered around the dialog card; **decorative only (R10)** — announced nowhere, carries no state | Yes (VS) | Same frame tokens as `.shelf__gilt` |
 | `.card__photo` (+ img, rays, frame, focus anchor) | Composite | band 2 | The photograph is the art | Yes | Yes |
 | `.card__strip` (credit + stars) | Band | band 3 | Edition + rarity stars | Yes | Yes (moved into its own band per L3) |
 | `.card__line` (Elsa-Moment, copy, "Im Bild") | Panel | band 4 | The card's story | Yes | Yes |
@@ -379,7 +370,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | Rarity | Card source system (from the photo's own id — F3) | Stable per photo | Card source system | `common\|rare\|holo` | n/a — identity must not drift |
 | Set membership / chase flag / edition stamp | Card catalogue (`set`, `chase`) + persistence (`flags.v1` lap) | On open | Card source system / persistence respectively | string / boolean | Missing set → no chip; missing stamp → none |
 | Focus anchor | Card source system (manifest `focus`) | On render | Card source system | {x,y}% | Missing → `center 42%` |
-| Display image / original | Card source system (`view` ≤720px / `src` original) | On open | Card source system | URL (+ HEIC flag) | HEIC → conversion; failure → fallback panel |
+| Display image / original | Card source system (`detail` 1200 px on open / `download` 1600 px on save; never the original) | On open | Card source system | URL (+ HEIC flag) | HEIC → conversion; failure → fallback panel |
 | Collected set | Persistence system (`seen.v2`) | On open (idempotent if already present) | Persistence system | id array | Storage refused → session-only, silent |
 | Share URL | Persistence system (lang) + current photo id | On share | Persistence system owns lang; the dialog composes the URL | absolute URL | n/a |
 | Catalogue position | Card source system (index of id) | On open/navigate | Card source system | {number, total} | n/a |
@@ -535,7 +526,7 @@ numbers are read (F2a), preventing misreading them as data.
 | Card name | catalog-driven | 24 (2 lines in band 1) | 40 % | n/a | Wraps to 2 lines; then font steps down one cqw clamp (never truncates a name) | Medium — **HIGH PRIORITY for localization**: band 1 is fixed |
 | Mood ("Laune: …") | catalog-driven | 20 | 40 % | n/a | Wraps inside band 1's mood row | Low |
 | Credit strip "Elsa the Explorer · 1. Auflage" | ~28 | 40 | 40 % | n/a | Fixed band per L3; letter-spacing steps down, then wraps to 2 short lines — **never** overlaps the photo | Medium — **HIGH PRIORITY**: the defect zone |
-| Elsa-Moment sentence | catalog-driven | 96 (band clamp) | 40 % | n/a | Wraps within band 4; band 4 clamps at 14% and the copy font steps down once; last resort drops the "Im Bild" line to keep the sentence | Medium — **HIGH PRIORITY** |
+| Elsa-Moment sentence | catalog-driven | 96 (band clamp) | 40 % | n/a | Wraps within band 4; band 4 is 19.5 % and the copy clamps at 3 lines; the font steps down once; last resort drops the "Im Bild" line to keep the sentence | Medium — **HIGH PRIORITY** |
 | "Im Bild: …" note | ~30 | 44 | 40 % | n/a | First thing to yield (see above); never the sentence | Low |
 | Fantasiewerte label ("Imaginary stats · just for fun" / "Fantasiewerte · nur zum Spaß") | 30 | 42 | 40 % | n/a | Wraps to 2 short lines above the chips | Low |
 | Stat keys + values | manifest-driven | key 12, value 4 | 40 % | n/a | Key wraps inside the chip (L4 reserves the value box) | Low |
@@ -562,10 +553,10 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] Card navigation swap completes within 150ms of the keypress (library SSOT)
 
 **Layout & Rendering**
-- [ ] The dialog never scrolls at any listed viewport; all six bands visible simultaneously
+- [ ] The dialog never scrolls at any listed viewport; all seven bays visible simultaneously
 - [ ] All §6 states render correctly (front, flipped, navigating, HEIC converting, image error, share states, completed-room frame, capstone plaque, reduced motion, deep link)
 - [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v2` write occurs
-- [ ] Photo crop honours the `focus` anchor; the display copy never exceeds 720px; "Foto speichern" delivers the original filename
+- [ ] Photo crop honours the `focus` anchor; the card renders the `detail` rung (1200 px), never the original; "Foto speichern" delivers the original filename
 - [ ] Holo cards show the adopted halo + ground shadow dressing; reduced motion shows both static
 
 **Input**
