@@ -9,10 +9,25 @@ const script = fileURLToPath(new URL("../../scripts/pre-push-refs.sh", import.me
 const zero = "0".repeat(40);
 const dirs: string[] = [];
 
+// git exports GIT_DIR/GIT_WORK_TREE to hooks. This test runs inside the pre-push
+// hook, so without sanitising the environment its fixture commits would land in
+// the real repository instead of the temp one.
+const cleanEnv = { ...process.env };
+for (const key of [
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_INDEX_FILE",
+  "GIT_COMMON_DIR",
+  "GIT_OBJECT_DIRECTORY",
+]) {
+  delete cleanEnv[key];
+}
+
 function repo() {
   const dir = mkdtempSync(join(tmpdir(), "prepush-"));
   dirs.push(dir);
-  const git = (...args: string[]) => spawnSync("git", args, { cwd: dir, encoding: "utf8" });
+  const git = (...args: string[]) =>
+    spawnSync("git", args, { cwd: dir, encoding: "utf8", env: cleanEnv });
   git("init", "-q");
   git("config", "user.email", "test@example.com");
   git("config", "user.name", "test");
@@ -23,7 +38,7 @@ function repo() {
 }
 
 function run(dir: string, head: string, stdin: string) {
-  return spawnSync("sh", [script, head], { cwd: dir, input: stdin, encoding: "utf8" });
+  return spawnSync("sh", [script, head], { cwd: dir, input: stdin, encoding: "utf8", env: cleanEnv });
 }
 
 afterEach(() => {
