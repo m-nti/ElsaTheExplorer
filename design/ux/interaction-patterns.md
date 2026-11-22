@@ -60,7 +60,7 @@ Non-negotiable constraints that shape every pattern:
    household *du* register, museum-catalogue dry humor, no marketing voice.
    The brand name **Elsa the Explorer** is fixed; taglines localize.
 3. **Reduced motion is a first-class state**: with
-   `prefers-reduced-motion: reduce`, all four pack cards appear at once, no
+   `prefers-reduced-motion: reduce`, all four cards render in the final grid at first paint, one soft tick, no `inert` phase,
    foil movement, no confetti. Every pattern names its fallback explicitly.
 4. **No color-only information**: rarity, progress, and state are always
    carried by text, shape, or count as well.
@@ -103,8 +103,7 @@ implementation change.
 | Card Tilt & Foil Material | Game-Specific | Holo-as-material: pointer tilt + layered foil response | Card Lightbox (exhibit card); static foil on tiles/drop cards | Draft |
 | Card Flip | Game-Specific | Exhibit card flips over like a physical object | Card Lightbox | Draft |
 | Card Browsing (Arrows / Swipe) | Navigation | Walk the catalogue from inside the lightbox | Card Lightbox | Draft |
-| Pack Roving Arrows | Navigation | `←`/`→` focus roving over the four dealt cards (pack dialog only) | Pack Dialog | Draft |
-| Pack Scroll-Snap Swipe | Navigation / Layout | ≤ 760 px scroll-snap carousel for the dealt cards | Pack Dialog (mobile) | Draft |
+| Pack Roving Arrows | Navigation | `←`/`→` roving over the settled drop cards, `↑`/`↓` row-jump in the 2 × 2 (pack dialog only) | Pack Dialog | Draft |
 | Share Button | Input | Native share sheet with clipboard fallback | Card Lightbox, (later: Elsas Ehrenmensch) | Draft |
 | Save / Download Link | Input | Download the original photo | Card Lightbox | Draft |
 | Reset with Confirmation | Input / Feedback | Destructive "Von vorn" behind a one-line confirmation | Binder header | Draft |
@@ -176,11 +175,11 @@ implementation change.
 |-------|--------|---------------|----------|----------|-------|
 | Opening | Dialog scales from 0.96 + backdrop fades to night-dark veil | `showModal()` from trigger | Open | 200 ms ease-out | soft single tick (modal-open variant, quieter than card ticks) |
 | Active | Backdrop blocks pointer + keyboard access to the page; page behind must not scroll | — | — | — | — |
-| Pack dialog — dismiss (explicit) | — | Close button (✕), or `Escape` | Dialog closes; focus returns to the stage trigger. **Live at any time, including mid-reveal — closing mid-reveal is a deliberate skip** (see below) | 150 ms ease-in | modal-close (subtle downward tick) |
+| Pack dialog — dismiss (explicit) | — | Close button (✕), or `Escape` | Dialog closes; focus returns to the stage trigger. **Live at any time, including mid-reveal — closing mid-reveal is a deliberate skip** (see below) | 160 ms ease-in | modal-close (subtle downward tick) |
 | Pack dialog — mid-reveal | Tear animation running, `opening === true` | Backdrop click | **Ignored — mis-tap protection.** The backdrop is inert during the reveal; a stray tap on the veil must never kill the haul | — | — |
-| Pack dialog — skip semantics | — | ✕ or `Escape` mid-reveal | Deliberate skip: the reveal stops, audio stops, cards already revealed are marked "gesammelt", the remainder is not; **the pack can be reopened immediately — no cooldown, no lock** | 150 ms ease-in | modal-close |
-| Card lightbox — dismiss (explicit) | — | Close button, `Escape` | Closes; focus returns to the tile that opened it | 150 ms ease-in | modal-close |
-| Card lightbox — dismiss (implicit) | — | Click on the backdrop itself (only when `event.target === dialog`) | Same as explicit close | 150 ms ease-in | modal-close |
+| Pack dialog — skip semantics | — | ✕ or `Escape` mid-reveal | Deliberate skip: the reveal stops, audio stops, cards already revealed are marked "gesammelt", the remainder is not; **the pack can be reopened immediately — no cooldown, no lock** | 160 ms ease-in | modal-close |
+| Card lightbox — dismiss (explicit) | — | Close button, `Escape` | Closes; focus returns to the tile that opened it | 160 ms ease-in | modal-close |
+| Card lightbox — dismiss (implicit) | — | Click on the backdrop itself (only when `event.target === dialog`) | Same as explicit close | 160 ms ease-in | modal-close |
 | Inert input (pack dialog, mid-reveal) | — | Backdrop click only | Ignored; ✕ and `Escape` remain live — the close button is never disabled during the reveal | — | — |
 
 **Accessibility**:
@@ -190,7 +189,7 @@ implementation change.
 - Deep-link open (`?photo=<id>`): the lightbox opens on load without a prior trigger; closing it returns focus to the stage trigger.
 - URL behavior: opening a card writes `?photo=<id>` (via `replaceState`); closing removes it. The pack dialog does not touch the URL. One-line rule: patch only the `photo` param on a URL built from `location.href` — `location.hash` is never assigned, so a `#ausstellung/…` fragment survives (full rule: Card Browsing → URL & fragment preservation).
 
-**Animation spec** (reduced-motion fallback): scale transitions are replaced by a plain fade at 50 % duration (100 ms open / 75 ms close).
+**Animation spec** (reduced-motion fallback): open is `--elsa-dur-dialog-in` **200 ms** `--elsa-ease-out`, close is `--elsa-dur-dialog-out` **160 ms** `--elsa-ease-in` (faster than it opens), both from `design/art/motion-sheet.md` §3. Reduced motion: scale is dropped, opacity remains — a ~100 ms fade, no scale, both ways (motion-sheet §5).
 
 **Implementation Notes** (Svelte 5): `<PackDialog>` and `<CardLightbox>` wrap the native `<dialog>`; keep the backdrop-click guard on the lightbox. On the pack dialog, bind the backdrop-click guard **only when `opening === false`** — during the reveal the backdrop is deliberately inert (mis-tap protection), after reveal-complete everything is live (backdrop click closes, same as the lightbox). ✕ and `Escape` are never disabled; the close handler performs the skip bookkeeping (stop audio, mark revealed cards "gesammelt", discard the rest). On the `close` event, restore focus inside a microtask after the native reset so the refocused target wins. Watch the one trap: the "Noch ein Pack" button closes the lightbox and reopens the pack dialog within ~160 ms — the focus chain must land on the reopened pack dialog, not the page.
 
@@ -237,26 +236,34 @@ implementation change.
 
 **Interaction Specification**:
 
+**The model — one card in focus, then the next, then the camera pulls back.** The reveal is no longer a staggered render of the whole row: it is a **focus beat per card** followed by a single pull-back into the settled grid (2 × 2 at ≤ 760 px, one row at ≥ 761 px). The composition — the reveal clock, beat order, and totals — is `design/ux/pack-opening.md` §10.1; the durations are the `--elsa-*` tokens of `design/art/motion-sheet.md` §3. The table below quotes those values so a reviewer does not have to open two files; **the sheet owns them, and a value changes there first.**
+
 | State | Visual | Input trigger | Response | Duration | Audio |
 |-------|--------|---------------|----------|----------|-------|
-| Sachet opening | Pack dialog shows the sachet graphic tearing at center viewport | Pack open | Sachet tear + flash; drop row still empty | 900 ms ease-out | Pack Rip |
-| Card arriving (×4) | Slot `i` receives card; entrance: rise + settle; foil glare sweeps once | Timed, `index * 200 ms` stagger | Card becomes interactive on settle | 200 ms stagger, ~700 ms settle each | Card Tick per card; Rare Chime / Holo Shine for non-commons |
-| Highest-rarity arrival (pos. 3/4) | Strongest foil material; confetti burst "big" if holo | Timed | Same, plus celebration | as above | Holo Shine + celebration |
-| Settled | All four cards in row, interactive, hint line visible: "Tippe eine Karte an, wisch zur nächsten." / "Tap a card, swipe to the next." (copy-deck sync 2026-11-22) | — | Cards openable → Card Lightbox | — | — |
-| Reduced motion | **All four cards appear at once, immediately** — no sachet, no stagger, no confetti; hint and copy carry the beat instead | Pack open | Cards laid out synchronously; still ≥1 holo, still ordered so the holo is printed last in the DOM row | 0 ms | Rip skipped; a single soft tick on layout (no dramatic audio for skipped drama — per `accessibility-requirements.md`) |
-| Fewer than 4 photos | Haul = every photo; no empty slots, no placeholders | — | Same rules, `PACK_SIZE = min(4, photos)` | as above | as above |
-| Second lap (all seen) | Each card wears the "2. Auflage / Second edition" stamp; restart announced before the reveal: "Das waren alle Karten. Jetzt beginnt das Pack von vorn." / "That was every card. The pack starts over." | — | Same sequence | as above | as above |
+| Theatre (sachet) | Sachet tears at centre viewport; the stage sits at `focus(0)`, still empty and `inert` | Pack open | Tear + flash; no card on the stage yet | 900 ms ease-out (theatre keeps its own keyframes — `pack-opening.md` §10) | Pack Rip |
+| Focus beat, card 1 — then ×3 | **One card** arrives in the focus frame (short edge at 74 % of the stage, anchor 50 % / 42 %): `translateY` 6 %→0, `scale` .96→1, opacity 0→1; counter reads `i von 4`; the card just left is behind the camera | Timed on the reveal clock (no user input) | Card's own line written to the live region; card **not** yet interactive (stage `inert`) | `--elsa-dur-cardin` **300**, `--elsa-ease-soft`; then `--elsa-hold-beat` **260** of stillness | Card Tick **on the settle frame**; Rare Chime / Holo Shine for a non-common |
+| Hand-off / camera move, focus → focus (×3) | Dolly to the next plate's solved anchor; the next card's entrance starts while the camera is still moving, so the seam is hidden | Timed | — | `--elsa-dur-focus` **380**, `--elsa-ease-focus`; next card enters at `--elsa-overlap` 35 % (≈ **133 ms** before arrival) | none — *the camera is silent* (motion-sheet §7) |
+| Highest-rarity arrival (pos. 3/4) | Strongest foil material; one small canvas burst when the holo lands (fires only after the last tile settles) | Timed | Same beat, plus the celebration | burst ≤ 1.2 s, once per pack, holo only | Holo Shine |
+| Pull-back (`c: 1 → 0`) | The 2 × 2 / 1 × 4 becomes visible; each card travels into its own cell — 8 px lift-in, 40 ms forward stagger (max 4) | Card 4's settle frame — **no extra beat** (the settle *is* the beat) | `pack:pullback-complete` at `c = 0`; the last ~290 ms is pure stillness | `--elsa-dur-pullback` **760**, `--elsa-ease-pullback`; tile settle `--elsa-dur-tile` **260** starts at +12 % (+91 ms) and finishes before rest | per-card sound on each tile settle; **no whoosh** |
+| `inert` during the reveal | The stage (and its cards) takes neither focus nor pointer events for the whole sequence; nothing that is still moving or about to be left behind is reachable | whole reveal | Mis-tap and mis-focus protection only — **✕ and `Escape` stay live** (the deliberate skip path) | — | — |
+| Settled / live | Grid, all four cards interactive; stage un-`inert`ed and focus moved to card 1 in the same frame; counter `4 von 4`; hint line visible: "Tippe eine Karte an." / "Tap a card." (copy-deck sync pending: the old swipe clause has no consumer now that the reveal is not a carousel) | `pack:pullback-complete` | Cards openable → Card Lightbox | hint + footer `--elsa-dur-fade` 140 | — |
+| Reduced motion | **All four cards render in their final grid at first paint** — the pull-back's final frame: no theatre, no camera, no focus sequence, no card entrance, no burst, foil static at centre | Pack open | Everything live from the first frame (no `inert` phase at all); counter reads `4 von 4`; hint and footer visible from the start | 0 ms | Rip and per-card ticks skipped; **one soft tick at t = 0**, no chime |
+| Fewer than 4 photos | Haul = every photo; the focus beats simply number fewer (`i von n`); grid is `n` cells | — | Same rules, `PACK_SIZE = min(4, photos)` | same tokens | as above |
+| Second lap (all seen) | Each card wears the "2. Auflage / Second edition" stamp; restart announced before the reveal: "Das waren alle Karten. Jetzt beginnt das Pack von vorn." / "That was every card. The pack starts over." | — | Same sequence | same tokens | as above |
+
+**Pacing total** (quoted from `pack-opening.md` §10.1, not decided here): cards 1→4 ≈ 2.39 s; first card to fully live ≈ 3.15 s; from trigger to live with the 900 ms theatre ≈ 4.05 s — inside the sheet's 3.2 s reveal ceiling. A beat that needs more than its token is **cut, not stretched** (motion-sheet §3).
 
 **Accessibility**:
 - The drop row is an `<ol>` with `aria-label` "Die Karten aus diesem Pack" / "The cards in this pack"; each card is a `<button>` with a full accessible name: number, name, rarity — DE: *"Karte 04 öffnen: Hüterin der verlorenen Socken"* / EN: *"Open card 04: Keeper of the Missing Socks"*.
-- **One summary announcement after the reveal completes**, not per-card interrupts: the deck's `pack.summary` template, "{n} Karten: {names}." / "{n} cards: {names}." (`{n}` is 4 at the canon pack size — the string never asserts a literal count). SR users get the choreography's *result* in one coherent sentence.
+- **One announcement per beat, plus an authoritative summary.** Each card's line — "Karte {i} von {n}: {name}. {rarity}." — is written at that card's **entrance**; the completion summary `pack.summary` ("{n} Karten: {names}." / "{n} cards: {names}.") is written **once, at the pull-back end**. Writes replace rather than queue (rapid polite writes), so a slow reader may hear only the last per-card line — every line is a complete sentence and the summary restates the haul, so dropping one loses nothing. Text and timing: `pack-opening.md` §12.
 - Because the holo lands 3rd/4th visually, its accessible name must not bury rarity: the rarity label is part of every card's name, so an SR user hears which card shines without waiting.
+- **The stage is `inert` for the theatre, the reveal and the pull-back**, so focus cannot land on a card that is still moving or about to be left behind; it is un-`inert`ed on the last settle frame and focus moves to card 1 in that same frame. The focus cycle during that window is ✕ → (disabled footer) → ✕.
 - Reduced-motion layout must place the highest-rarity card *last in DOM order* of the drop, matching the visual order rule, so tab order tells the same story.
 - The open trigger and seal are disabled for the whole opening; **✕ and `Escape` stay live** (deliberate skip path). The busy state is announced once via the live region.
 
-**Animation spec** (reduced-motion fallback): specified in-table — the fallback is canonical, not an afterthought (PRD F22). **SSOT: the 200 ms stagger interval and ~700 ms settle stated above are the single source of truth for reveal pacing** (this table; implementations must not tune them locally). Pacing remains a playtest open question (see Open Questions). Entrance transitions use only `transform` + `opacity` (compositor-friendly); the glare sweep is a background-position step.
+**Animation spec** (reduced-motion fallback): specified in-table — the fallback is canonical, not an afterthought (PRD F22). **Pacing is not owned by this document**: the durations are the `--elsa-*` tokens of `design/art/motion-sheet.md` §3 (emitted from `design/tokens/motion.ts`), and their composition is `pack-opening.md` §10.1. The rows above quote them for review only — a change is authored in the sheet, and this table follows in the same commit. Entrance transitions use only `transform` + `opacity` (compositor-friendly); the glare sweep is an opacity step on a pre-positioned layer.
 
-**Implementation Notes** (Svelte 5): The reveal lives in `<PackDialog>`; the *draw + ordering* lives in `lib/deck.ts` (pure functions, typed) — Vitest asserts: four unique ids, unseen-first, ≥1 holo after promotion, and the sorted reveal order (holo/rare in positions 3–4). Per-card arrival is a staggered list render (`{#each}` keyed by id; `index * 200` delay per item), not `setTimeout` chains — reduced motion renders the array directly with no stagger. `rarityOf()` remains the single rarity source; the promotion rule mutates the drawn card's presentation rarity, never the photo's identity.
+**Implementation Notes** (Svelte 5): The reveal lives in `<PackDialog>`; the *draw + ordering* lives in `lib/deck.ts` (pure functions, typed) — Vitest asserts: four unique ids, unseen-first, ≥1 holo after promotion, and the sorted reveal order (holo/rare in positions 3–4). The sequence is **state-driven, not a `setTimeout` chain**: one `$state` beat index advanced on each `animationend` / camera transition end, with the `{#each}` keyed by photo id and the composition reading the tokens (`var(--elsa-dur-cardin)` etc.) rather than literal milliseconds. `inert` is bound to the stage while `revealPhase !== 'settled'`; focus is placed on card 1 on the settle frame. Reduced motion renders the final grid directly with no stagger and no `inert` phase. `rarityOf()` remains the single rarity source; the promotion rule mutates the drawn card's presentation rarity, never the photo's identity.
 
 ---
 
@@ -372,36 +379,40 @@ implementation change.
 
 **Category**: Navigation
 **Status**: Draft
-**When to Use**: Inside the **pack dialog** only: `←`/`→` move keyboard focus across the four dealt cards of the drop row (wrapping at both ends); `Enter`/`Space` opens the focused card in the lightbox. This is the pack dialog's own keyboard model — deliberately distinct from Card Browsing, which is lightbox-only.
+**When to Use**: Inside the **pack dialog** only: `←`/`→` move keyboard focus across the settled drop row, `↑`/`↓` jump a row in the 2 × 2 layout; `Enter`/`Space` opens the focused card in the lightbox. This is the pack dialog's own keyboard model — deliberately distinct from Card Browsing, which is lightbox-only.
 **When NOT to Use**: In the card lightbox (that is Card Browsing's decided `←`/`→` scope — they do nothing in the pack dialog's content when the lightbox is closed… and are swallowed by the lightbox when it is open); on the catalogue grid (Catalogue Grid Roving Arrows); never page-scope.
 
 **Interaction Specification**:
 
 | State | Visual | Input trigger | Response | Duration | Audio |
 |-------|--------|---------------|----------|----------|-------|
-| Roving focus | Focused dealt card shows the standard focus ring (≥3:1, ≥2 px offset) | `←` / `→` (wrap at both ends of the drop row) | Focus moves card to card; scroll-into-view if clipped | 80 ms ring transition | none |
+| Roving focus — row | Focused dealt card shows the standard focus ring (≥3:1, ≥2 px offset) | `←` / `→` — **wrap at both ends of the current row** (2 × 2: wraps within that row, it does not spill into the row below; one row: wraps at the ends of the row) | Focus moves card to card; scroll-into-view if clipped | 80 ms ring transition | none |
+| Roving focus — row jump (`↑` / `↓`) | Same ring on the card the jump lands on | `↑` / `↓` — **2 × 2 layout only** (≤ 760 px); moves to the same column in the row above / below | Focus moves a row; **stops at the outer rows (no wrap)**; in the one-row desktop layout the keys are a no-op | 80 ms ring transition | none |
 | Open focused card | — | `Enter` / `Space` on the focused card | Card Lightbox opens for that exhibit (URL gains `?photo=`) | per Dialog Open / Close | soft tick |
-| During reveal | Reveal lock: cards land progressively; arrows ignored while `opening === true` | `←` / `→` | Ignored (input lock matches the trigger/seal; **✕ and `Escape` stay live per the dismissal canon**) | — | — |
+| During reveal (stage `inert`) | Cards are entering focus and travelling to their cells; the stage takes **no focus and no pointer events** until the pull-back ends | `←` / `→` / `↑` / `↓` | Ignored — the key event does not even reach the roving handler, and focus cannot land on a moving card (**✕ and `Escape` stay live** per the dismissal canon) | — | — |
 | Second lap | Same roving model over stamped ("2. Auflage") cards | same | same | as above | as above |
 
 **Accessibility**:
-- Roving `tabindex` model: exactly one dealt card carries `tabindex="0"`, the rest `tabindex="-1"`; focus entering the drop row lands on the roving card. Cards remain real `<button>`s in the `<ol>` — no `role="grid"` (the list semantic carries collection order; a grid role would misstate a 1-D row).
+- Roving `tabindex` model: exactly one dealt card carries `tabindex="0"`, the rest `tabindex="-1"`; focus entering the drop row lands on the roving card. Cards remain real `<button>`s in the `<ol>` — no `role="grid"` (the list semantic carries collection order; a grid role would misstate the row-major reading of a 2 × 2 and invite a screen reader to take over arrow keys).
 - Each focus move is self-announced: the card's own accessible name (number, name, rarity — e.g. *"Karte 04 öffnen: Hüterin der verlorenen Socken"*) is what the screen reader reads on focus; no extra announcements.
 - `Escape` closes the dialog at any time (dismissal canon); arrow roving never traps `Tab` — `Tab` still moves out of the dialog's controls normally.
+- The row map is announced, not guessed: the counter ("2 von 4") states position and the 2 × 2 is visual row-major, so `↓` never lands somewhere the visitor could not predict.
 - Dealt cards are the targets (far larger than 44 × 44 CSS px).
 
 **Animation spec**: focus movement is instant (ring transition only); reduced motion: n/a — no motion to reduce.
 
-**Implementation Notes** (Svelte 5): one `on:keydown` handler on the drop `<ol>`; roving index is `$state`, the per-card `tabindex` derives from it; disabled while `opening === true`. `{#each}` keyed by photo id so the roving index survives the language re-render (re-anchor to the same id, not the same array position).
+**Implementation Notes** (Svelte 5): one `on:keydown` handler on the drop `<ol>`; roving index is `$state`, the per-card `tabindex` derives from it; the handler is unreachable while the stage is `inert`. Navigation is **geometry-based** (nearest-card lookup from the current card's centre in the pressed direction) rather than index math, so the same handler serves the 2 × 2 and the one-row layout without knowing the column count — the same approach as Catalogue Grid Roving Arrows, minus its edge behaviour (`←`/`→` wrap, `↑`/`↓` stop). `{#each}` keyed by photo id so the roving index survives the language re-render (re-anchor to the same id, not the same array position).
 
 ---
 
 #### Pack Scroll-Snap Swipe
 
+> **Deprecated — no consumer (2026-11-22).** The reveal no longer lays the drop row out as a horizontal carousel: during the reveal the camera moves one card at a time, and the settled overview is a 2 × 2 grid (≤ 760 px) or a single row that fits (≥ 761 px). There is no horizontally scrolling row left for scroll-snap to snap, so this pattern has no screen that consumes it. It is kept in the library as a tombstone with its rationale, so a future screen that genuinely needs a carousel inherits the solved thresholds instead of re-deriving them — **do not reference it in a new spec without revisiting this note.** Removed from the Pattern Catalog Index. Mobile reachability is served by the settled 2 × 2 (no horizontal scrolling) plus `↑`/`↓` in Pack Roving Arrows.
+
 **Category**: Navigation / Layout
-**Status**: Draft
-**When to Use**: The pack dialog's drop row at **≤ 760 px viewport width**: the four dealt cards become a horizontal scroll-snap carousel; a horizontal swipe moves card to card; the **8 px tap-vs-drag threshold** (craft-study value, same as the tilt pattern) separates "open this card" taps from drags that scroll the row.
-**When NOT to Use**: Above 760 px (the row is fully visible — no carousel); in the card lightbox (its swipe is Card Browsing's ≥ ~40 px threshold over the whole catalogue, with chevrons as the visible affordance); never as the only path — keyboard parity via Pack Roving Arrows is mandatory.
+**Status**: **Deprecated — no consumer**
+**When to Use**: Nowhere in the current build. Written for a ≤ 760 px scroll-snap carousel of the dealt row, which the focus-beat reveal replaced.
+**When NOT to Use**: Everywhere — see the deprecation note above. Historically: above 760 px (the row was fully visible — no carousel); in the card lightbox (its swipe is Card Browsing's ≥ ~40 px threshold over the whole catalogue, with chevrons as the visible affordance); never as the only path — keyboard parity via Pack Roving Arrows was mandatory.
 
 **Interaction Specification**:
 
@@ -664,7 +675,7 @@ implementation change.
 - Completion and milestone announcements go through the live region once, at the moment they happen: set completion — DE: *"{set} ist komplett. Alle da."* / EN: *"{set} is complete. All present."*; milestones — `catalogue:milestone-reached { pct }` (overall-catalogue, not per-department). At most one `!` per surface; never in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region.
 - No color-only completion: the word "komplett / complete" carries it.
 
-**Animation spec**: fill 300 ms ease-out; completion flourish (subtle foil brightening on the line, never page-scale confetti — the pack dialog owns confetti); reduced motion: instant states, flourish becomes a plain text change.
+**Animation spec**: fill 300 ms ease-out; completion flourish (subtle foil brightening on the line, never page-scale confetti — the pack dialog owns the single small holo burst, and the capstone owns the larger celebration); reduced motion: instant states, flourish becomes a plain text change.
 
 **Implementation Notes** (Svelte 5): `<SetLine>` renders from a `sets.svelte.ts` store; data lives in `lucky-elsa.sets.v1` (per-set ids) and `lucky-elsa.flags.v1` (milestones, Ehrenmensch claimed), both recomputed defensively from `seen.v1` on load (stale-key hygiene, as `pruneSeen()` did). The loose department is automatic, never manually maintained. Container queries: full line ≥ ~480 px, compact line (name + "3/5") below. Vitest: assignment fallback to Neuzugänge; stale-id pruning.
 
@@ -884,8 +895,14 @@ implementation change.
 
 > These timings apply to ALL patterns above. Consistency here is what makes the
 > parlour feel like one designed room rather than a collection of effects.
-> Values proven in v1 (900 ms sachet, 200 ms stagger) are kept; tilt/foil
-> physics constants come from the `holo-card-ref.html` study.
+>
+> **Durations are tokens, not values.** Motion values are authored in
+> `design/art/motion-sheet.md` §3 (source `design/tokens/motion.ts`, emitted as
+> `--elsa-*`) and consumed in card/surface CSS via `var()` only. This table maps
+> those tokens onto this library's surfaces and quotes their values so a reviewer
+> does not need two files open; **the sheet is the SSOT — a value changes there
+> first and this table follows in the same commit.** Rows with no `--elsa-*`
+> token (tilt/foil springs, craft-study `ref` values) are local to this library.
 
 | Animation Type | Duration (ms) | Easing / Physics | Notes |
 |---------------|--------------|------------------|-------|
@@ -893,29 +910,38 @@ implementation change.
 | Button hover / focus exit | 60 | ease-in | Faster exit than entry |
 | Button press scale down | 60 | ease-in | Immediate acknowledgment |
 | Button press scale up (release) | 80 | ease-out | Slightly bouncy |
-| Dialog open | 200 | ease-out | Scale 0.96 → 1 + backdrop fade |
-| Dialog close | 150 | ease-in | Faster than it opens |
-| Pack sachet tear / opening | 900 | ease-out | Center viewport; proven value, kept |
-| Card reveal stagger interval | 200 | linear (interval) | Per-card spacing; proven value, kept |
-| Card reveal entrance + settle | 700 | ease-out | Rise + settle per card |
+| Dialog open (`--elsa-dur-dialog-in`) | 200 | `--elsa-ease-out` | Scale 0.96 → 1 + backdrop fade |
+| Dialog close (`--elsa-dur-dialog-out`) | 160 | `--elsa-ease-in` | Faster than it opens |
+| Pack sachet tear / opening | 900 | ease-out | Center viewport; theatre, outside the motion sheet's vocabulary |
+| Card enters the focus frame (`--elsa-dur-cardin`) | 300 | `--elsa-ease-soft` | **Replaces the retired 200 ms stagger + 700 ms ascend**; one card at a time, transform + opacity |
+| Camera, focus → focus (`--elsa-dur-focus`) | 380 | `--elsa-ease-focus` | Never simultaneous with a card in motion |
+| Hand-off overlap (`--elsa-overlap`) | 133 (35 % of the camera move) | — (start offset) | Next card enters at 65 % of the dolly |
+| Hold beat (`--elsa-hold-beat`) | 260 | — | Minimum stillness on a settled focus card, before the next dolly |
+| Camera pull-back, `c: 1 → 0` (`--elsa-dur-pullback`) | 760 | `--elsa-ease-pullback` | The only move > 700 ms in the product; last ~290 ms is pure stillness |
+| Card travels to its grid cell (`--elsa-dur-tile`) | 260 | `--elsa-ease-soft` | Runs inside the pull-back; 40 ms forward stagger, max 4 |
+| Grid text-line stagger (`--elsa-stagger-line`) | 60 (interval) | linear (interval) | Max 3 lines; never on re-entry |
 | Card tilt spring | — (continuous) | stiffness 150, damping 15 (ref) | Pointer-follow; yaw ±17°, pitch ±15° targets |
 | Keyboard tilt step | 7° per press, clamp ±18°/±20° | same spring (ref) | On the focused exhibit card |
 | Idle sway cycle | — (continuous) | sin-based, yaw ±13°, pitch ±7° (ref) | Starts after 2.6 s without pointer input |
-| Card flip spring | — (spring) | stiffness 110, damping 13 (ref) | `rotateY` ±180° + translateZ lift to ~30 px mid-flip |
+| Card flip spring (`--elsa-dur-flip`) | 420 | stiffness 110, damping 13 (ref) | `rotateY` ±180° + translateZ lift to ~30 px mid-flip; never during a camera move |
 | Card browsing content swap | 150 | ease-out | Cross-fade in lightbox |
 | Progress / set fill | 300 | ease-out | Width or ratio transition |
 | Tile hover lift | 80 | ease-out | ~4 px translate |
 | Glare sweep (drop cards, tiles) | ~600 | linear | Single background-position step; no rAF |
 | Confetti burst | ~1200 | — | Pack dialog only; "big" for holo hauls |
 | Status line (share) enter / exit | 200 / 200 | ease-out / ease-in | Auto-clear after 3.4 s |
-| Milestone completion flourish | ~800 | ease-out | One-time, set-scale; never page-scale |
-| Tile entrance ("Zuwachs") | 300 per tile | ease-out | Stagger capped at ~2 s total |
+| Milestone completion flourish (`--elsa-dur-flourish`) | 520 | `--elsa-ease-out` | One glint pass, one-time, set-scale; never page-scale |
+| Tile entrance ("Zuwachs") | 260 per tile | `--elsa-ease-soft` | 40 ms forward stagger, max 4 (no long queues) |
 
 **Motion reduction overrides** (`prefers-reduced-motion: reduce` — canonical
 behavior, not an afterthought):
-- Pack reveal: **all four cards appear in the final grid**; no sachet, no stagger, no
-  confetti, no foil movement (PRD F22). The reveal-order rule survives as DOM
-  order (highest rarity last in the drop row).
+- Pack reveal: **all four cards render in their final grid at first paint** — the
+  pull-back's final frame. No sachet theatre, no camera, no focus sequence, no
+  card entrance, no burst, foil static at centre (PRD F22, motion-sheet §5). The
+  stage is never `inert`, so nothing is locked out during a sequence that is not
+  playing. The reveal-order rule survives as DOM order (highest rarity last).
+- Sound under reduced motion: rip and per-card ticks are skipped; **one soft tick
+  at t = 0** carries the layout, no chime (motion-sheet §5, sound-bible).
 - Tilt & foil: **fully static** — no idle sway, no pointer tilt, layers fixed
   at center position. (The craft study's damped-tilt alternative is
   deliberately not adopted; the Standard tier's "no foil movement" wins.)
