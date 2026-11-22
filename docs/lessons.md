@@ -57,3 +57,21 @@ not enforced. The copy-deck gate and `U-I18N-17` exist because of this.
 
 **How to apply.** When a canon changes, add: the string/term to the deck, a grep
 gate, and (where applicable) a test assertion.
+
+---
+
+## L-004 — A fix is not "done" until the review says so, with evidence
+
+**Rule.** After addressing review findings, post **one resolution comment** on the PR
+mapping every finding → status (FIXED / DEFERRED / NOT FIXED) → evidence: `file:line`,
+commit SHA, or command output. Never claim "everything fixed" without that table.
+
+**Evidence.** PR #2's blockers were fixed across several commits, but no resolution
+comment existed — so the state was unverifiable from the PR itself. A verification pass
+then found two findings (print-sheet eager images, hard-coded print hex values) that had
+been assumed fixed and were not. Both were real; both were fixed only after the table
+forced an item-by-item check.
+
+**How to apply.** The PR steward owns this. Rounding up is the failure mode: a finding is
+FIXED only when the evidence is attached, and "deferred" is always named with a reason.
+The merge gate is: every finding accounted for + fresh review + gates green.
