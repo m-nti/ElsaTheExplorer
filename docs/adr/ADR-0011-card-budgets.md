@@ -52,11 +52,12 @@ downloads before it shows one. Both are decided by numbers, so the numbers get o
 
 ## Decision
 
-### 1. The frame: seven bays, ratified verbatim from art-bible §8
+### 1. The frame: seven bays
 
-Percentages of the **card plate's inner height** (the card face minus its padding). The table is
-the art bible's, unchanged: an AD-ART-BIBLE sign-off governs this table, so ADR-0011 ratifies it
-rather than editing it (a percentage is not the technical director's to move).
+Percentages of the **card plate's inner height** (the card face minus its padding). The table below
+is the **pre-D12a** state, kept for the record; the blockquote after it supersedes it. An
+AD-ART-BIBLE sign-off governs these numbers, so ADR-0011 ratifies them rather than editing them
+(a percentage is not the technical director's to move).
 
 | Bay | Full card | Drop card | Binder tile | Clamp rules (upper bound) | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -104,8 +105,8 @@ exceeds its percentage (it does, below), the grid does not overflow: the differe
 the **gutters** bay first — the only content-free bay — down to a 4 px minimum per gap, and only
 then from the copy clamp, per the height-pressure order. No bay may fall below its floor and no
 text may be clipped to satisfy the arithmetic. Cost: at the reference card the gutters give up
-3.7 px (10 % → 9.2 %), i.e. six gaps of ≈ 7.2 px instead of 8 px — inside the 4–8 px step the
-bible already allows. Under D12a the rule is **dormant**: the new bands carry the floors with no
+3.7 px (10 % → 9.2 %), i.e. five gaps of ≈ 8.6 px instead of 9.4 px — still above the 4 px
+floor the bible allows. Under D12a the rule is **dormant**: the new bands carry the floors with no
 payer (strip 5.5 %, foot 5 %), so no gutters-as-payer case arises.
 
 ### 2. What may overflow: nothing
@@ -137,7 +138,7 @@ The law, in the forms a test can read:
 | --- | --- | --- |
 | Card body aspect (w:h), all variants | **0.70** | art-bible §3 ("binding for drop, tile and full variants alike"), §8; `aspectRatios.card` |
 | Photo window aspect (w:h) | **4:5** | art-bible §3 window-ratio, §5, §8; `aspectRatios.window` |
-| Window sizing inside the band | height-driven: band − 2 × 8 px block padding, width follows the ratio | `CardFace.svelte` `.photo-zone`/`.window`; measured 160.05 × 200.06 in a 46 % band |
+| Window sizing inside the band | height-driven: the window fills its band (**no block padding**), width follows the 4:5 ratio | 155.94 px wide in the 41.5 % band at the 340 px reference (D12a); the pre-ruling 160.05 × 200.06 was measured in a 46 % band with 8 px padding |
 | Crop anchor, default | **`center 42%`** | art-bible §3/§5/§8; `sizes.photo-anchor`; `CardPhoto.focus` doc comment |
 | Per-photo anchor | manifest `focus: {x,y}` in 0…1, clamped, wrong type drops the entry | ADR-0004 |
 | Anchor → CSS | `object-position: {x·100}% {y·100}%` | test-plan `U-CV-07` |
@@ -340,8 +341,8 @@ and keeps a 155.94 px window. The ADR records that ruling; it did not derive it.
   rows with 6.16 px slack, and the photograph shrinks **2.6 %** (160.05 → 155.94 px) rather than the
   35 % the pre-ruling table implied; findings 1 and 4 in §9 are closed.
 - **The ruling is the visual owner's**; the ADR ratifies it rather than deriving it.
-- **#13 (B2) must not implement the card geometry until #47 merges**; after that the bands in §1 are
-  the contract.
+- **#47 (D12a) has merged**; the bands in `design/art/art-bible.md` §8 are the contract, and §1's
+  table is the superseded pre-ruling state. #13 (B2) implements §8.
 - **Two ratchets bite immediately**: JS may not grow before B2 pays for growth by deletion or
   lazy-loading, and Chivo may not grow at all. Both are deliberate — the alternative is discovering
   the ceiling at release.
