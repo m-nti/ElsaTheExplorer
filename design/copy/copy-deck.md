@@ -61,7 +61,7 @@
 | Collected tile state | **gesammelt** | **collected** | ~~gesehen / seen~~ |
 | Unseen tile state | **noch nicht gesammelt** | **not yet collected** | ~~ungesehen / unseen~~ |
 | Location badge (not a state) | **In der Sammlung** | **In the collection** | used as a state verb |
-| Collection | **Die Sammlung** | **The Collection** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13). **Renamed 2026-11-22 (D-04b):** the former name `Die Sammlung` / `The Collection` is retired (§13) |
+| Collection | **Die Sammlung** | **The Collection** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13). **Renamed 2026-11-22 (D-04b):** the former name `Katalog` / `Catalogue` is retired (§14) |
 | Second-lap stamp | **2. Auflage** | **Second edition** | ~~2nd printing~~ |
 | Brand | **Elsa the Explorer** | **Elsa the Explorer** | translated in either language |
 | Pack size | **vier Karten** | **four cards** | ~~fünf / five~~ — **4-card canon 2026-11-22** (mobile-first); the holo/rare still lands late, now 3rd or 4th |
@@ -269,7 +269,7 @@ No string may be assembled by concatenating a noun with a count.
 | `card.btn.share` | Teilen | Share | 7 | **space-critical** — shortest label in the deck | PL |
 | `card.share.title` | «{name}» — eine Elsa-Karte | «{name}» — an Elsa card | 40 + name | share-sheet title | PL |
 | `card.share.text` | Aus Elsas Archiv: «{name}». | From Elsa's archive: «{name}». | 30 + name | share-sheet body; DE 23 / EN 25 + name. No "gezogen / pulled" — draw-and-win language is gambling-adjacent (§0.4.10) and the archive claim is warmer anyway. **re-voiced 2026-11-22** · VOICE | PL |
-| `card.share.shared` | Unterwegs. | On its way. | 17 | `role="status"`, auto-clears ~3.4 s. Status string — no exclamation (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
+| `card.share.shared` | Unterwegs. | On its way. | 17 | Announced via `#live-status` as `live.share`; the visible line is **plain** (no `role`, no `aria-live`) and auto-clears ~3.4 s. Status string — no exclamation (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
 | `card.share.copied` | Link kopiert. | Link copied. | 17 | clipboard fallback success. Status string — no exclamation (§0.4.4) | PL |
 | `card.share.error` | Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn. | Copying did not work. The link is up in the address bar — you can get it there. | 85 | **space-critical** — DE 82 / EN 79; 2-line reserved slot; always leaves a usable next step. Plain on purpose: an error never winks (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
 | `card.aria.open` | {n}. {name}. {rarity}. | No. {n}. {name}. {rarity}. | dynamic | spoken on open; Fantasiewerte label follows the values' framing | CRD §12 |
@@ -410,10 +410,11 @@ this pair. Keys follow `archive-fiction.md` §4 (`lex:<slug>:term` / `lex:<slug>
 
 ## 8. Accessibility announcements
 
-All of these are writes to the single `role="status" aria-live="polite"` region. Rapid
-successive messages replace, never queue. Every announcement is ≤ 2 sentences and uses
-the language of the page. Where a key is already in another section, it is referenced —
-never re-keyed.
+All of these are writes to `#live-status` — the polite region of the two ADR-0010 §1 defines
+(`#live-alert` is the assertive one and has no row here today). Rapid successive messages replace,
+never queue. Every announcement is ≤ 2 sentences and uses the language of the page. Where a key is
+already in another section, it is referenced — never re-keyed. The visible status line for
+`live.share` is plain text with no live semantics: the region is the only voice.
 
 | Key | DE | EN | Max | Fires when | Source |
 | --- | --- | --- | --- | --- | --- |
@@ -579,8 +580,8 @@ or any screenshot:
 
 | Retired | Replaced by | Why |
 | --- | --- | --- |
-| Serie I / Erste Auflage (as the page eyebrow) | Katalog I / Catalogue I | Owner rebrand (BR) |
-| Sammelwerk · Serie I / The Collection · Series I | Katalog I | Owner rebrand (D3) |
+| Serie I / Erste Auflage (as the page eyebrow) | Sammlung I / Collection I | Owner rebrand (BR), renamed by D-04b |
+| Sammelwerk · Serie I / The Collection · Series I | Sammlung I / Collection I | Owner rebrand (D3), renamed by D-04b |
 | Sammelheft, binder, "das Heft" as the collection's name | Die Sammlung / The Collection | Owner canon 2026-11-22. **No exception: not even the arrival line says "Heft" any more** (D5) |
 | gesehen / seen, ungesehen / unseen | gesammelt / collected, noch nicht gesammelt / not yet collected | GDD R9 |
 | katalogisiert / catalogued | gesammelt / collected | Verb canon |
@@ -590,12 +591,12 @@ or any screenshot:
 | Zero exclamation marks (the rule itself) | at most one `!` per surface; never in error, destructive-confirmation or a11y strings (§0.4.4) | Owner voice ruling 2026-11-22 — the old rule made the deck too dry. Superseded, not merely relaxed |
 | Die Nassabteilung / The Wet Collection | Der Abfahrtsaal / The Departure Hall | Owner water ruling 2026-11-22 |
 | "Badegast des Jahres", "Unwetterwarnung Stufe Pfote", "nasser Hund und Stolz" | — (no replacement; the card bank entries stay retired) | Owner water ruling — must not be re-pulled from the card bank at runtime |
-| "Den Katalog ansehen" / "See the collection" | Zum Katalog / To the collection | D4 |
-| "Fünf Karten. Ein Sammelwerk." | Was steckt im Katalog? | D2 |
+| "Den Katalog ansehen" / "See the collection" | Zur Sammlung / To the collection | D4, renamed by D-04b |
+| "Fünf Karten. Ein Sammelwerk." | Was steckt in der Sammlung? | D2, renamed by D-04b |
 | fünf Karten / five cards as the **pack count** — "1. Auflage · fünf frische Karten", "Fünf Karten pro Pack", "five cards per pack" | **vier Karten / four cards** ("1. Auflage · vier frische Karten", "Vier Karten pro Pack") | Owner canon 2026-11-22 (**4-card canon**, mobile-first). The holo/rare still lands late, now **3rd or 4th** (PL §Card Reveal Step). "Fünf Karten. Ein Sammelwerk." above is retired on *both* grounds (D2 and this) |
 | "Du hast alle … gesehen. Das Pack beginnt von vorn." | Das waren alle Karten. Jetzt beginnt das Pack von vorn. | A11Y/PRE-refactor lap line, superseded by PL |
 | Diplom, DiplomCard, per-set Diplom | Elsas Ehrenmensch / Elsa's Honorary Human, one surface at 100 % | Owner canon (BND §15 resolved) |
-| "1. Auflage" as the masthead/series label | stage.eyebrow = Katalog I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
+| "1. Auflage" as the masthead/series label | stage.eyebrow = Sammlung I / Collection I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
 | "Holo" as a printed rarity word | Holo-Pracht / Holo glory | D7 |
 | 2nd printing | Second edition | D8 |
 

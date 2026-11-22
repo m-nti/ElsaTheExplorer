@@ -111,3 +111,24 @@ real work, so a ticket was correct. The distinction is complexity, not convenien
 **How to apply.** Ask "can I finish this correctly right now without changing what this
 change is about?" Yes → do it and mention it. No → write the blocker into the ticket body.
 Never leave the finding in prose.
+
+---
+
+## L-007 — Land the umbrella before you stack on it
+
+**Rule.** Never keep feature PRs stacked on a long-lived integration branch that will be
+squash-merged. Either land the umbrella first and branch every ticket from `main`, or keep
+the umbrella branch unmerged until the stack is empty.
+
+**Evidence.** PR #2 was squash-merged to `main` while four PRs (#36, #37, #40, #41) targeted
+its branch. The squash gave `main` a different commit identity, so all four immediately read
+CONFLICTING. Force-push is denied by policy (correctly), so each branch had to merge `main`
+in instead — extra commits, a review of a base that changed mid-review, and one reviewer
+whose step budget was spent re-fetching. The code was never wrong; the integration shape was.
+
+**How to apply.**
+- Branch from `main`. If a stack is unavoidable, merge it in that order and retarget the
+  stack *before* the umbrella lands.
+- A squash-merge rewrites identity: tell every open stacked PR before merging, not after.
+- Reviewers must be told the base and head; "the head moved" is a process cost, not a
+  reviewer failure.

@@ -117,7 +117,7 @@ implementation change.
 | Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Collection (flat + grouped) | Draft |
 | Keyboard Shortcut | Input | Global single-key actions (`P`, `F`, arrows) | Global (page + lightbox) | Draft |
 | Close Button | Input | Icon-only dialog dismissal | Pack Dialog, Card Lightbox | Draft |
-| Live Region Announcement | Feedback | `role="status"` line for non-focus events | Global (`#live`), share status | Draft |
+| Live Region Announcement | Feedback | The two regions of ADR-0010 §1 — `#live-status` (polite) and `#live-alert` (assertive) — for non-focus events; the share status line is plain text, the same string announced | Global, share status | Draft |
 | Empty State | Feedback | Designed "nothing here yet" that tells the curator what to do | Binder grid | Draft |
 | Loading State | Feedback | "Karten werden gesucht" while the manifest resolves | Stage, Binder | Draft |
 | Error State | Feedback | Soft failure copy; never the reader's fault | Binder, Lightbox (share) | Draft |
@@ -305,7 +305,7 @@ implementation change.
 
 **Animation spec**: this pattern *is* spring-driven motion, not keyframed — durations above are physics constants (stiffness/damping), not `transition-duration`. Reduced-motion fallback is canonical and static (see in-table); note the craft study's softer alternative (stiffer springs, k = 260 / c = 32, sway killed, tilt kept) is deliberately **not** adopted — the Standard tier's "no foil movement" commitment wins. Revisit only if accessibility-requirements.md changes.
 
-**Implementation Notes** (Svelte 5): `<TiltCard>` (or `use:tilt` action) owns the rAF loop and writes the four custom properties; the spring integrator is a ~40-line pure function in `lib/tilt.ts`, unit-tested in Vitest for clamping and decay (headless math, no DOM). Glitter sheets are generated once per session (canvas → data-URL → CSS custom property, ref) and shared by all cards. The art window crops the photo by its manifest `focus` anchor (sharp-generated crop anchors for local dev/QA), so the exhibit shows the intended framing regardless of tilt. Pointer handlers use pointer events with capture; `prefers-reduced-motion` is read once and on change via `matchMedia`. The physics loop runs only while the lightbox is open (one instance, not per tile).
+**Implementation Notes** (Svelte 5): `<TiltCard>` (or `use:tilt` action) owns the rAF loop and writes the four custom properties; the spring integrator is a ~40-line pure function in `lib/tilt.ts`, unit-tested in Vitest for clamping and decay (headless math, no DOM). Glitter sheets are generated once per session (canvas → data-URL → CSS custom property, ref) and shared by all cards. The art window crops the photo by its manifest `focus` anchor (sharp-generated crop anchors for local dev/QA), so the exhibit shows the intended framing regardless of tilt. Pointer handlers use pointer events with capture; `prefers-reduced-motion` is **not** read here — the tilt module (and its spring loop) consumes the shared motion store (`src/lib/a11y/motion.svelte.ts`, ADR-0010 §4), which is the codebase's single `matchMedia` reader; a local read would be a second source that can disagree with the reveal's. The physics loop runs only while the lightbox is open (one instance, not per tile).
 
 ---
 
@@ -455,13 +455,13 @@ implementation change.
 | Hover / Focus | Standard lift + focus ring | pointer / Tab | 80 ms | — | none |
 | Active | Scale 0.98 | press | share sheet opens (mobile) or clipboard write | 60 ms | none (sheet is system UI) |
 | Busy | No visual busy state — `navigator.share` is modal on mobile; on desktop the operation is instant | — | — | — | — |
-| Success | Status line under the actions: "Unterwegs." / "On its way." (copy-deck sync 2026-11-22) | — | `role="status"` text; auto-clears | visible ~3.4 s | soft success chime |
+| Success | Status line under the actions: "Unterwegs." / "On its way." (copy-deck sync 2026-11-22) | — | Announced through `#live-status` as `live.share`; the visible line is **plain text** (no `role`, no `aria-live`) and auto-clears | visible ~3.4 s | soft success chime |
 | Fallback success (clipboard) | Status line: "Link kopiert." / "Link copied." | share API unavailable | `navigator.clipboard` → `execCommand` fallback | as above | soft success chime |
 | Error | Status line: "Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn." / "Copying did not work. The link is up in the address bar — you can get it there." (copy-deck sync 2026-11-22; deck error wording, no `!`) | both fail | Always gives the user a usable next step | as above | soft error thud |
 | Cancelled (AbortError) | Status line stays empty — a cancel is not an event | user closes the share sheet | silent | — | — |
 
 **Accessibility**:
-- Status line is `role="status" aria-live="polite"` — success and failure are announced without moving focus.
+- The status line is a plain element with **no** `role` and **no** `aria-live`; the same string is announced through `#live-status` (`live.share`, ADR-0010 §2), so success and failure are heard once and focus never moves. Two live carriers for one event would speak it twice — the defect this rule exists to prevent.
 - The button's accessible name is just "Teilen" / "Share"; what is shared is unambiguous from context (the open exhibit).
 - Shared payload: title "«name» — eine Elsa-Karte / an Elsa card", text "Aus Elsas Archiv: «{name}»." / "From Elsa's archive: «{name}»." (copy-deck sync 2026-11-22), URL `?photo=<id>&lang=<lang>` — the recipient opens the same entry in the sender's language.
 
@@ -862,7 +862,7 @@ implementation change.
 
 **Category**: Feedback · **Status**: Draft
 **When to Use**: Every state change a screen-reader user must know without focus moving: pack opening, haul summary, exhibit open, flip, restart, language switch, department completion, milestones, share status. **When NOT to Use**: Anything the user just did with focus already on the result.
-**Spec**: one shared live element, `role="status" aria-live="polite"`; updates are text writes; rapid successive messages replace, never queue. Critical-only events (none today) would need `role="alert"` — do not reach for it casually. All announcement strings live in the copy deck in both languages.
+**Spec**: two regions owned by the announcer store (ADR-0010 §1) — `#live-status` (`role="status"`, polite) for every announcement, and `#live-alert` (`role="alert"`, assertive), which ships **empty**: it is admitted only for a critical failure the visitor must act on and cannot otherwise discover, so today it has no writer and is never reached for casually. Components never touch a region; they call `announcer.say(message, { key })`. Updates are text writes; rapid successive messages replace, never queue, and a repeated identical string is blanked then rewritten so it is announced again. While a modal `<dialog>` is open the two nodes are relocated into it (`announcer.follow` / `announcer.release`) so they are not inert — a dialog-opening line is written before `showModal()`. Errors and share results are announced here, and the visible share line (`live.share`) is plain text with no live semantics: one event, one voice. All announcement strings live in the copy deck in both languages, with a terminal `!` neutralised before the write (§0.4.4, §11 D26).
 **Notes**: Keep announcements under ~2 sentences; the haul summary lists card names joined with commas ("4 Karten: A, B, C, D." / "4 cards: A, B, C, D.").
 
 ---

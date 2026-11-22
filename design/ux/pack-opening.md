@@ -346,7 +346,7 @@ threshold rather than 387.
 | `CardTile` (variant `card--drop`) | **Svelte 5 component** (one line: the shared card renderer, size-variant `drop`) | stage | Each revealed card is a real `<button>`; renders its frame + printed text synchronously, photo async | Yes | Shared with binder + pack |
 | `.pack-dialog__hint` | Text | hint | "Tippe eine Karte an." (the swipe half is withdrawn — there is no carousel) | Yes | Yes |
 | `.pack-dialog__actions` | Button row | footer | "Noch ein Pack" (primary) + "Zur Sammlung" (outline) | Yes | "Noch ein Pack" reuses the lightbox action label |
-| `#live` live region | Status | body | Announcements (per card + completion) | Yes | Yes |
+| `#live-status` live region | Status | body | Announcements (per card + completion) | Yes | Yes |
 | `2.-Auflage` stamp | Badge (on plate) | stage cards | Marks second-lap pulls — **GDD R6, Phase 3** (lap derived per R-H at pull time); catalogue tiles never show stamps (R6) | No (Phase 3) | New — defined with card-detail.md §5 |
 | `.card__set-chip` ("aus: {Set}") | Chip (on drop card, below the rarity label) | stage cards | **GDD R1 — ships at Vertical Slice** on the shared `CardTile`; `new-acquisitions` cards show **no chip** (R1: the chip speaks only when the card has a room) | Yes (VS) | Shared with binder + lightbox |
 

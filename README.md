@@ -27,11 +27,11 @@ What exists in this tree today:
   collection/audio/i18n stores and a handful of pure domain functions under `src/lib/domain/`.
 
 The pack theatre, the collection, the reading room, the meta layer and the PWA are **not built
-yet**. They are phases B2 to B8, one ticket each, tracked in `docs/action-plan.md` §3. Design,
+yet**. They are phases B2 to B8, one ticket each, tracked in `docs/superpowers/plans/2026-11-22-v2-delivery.md` §3. Design,
 copy and architecture are settled and binding; the build catches up to them. The gates that
 cannot run yet are declared pending in `.github/gates.json` and are listed under *Gates* below.
 
-Read `docs/action-plan.md` §0 before contributing: it is the delivery harness — a worktree per
+Read §0 of the current plan in `docs/superpowers/plans/` before contributing: it is the delivery harness — a worktree per
 ticket, a committed plan, TDD (or a named gate for a docs task), review by a dedicated agent, and
 pasted evidence before any claim.
 
@@ -180,7 +180,7 @@ rules here hold by care, not by gate.
 | `design/tokens/tokens.ts` | the typed token source of truth; WCAG ratios are computed and gated here |
 | `docs/architecture.md` | layers, data contracts, persistence, PWA, performance budget, folder structure |
 | `docs/adr/` | ADR-0001 to ADR-0009: stack, styling, persistence, manifest, i18n, testing, release, images, PWA |
-| `docs/action-plan.md` | the harness (§0) and every phase, ticket and status |
+| `docs/superpowers/plans/2026-11-22-v2-delivery.md` | the harness (§0) and every phase, ticket and status |
 | `docs/superpowers/plans/` | one committed plan per ticket, with the mandatory header |
 | `docs/test-plan.md` | test IDs, fixtures, gate order, definition of done |
 | `docs/decisions.md` | owner rulings (D-01 to D-09) |
