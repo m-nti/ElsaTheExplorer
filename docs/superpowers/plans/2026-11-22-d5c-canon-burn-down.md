@@ -124,14 +124,16 @@ Nothing else on those lines changes; no key name, cap, or note is touched. The D
 - [ ] **Step 3: Re-run the gate**
 
 Run: `npm run canon -- --strict`
-Expected: one remaining baseline defect (`copy-deck.md:667`). The six fixed lines are still covered by their now-stale entries; they are removed in Task 4.
+Expected: **exit 2** — the six fixed lines are now covered by stale entries and the gate refuses a stale allowlist rather than passing it. That is the designed ratchet: an allowlist entry may not outlive the text it excuses, so the removal is part of this commit, not a later one.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Remove the six entries and commit**
 
 ```bash
-git add design/features/mechanics.md design/narrative/greek-origin.md design/ux/binder.md design/ux/interaction-patterns.md
+git add design/features/mechanics.md design/narrative/greek-origin.md design/ux/binder.md design/ux/interaction-patterns.md scripts/canon-allowlist.json
 git commit -m "docs(d5c): rename the collection in the quoted spec copy (#31)"
 ```
+
+After the commit: `npm run canon` → clean, `1 known defect(s) in the baseline` (`copy-deck.md:667`).
 
 ---
 
@@ -173,11 +175,11 @@ git commit -m "docs(d5c): copy deck §15 and journey surface names follow the ca
 
 **Interfaces:**
 - Consumes: the renames from Tasks 2–3 (every baseline line and the `player-journey.md` entry must already be gone, or this task creates a stale entry and exit 2).
-- Produces: `maxBaseline: 0`, zero `status: "baseline"` entries, one new `status: "allowed"` history entry for `design/copy/copy-deck.md`.
+- Produces: `maxBaseline: 0`, zero `status: "baseline"` entries, one `status: "allowed"` history entry for `design/copy/copy-deck.md`.
 
-- [ ] **Step 1: Remove the seven baseline entries and the stale journey entry**
+- [ ] **Step 1: Re-class the last baseline entry and drop the stale journey entry**
 
-Deleted, by `file` + `issue: 31`: `copy-deck.md`, `mechanics.md`, `greek-origin.md`, `binder.md` ×2, `interaction-patterns.md` ×2; plus the `player-journey.md` entry whose string no longer exists after Task 3.
+The §15 entry becomes `allowed` (Step 2); the `player-journey.md` entry whose string no longer exists after Task 3 is deleted. The other six baseline entries went with their text in Task 2.
 
 - [ ] **Step 2: Add the one history entry**
 
