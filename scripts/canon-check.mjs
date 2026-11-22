@@ -60,6 +60,16 @@ const DEFAULT_ROOTS = [
 ];
 const DEFAULT_ALLOWLIST = "scripts/canon-allowlist.json";
 
+/**
+ * Allowlist paths are written POSIX-style (`docs/test-plan.md`) on every host,
+ * but `node:path.relative()` returns `docs\test-plan.md` on Windows. Comparing
+ * the two raw made every allowlisted hit report as a violation on Windows and
+ * only on Windows (#67) — CI stayed green because it runs on Linux, so the gate
+ * disagreed with itself between the host the owner uses and the host CI uses.
+ * Normalise both sides of a comparison; on POSIX this is a no-op.
+ */
+const toPosix = (path) => path.split(sep).join("/");
+
 /** Directories that are build output, dependencies, fixtures or archives. */
 const SKIP_DIRS = new Set([
   "node_modules",
@@ -605,7 +615,7 @@ function applyAllowlist(violations, sources, entries, root) {
       }
       used.add(entry);
       for (const violation of violations) {
-        if (relative(root, violation.file) !== file || violation.line !== matches[0]) continue;
+        if (toPosix(relative(root, violation.file)) !== toPosix(file) || violation.line !== matches[0]) continue;
         if (entry.rule && violation.rule !== entry.rule) continue;
         covered.add(`${violation.file}:${violation.line}:${violation.rule}`);
       }
@@ -705,7 +715,7 @@ function main() {
   const baselineHits = violations.filter((violation) =>
     baseline.some(
       (entry) =>
-        relative(options.root, violation.file) === entry.file &&
+        toPosix(relative(options.root, violation.file)) === toPosix(entry.file) &&
         sources.get(resolve(options.root, entry.file))?.[violation.line - 1]?.includes(entry.match),
     ),
   );
@@ -727,8 +737,9 @@ function main() {
           status: active.length === 0 ? "clean" : "violations",
           files: files.length,
           // The gated surface, by path: "index.html is scanned" is an assertion
-          // a test can make, not a claim in a comment.
-          scanned: files.map((file) => relative(options.root, file)),
+          // a test can make, not a claim in a comment. POSIX on every host, so
+          // the report, the allowlist and the tests speak one path dialect (#67).
+          scanned: files.map((file) => toPosix(relative(options.root, file))),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
           allowlist: {
@@ -738,7 +749,7 @@ function main() {
             baselineHits: baselineHits.length,
           },
           violations: active.map((violation) => ({
-            file: relative(options.root, violation.file),
+            file: toPosix(relative(options.root, violation.file)),
             line: violation.line,
             column: violation.column,
             rule: violation.rule,
