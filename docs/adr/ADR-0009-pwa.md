@@ -150,7 +150,7 @@ data-shape change bumps it and `activate` deletes any `elsa-*` cache whose versi
 
 | Cache / store | Contents | Bound (hard) | Versioned by |
 | --- | --- | --- | --- |
-| `elsa-precache-<buildHash>` | `index.html`, hashed `assets/*.js|css`, fonts (`/fonts/*.woff2`), icons, `manifest.webmanifest` | **≤ 400 KB** compressed total (CI gate) | build hash (new cache per deploy; old ones deleted) |
+| `elsa-precache-<buildHash>` | `index.html`, hashed `assets/*.js\|css`, fonts (`/fonts/*.woff2`), icons, `manifest.webmanifest` | **≤ 400 KB** compressed total (CI gate) | build hash (new cache per deploy; old ones deleted) |
 | `elsa-cat-v1` | Validated catalogue snapshot under `/photos.php?list=1`; last `photos.json` body under `/photos.json` | ≤ **2 MB**, 2 entries | `CACHE_SCHEMA` |
 | `elsa-img-tile-v1` | `tile` derivatives only | **≤ 400 entries / ≤ 20 MB** | `CACHE_SCHEMA` |
 | `elsa-img-large-v1` | `pack` + `detail` derivatives | **≤ 200 entries / ≤ 32 MB** | `CACHE_SCHEMA` |
@@ -170,7 +170,7 @@ the offline *detail* habit.
 | 2 | JS / CSS | `/assets/*-<hash>.{js,css}` | Precache, cache-first, immutable | Content-hashed names: a hit can never be stale |
 | 3 | Fonts | `/fonts/*.woff2` | Precache, cache-first | Self-hosted (no CDN); a font that misses is a visible reflow |
 | 4 | Icons / manifest | `/icons/*`, `/manifest.webmanifest` | Precache, cache-first | Install dialog and launcher must work offline |
-| 5 | Photo derivatives | same origin **and** (`photos.php?image=…` with `size=tile|pack|detail`, or `photos/thumbs/…`, or `photos/derived/…`) | Runtime **cache-first** into the rendition's pool, admission-gated (§9), LRU-evicted | Derivative URLs carry `&v=<ver>` and are immutable (ADR-0008): a cached byte is never wrong for that URL |
+| 5 | Photo derivatives | same origin **and** (`photos.php?image=…` with `size=tile\|pack\|detail`, or `photos/thumbs/…`, or `photos/derived/…`) | Runtime **cache-first** into the rendition's pool, admission-gated (§9), LRU-evicted | Derivative URLs carry `&v=<ver>` and are immutable (ADR-0008): a cached byte is never wrong for that URL |
 | 6 | Manifest, runtime | `/photos.php?list=1` (any `ts` param ignored) | **Network-first, 2.5 s deadline → snapshot fallback; the in-flight request keeps running and refreshes the snapshot** | Freshness first (FTP drop), instant paint second. A slow 3G response still lands — for the next load and for the `online` revalidation |
 | 7 | Manifest, no snapshot yet | same | Pass through to network (no SW timeout of its own) | The app already owns its 3 s / 4 s fallback chain (`manifest.ts`); the SW must not double-race it |
 | 8 | Static manifest fallback | `/photos.json` | **Stale-while-revalidate** | It is a build-time file; last-known is strictly better than nothing, and the catalogue snapshot above wins when both exist |
@@ -270,7 +270,7 @@ rather than promising more than the platform allows.
 | No third-party requests | Unchanged from PRD §5; `privacy.spec.ts` still asserts zero. The SW cannot introduce one — it has no `importScripts` from a remote origin and the built SW is fully self-contained. |
 | Cache partitioning | Cache Storage is origin-scoped; the app is never framed (`X-Frame-Options: SAMEORIGIN`). Partitioning is therefore a browser guarantee we rely on and do not work around; no cache name is shared with any other origin. |
 | No credentials in cache | Bypass when `request.credentials === 'include'` or an `Authorization` header is present; never store a response carrying `Set-Cookie`. The app sends neither. |
-| `Vary` correctness | Cache key is the full request URL (the only normalization: `?list=1` drops `ts` and other params, because the endpoint ignores them and always returns the whole catalogue). A response whose `Vary` names anything other than `Accept-Encoding` — or is `Vary: *` — is not cached. Format negotiation is **URL-encoded** (`format=jpeg|webp`) per ADR-0008, so a WebP body can never be served for a JPEG URL. |
+| `Vary` correctness | Cache key is the full request URL (the only normalization: `?list=1` drops `ts` and other params, because the endpoint ignores them and always returns the whole catalogue). A response whose `Vary` names anything other than `Accept-Encoding` — or is `Vary: *` — is not cached. Format negotiation is **URL-encoded** (`format=jpeg\|webp`) per ADR-0008, so a WebP body can never be served for a JPEG URL. |
 | Opaque / partial / error | Never cached: `response.type === 'opaque'`, `status !== 200`, `206`, `Range` requests. |
 | Originals are inadmissible | Five-gate admission (below), so even a compromised or misconfigured server cannot push source bytes into the cache. |
 | Clear-cache in the reset flow | `reset` dialog gains an explicit second action (`reset.cache.cta`) with its own confirmation: clears `elsa-cat-*`, `elsa-img-*`, the IDB index, and the catalogue snapshot. The precached **app shell is kept** (it is the app, not data) and the SW is not unregistered. The ratified `reset.body` string is untouched (D-05). |
