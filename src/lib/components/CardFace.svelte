@@ -3,6 +3,7 @@
   import { plateRows } from "$lib/domain/card-plate";
   import { STAR_SCALE_MAX, starLabel } from "$lib/domain/card-stars";
   import { focusToObjectPosition } from "$lib/domain/card-photo";
+  import { renderMode } from "$lib/domain/render-mode";
   import { ZERO_TILT, tiltForPointer, type TiltTarget } from "$lib/domain/tilt";
   import { motion } from "$lib/a11y/motion.svelte";
   import { i18n } from "$lib/stores/i18n.svelte";
@@ -18,6 +19,8 @@
   const titleId = $derived(`card-title-${model.id}`);
   /** The plate's two rows (art-bible §8): name first, metadata second. */
   const rows = $derived(plateRows(model));
+  /** `renderable:false` prints the frame and requests no image (#13, T8). */
+  const mode = $derived(renderMode(model));
   /** Spoken against the fixed scale in the page's language — never a literal. */
   const starsLabel = $derived(starLabel(model.stars, i18n.locale));
   /** The row is always `STAR_SCALE_MAX` slots; the filled ones lead. */
@@ -57,6 +60,7 @@
   <article
     class="card-face {rarityClass}"
     data-rarity={model.rarity}
+    data-render={mode}
     aria-labelledby={titleId}
     style:--elsa-tilt-x={`${tilt.x}deg`}
     style:--elsa-tilt-y={`${tilt.y}deg`}
@@ -80,16 +84,29 @@
 
     <div class="zone photo-zone">
       <figure class="window">
-        <img
-          class="photo"
-          src={model.photo.src}
-          alt={model.photo.alt}
-          width={model.photo.width}
-          height={model.photo.height}
-          style:object-position={focusToObjectPosition(model.photo.focus)}
-          decoding="async"
-        />
-        <span class="foil-photo" aria-hidden="true"></span>
+        {#if mode === "printed"}
+          <!--
+            Printed frame (renderable:false): the archive holds no photograph.
+            No image element, no CSS image reference, no request - E-IMG-09.
+            The crest is decoration; the caption is the photo alt, so the band
+            still has a text carrier.
+          -->
+          <span class="printed-plate" aria-hidden="true">
+            <span class="printed-mark">ELSA</span>
+          </span>
+          <figcaption class="printed-caption">{model.photo.alt}</figcaption>
+        {:else}
+          <img
+            class="photo"
+            src={model.photo.src}
+            alt={model.photo.alt}
+            width={model.photo.width}
+            height={model.photo.height}
+            style:object-position={focusToObjectPosition(model.photo.focus)}
+            decoding="async"
+          />
+          <span class="foil-photo" aria-hidden="true"></span>
+        {/if}
       </figure>
     </div>
 
@@ -299,6 +316,43 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  /*
+   * The printed frame (renderable:false): a blind-embossed plate with the
+   * archive crest, and the photo's own alt as its caption. Nothing here can
+   * fire a request — no image reference in this stylesheet (E-IMG-09).
+   */
+  .printed-plate {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--elsa-spacing-3);
+    background: var(--elsa-gradients-plate-header);
+  }
+
+  .printed-mark {
+    display: grid;
+    place-items: center;
+    width: var(--elsa-spacing-6);
+    height: var(--elsa-spacing-6);
+    border: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line-strong);
+    border-radius: var(--elsa-radii-pill);
+    color: var(--elsa-colors-metal);
+    font-family: var(--elsa-fonts-print);
+    font-size: var(--elsa-font-sizes-sm);
+    letter-spacing: var(--elsa-letter-spacings-eyebrow);
+  }
+
+  .printed-caption {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: var(--elsa-spacing-2);
+    color: var(--elsa-colors-print-credit);
+    font-size: var(--elsa-font-sizes-sm);
+    text-align: center;
   }
 
   .foil-photo {
