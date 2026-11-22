@@ -506,13 +506,13 @@ nothing else; the reader's last emotional beat with the product is a shrug.
   department lines open. The honour's permanence is the trust contract: the
   library never retroactively takes a certificate back.
 - **"Von vorn" after completion.** Reset is the one destructive act in the
-  product: it clears every `lucky-elsa.*` key (the Catalogue, room progress,
+  product: it clears every `lucky-elsa.*` key (the Collection, room progress,
   milestones, Elsas Ehrenmensch — and sound/language preferences return to their
   defaults), and its confirmation lists exactly what is lost —
   DE: *"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und
   Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN:
-  *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary
-  Human — sound and language return to their defaults."* (copy-deck sync
+  *"This clears the Collection, room progress, the milestones and Elsa's Honorary
+  Human — sound and language go back to default."* (copy-deck sync
   2026-11-22, D9). Focus defaults to Cancel; the confirm button is labelled with
   the action ("Alles löschen" / "Delete everything"), never "Ja".
 - **Milestone parity across readers.** Two family members with different
@@ -534,7 +534,7 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 | The first pack tear | First Expedition | Delight — "oh, this is a *place*" | Visitor reads the site as a plain gallery; second expedition unlikely |
 | The shiny card landing 4th/5th | The Reveal | Anticipation paid off — "it saved the best for late" | Reveal reads as random image shuffle; rarity never becomes meaningful |
 | The guaranteed shine kept (promotion) | The Reveal | Trust — "this collection keeps its promises" | An all-common pack breaks the stage copy; player suspects broken randomness |
-| Discovering the departments in the Catalogue | Reading the Collection | Recognition — "her life has departments" | Grid stays a flat thumbnail wall; meta layer never engages |
+| Discovering the departments in the Collection | Reading the Collection | Recognition — "her life has departments" | Grid stays a flat thumbnail wall; meta layer never engages |
 | First "gesammelt" tick after studying an entry | Studying an Exhibit | Ownership — "that one's collected now" | Seen-state invisible; progress feels disconnected from actions |
 | The foil catching light under the pointer | Studying an Exhibit | Material wonder — "this is a *thing*, not a page" | Foil reads as a static gradient; the parlour's one trick wasted |
 | The first share | Studying an Exhibit | Generosity — "you have to see this entry" | Sharing fails silently; the family loop never spins |
