@@ -135,6 +135,8 @@ that is the joke, and it is a fond one.
 | --- | --- | --- |
 | `{n}` | integer count (collected, positions, cards in a haul) | `14` |
 | `{total}` | integer total in the current manifest | `24` |
+| `{i}` | 1-based position of the card being revealed | `2` |
+| `{k}` | number of cards actually collected before a mid-reveal skip | `3` |
 | `{name}` | the card's printed name | `Wächterin der Keksdose` |
 | `{names}` | card names joined with `, ` (last two joined with the language's "und"/"and") | `A, B und C` |
 | `{set}` | wing display name or short name per the site note | `Der Ruhesaal` / `Ruhesaal` |
@@ -233,6 +235,9 @@ No string may be assembled by concatenating a noun with a count.
 | `pack.btn.catalogue` | see `nav.catalogue` | see `nav.catalogue` | — | same key | PCK |
 | `pack.list.aria` | Die Karten aus diesem Pack | The cards in this pack | 30 | `<ol>` label | PL |
 | `pack.card.aria` | Karte {n} öffnen: {name}, {rarity} | Open card {n}: {name}, {rarity} | 24 + name + rarity | **space-critical** — name clamps to 24; rarity always spoken so a screen-reader user hears which card shines | PL |
+| `pack.count` | {i} von {n} | {i} of {n} | 12 | **space-critical** — the stage counter, outside the world plane so the camera never scales or pans it and it survives reduced motion reading `4 von 4`. Single line, no wrap, no truncation — the digits are the point; `font-variant-numeric: tabular-nums` so the swap never reflows. Measured EN 6 / DE 7 at single digits, EN 8 / DE 9 with a two-digit pair; the 12 cap holds that. PCK §13 gives EN baseline 6, max 12 | PCK §13 |
+| `pack.card.revealed` | Karte {i} von {n}: {name}. {rarity}. | Card {i} of {n}: {name}. {rarity}. | dynamic | live region only, uncapped by layout — announced at each card's own settle. One complete sentence each, so the completion summary can stand alone for a reader the four writes outrun. Accessibility string: no `!` (§0.4.4, D26). The name is clamped on the plate, never in speech, so the spoken line has no fixed length to cap (PCK §13 measures 24 + name) | PCK §13 |
+| `pack.skipped` | {k} von {n} Karten gesammelt. | {k} of {n} cards collected. | 34 | live region only — no layout box to overflow; 34 is the source's own length budget, kept because the line has a fixed shape and the cap guards a two-digit pair. Written on a mid-reveal skip, before the 160 ms close can outrun a polite write; `{k}` is what was actually revealed (Ruling 1b). Collection verb, accessibility string, no `!` (§0.4.4, D26). Measured EN 23 / DE 25 at single digits, EN 25 / DE 27 with a two-digit pair; PCK §13 gives EN baseline 24, max 34 | PCK §13 |
 | `pack.summary` | {n} Karten: {names}. | {n} cards: {names}. | dynamic | live region only, uncapped by layout; ≤ ~2 sentences | PL |
 | `pack.summary.one` | Eine Karte: {names}. | One card: {names}. | dynamic | singleton haul (collection of one) | PROPOSED (plural rule) |
 | `pack.stamp.label` | 2. Auflage | Second edition | 17 | **space-critical** — rotated corner stamp, small text; must clear 4.5:1 at 9px | GDD R-H, PL (EN per D8) |

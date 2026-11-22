@@ -145,13 +145,14 @@ The law, in the forms a test can read:
 | Anchor → CSS | `object-position: {x·100}% {y·100}%` | test-plan `U-CV-07` |
 | Crop owner | CSS only (`object-fit: cover`); encoders resize and never pre-crop, so one derivative serves tile, card and dialog | art-bible §8 "Crop, orientation, metadata"; ADR-0008 |
 
-**R4 — one "no opinion" value for the anchor: `center 42%`.** Two documents currently default it
-to 50 % (ADR-0004's field row `{x,y} = {0.5,0.5}`; test-plan `U-CV-07` "default is `50% 50%`")
-while the art bible, the token and the view model all say `center 42%`. The bible wins on
+**R4 — one "no opinion" value for the anchor: `center 42%`.** Two documents used to default it
+to the 50 % centre (ADR-0004's field row, `{x,y}` = 0.5 / 0.5; test-plan `U-CV-07` "default is `50% 50%`")
+while the art bible, the token and the view model all said `center 42%`. Both are restated now:
+`U-CV-07` in #56, ADR-0004's field row under amendment A-1 (#63). The bible wins on
 grounds it states: faces sit high in Elsa's photographs, and 42 % is "the same 42 % as the photo
 crop, so the reading line never shifts between one card and four" (art-bible §7, the reveal
 camera's solved translate target). Cost: two one-line doc restatements (ADR-0004's default row,
-`U-CV-07`'s last clause) — ticketed, not edited here. Rationale for a single value: two
+`U-CV-07`'s last clause). Rationale for a single value: two
 different "no opinion" anchors (manifest-neutral 50 %, render-neutral 42 %) is exactly the
 `--foil-strength` 0.56/0.42/1.0 drift this project already paid for.
 
@@ -309,7 +310,7 @@ rungs aimed ~20 % under ceiling (95–100 % flags); LCP < 2.5 s mid-tier mobile 
 | Cumulative layout shift = 0 on load (media carry oriented `width`/`height`) | `E-OVF-12` | specified, suite pending (#24) |
 | Character ceilings exported and enforced at view-build time; +1 truncates, exactly-at-budget does not | `U-CV-01`, `U-CV-03` | specified, suite pending (#23) |
 | Truncation is one ellipsis, never mid-grapheme | `U-CV-02` | specified, suite pending (#23) |
-| `focus` maps to `object-position: x·100% y·100%`; absent → `center 42%` | `U-CV-07` (last clause restated, R4) | specified, needs the R4 edit |
+| `focus` maps to `object-position: x·100% y·100%`; absent → `center 42%` | `U-CV-07` (last clause restated, R4) | specified, R4 restated (#56, #63) |
 | Every image response ≤ its per-format ceiling and byte length ≠ the source's | gate 9, `E-PWA-06`, ADR-0008 checklist | gate pending (#25) |
 | **Bay percentages equal between `tokens.ts` and art-bible §8** | — (parity check) | **missing** — #30 covers colours; extend it to `sizes.zone-*` |
 | **No text baseline crosses the foil's inner edge** (card-detail L5) | — | **missing** — a geometry check, proposed as `E-OVF-13` with #13/#24 |
