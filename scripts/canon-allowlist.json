@@ -12,7 +12,7 @@
     "New live copy goes in src/ and design/copy/copy-deck.md with the canon name. Do not add",
     "entries for new text; rewrite it."
   ],
-  "maxBaseline": 7,
+  "maxBaseline": 0,
   "entries": [
     {
       "file": "AGENTS.md",
@@ -179,9 +179,8 @@
     {
       "file": "design/copy/copy-deck.md",
       "match": "den Katalog vervollständigen",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "meta.description re-voice row: both the current and the proposed value still carry the retired entity name."
+      "status": "allowed",
+      "reason": "History row: §15 records the superseded pre-voice value of `meta.description` (its New column and §1 carry the canon). The retired name is the record, not live copy."
     },
     {
       "file": "design/copy/copy-deck.md",
