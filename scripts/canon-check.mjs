@@ -568,6 +568,16 @@ function loadAllowlist(path) {
  * (or only its named rule when `rule` is set). Stale and ambiguous entries are
  * configuration errors: the allowlist must not outlive the text it excuses.
  */
+/**
+ * Report paths are POSIX on every host. `relative()` yields `design\art\art-bible.md`
+ * on Windows while every allowlist entry is written `design/art/art-bible.md`; without
+ * this the allowlist covers nothing and a clean tree reports 128 violations. The gate's
+ * report is its contract, so it is host-neutral (fixed for #49).
+ */
+function posixPath(path) {
+  return path.split(sep).join("/");
+}
+
 function applyAllowlist(violations, sources, entries, root) {
   const byFile = new Map();
   for (const entry of entries) {
@@ -605,7 +615,7 @@ function applyAllowlist(violations, sources, entries, root) {
       }
       used.add(entry);
       for (const violation of violations) {
-        if (relative(root, violation.file) !== file || violation.line !== matches[0]) continue;
+        if (posixPath(relative(root, violation.file)) !== file || violation.line !== matches[0]) continue;
         if (entry.rule && violation.rule !== entry.rule) continue;
         covered.add(`${violation.file}:${violation.line}:${violation.rule}`);
       }
@@ -620,7 +630,7 @@ function applyAllowlist(violations, sources, entries, root) {
 }
 
 function describe(violation, root) {
-  const file = relative(root, violation.file);
+  const file = posixPath(relative(root, violation.file));
   return `  ${violation.rule.padEnd(10)} ${file}:${violation.line}:${violation.column}  ${violation.term}`;
 }
 
@@ -705,7 +715,7 @@ function main() {
   const baselineHits = violations.filter((violation) =>
     baseline.some(
       (entry) =>
-        relative(options.root, violation.file) === entry.file &&
+        posixPath(relative(options.root, violation.file)) === entry.file &&
         sources.get(resolve(options.root, entry.file))?.[violation.line - 1]?.includes(entry.match),
     ),
   );
@@ -728,7 +738,7 @@ function main() {
           files: files.length,
           // The gated surface, by path: "index.html is scanned" is an assertion
           // a test can make, not a claim in a comment.
-          scanned: files.map((file) => relative(options.root, file)),
+          scanned: files.map((file) => posixPath(relative(options.root, file))),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
           allowlist: {
@@ -738,7 +748,7 @@ function main() {
             baselineHits: baselineHits.length,
           },
           violations: active.map((violation) => ({
-            file: relative(options.root, violation.file),
+            file: posixPath(relative(options.root, violation.file)),
             line: violation.line,
             column: violation.column,
             rule: violation.rule,

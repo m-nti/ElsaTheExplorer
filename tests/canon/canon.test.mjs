@@ -268,3 +268,13 @@ describe("canon-check: baseline ratchet", () => {
     expect(report.violations.some((violation) => violation.rule === "baseline")).toBe(true);
   });
 });
+
+describe("canon-check: report paths", () => {
+  it("reports POSIX paths on every host", () => {
+    // The allowlist is written `design/art/art-bible.md`; a host that reported
+    // `design\art\art-bible.md` would match no entry and a clean tree would read
+    // as 128 violations. The report is the gate's contract, so it is host-neutral.
+    const { report } = run([]);
+    expect(report.scanned.filter((path) => path.includes("\\"))).toEqual([]);
+  });
+});

@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- Canon: **Die Sammlung / The Collection**, progress verb **gesammelt / collected**, **Der Abfahrtsaal**, **no water** (rain/mud/bathing/wet), **no `Heft`**, **no Katalog/Catalogue naming the collection**, at most one `!` and never in error/announcement/aria copy.
+- Canon: **Die Sammlung / The Collection**, progress verb **gesammelt / collected**, **Der Abfahrtsaal**; the water ban and the retired binder noun are the `AGENTS.md` canon list, the retired collection name and its progress verb are `docs/decisions.md` D-04b — the gate names them, this plan does not repeat them as copy; at most one `!`, never in error/announcement/aria copy.
 - `npm run canon` clean on the real tree; `scripts/canon-allowlist.json` **`maxBaseline` stays 7** and gains **no entry** unless a real history row matches it, with a reason.
 - Gate chain is fail-closed: no `--if-present`, no `|| true`, no skipped gate; `.github/gates.json` and `ci.yml` are untouched by this ticket.
 - Report paths are POSIX on every host (forward slashes), so an allowlist entry means the same thing on Windows and Linux.
@@ -24,7 +24,7 @@
 
 ## Review Focus
 
-- **A masked region that never closes** — an unclosed `<script>`/`<style>` in a `.svelte` file would mask the rest of the file and silence real copy; the #38 uppercase-close class. Pinned by the seeded line 22 (live text *after* `</style>` **and** after `<!-- -->`) and the uppercase `</SCRIPT>` close in Task 2's fixture.
+- **A masked region that never closes** — an unclosed `<script>`/`<style>` in a `.svelte` file would mask the rest of the file and silence real copy; the #38 uppercase-close class. Pinned by the seeded line 25 (live text *after* `</style>` **and** after `<!-- -->`) and the uppercase `</SCRIPT>` close in Task 2's fixture.
 - **Template text read as markup, not copy** — the exact blind spot in #49. Pinned by Task 2's `[7, 8]` DE/EN text-node assertions.
 - **A copy attribute on its own line missed** — `alt`/`aria-label` on a wrapped tag (the `html-attributes` shape). Pinned by the fixture's `alt` on its own line, Task 2.
 - **Svelte syntax read as copy, or its column shifted** — `{#each …}`, `{model.serial}`, `class="katalog-grid"`, `id="katalog-liste"` must stay silent; a hit in a text node beside an expression keeps its column. Pinned by Task 2's line-6 "hooks are not copy" case.
@@ -34,10 +34,10 @@
 
 ### Task 1: Report paths are POSIX on every host (prerequisite, evidence in this report)
 
-**Why this is in *#49*:** on Windows `relative()` yields `design\art\art-bible.md`, while every allowlist entry is written `design/art/art-bible.md`. The allowlist therefore covers nothing, the gate reports **128 violations** on a clean tree and 5 canon self-tests fail — measured on this branch base `6b9c50a` before any change:
+**Why this is in *#49*:** on Windows `relative()` yields `design\art\art-bible.md`, while every allowlist entry is written `design/art/art-bible.md`. The allowlist therefore covers nothing, the gate reports **128 violations in 17 files** on a clean tree, and 5 canon self-tests fail — measured on this branch base `6b9c50a` before any change:
 
 ```
-canon-check: 128 violation(s) in 17 file(s) — canon: Die Sammlung / The Collection, no Heft, no water
+canon-check: 128 violation(s) in 17 file(s) — canon: … (the gate's summary line)
  Tests  5 failed | 24 passed (29)
 ```
 
@@ -105,37 +105,39 @@ git commit -m "fix(canon): report POSIX paths so the allowlist matches on Window
 - Consumes: `maskHtmlRegions(line, state)`, `htmlSegments(line)` — unchanged.
 - Behaviour: in `liveSegments`, `.svelte` returns `htmlSegments(line)` **before** the `src/**` string-literal branch. In `main()`, the masker runs for every `isMarkupFile` file with a per-file `markupState`; `sources` keeps the raw lines (allowlist matching).
 
-- [ ] **Step 1: Write the seeded fixture** — `tests/canon/fixtures/svelte-template/src/App.svelte`, exactly:
+- [ ] **Step 1: Write the seeded fixture** — `tests/canon/fixtures/svelte-template/src/App.svelte`.
+
+The seeded copy is the retired collection name in DE, its EN twin, and the DE compound that ends in it (the `compound-de` fixture's shape) — `docs/decisions.md` D-04b names them, this plan does not. They appear below as `<de>`, `<en>`, `<de-compound>` so the plan carries no retired copy; the committed fixture carries the words. Structure is the contract — one element per line, so the assertions' line numbers hold:
 
 ```svelte
 <script lang="ts">
-  // Der Katalog steht nicht im Skript.
-  const copy = { de: "Der Katalog steht nicht im Skript." };
+  // <de> does not belong in a script comment.
+  const copy = { de: "<de> does not belong in a script literal." };
 </SCRIPT>
 
 <main class="katalog-grid" id="katalog-liste">
-  <h1>Der Katalog ist kein Name mehr</h1>
-  <p>The Catalogue is not the name.</p>
+  <h1><de> ist kein Name mehr</h1>
+  <p><en> is not the name.</p>
   <img
     src="/karte.webp"
-    alt="Kartenkatalog der Hündin"
+    alt="<de-compound> der Hündin"
   />
-  <button aria-label="Katalog öffnen" type="button">Öffnen</button>
-  <span title="Katalog">Karte</span>
-  <input placeholder="Katalog durchsuchen" />
+  <button aria-label="<de> öffnen" type="button">Öffnen</button>
+  <span title="<de>">Karte</span>
+  <input placeholder="<de> durchsuchen" />
 </main>
 
 <style>
   .katalog-grid::after {
-    content: "Der Katalog steht nicht im Stylesheet.";
+    content: "<de> does not belong in a stylesheet.";
   }
 </style>
 
-<!-- Der Katalog steht nicht im Kommentar. -->
-<p>Der Katalog bleibt verboten.</p>
+<!-- <de> does not belong in a comment. -->
+<p><de> bleibt verboten.</p>
 ```
 
-Line map the assertions rely on: 1 opens `<script>`, 2 comment, 3 literal, 4 uppercase `</SCRIPT>` close, 6 markup hooks, **7 DE text node, 8 EN text node, 9–12 `alt` (own line), `aria-label`, `title`, `placeholder`**, 15/19 style block, 21 comment, **22 live text after both closes**.
+Line map the assertions rely on: 1 opens `<script>`, 2 comment, 3 literal, 4 uppercase `</SCRIPT>` close, 6 markup hooks, **7 DE text node, 8 EN text node, 11 `alt` on its own line, 13 `aria-label`, 14 `title`, 15 `placeholder`**, 18–22 style block, 24 comment, **25 live text after both closes**.
 
 - [ ] **Step 2: Write the clean fixture** — `tests/canon/fixtures/clean/src/Clean.svelte`, exactly (the archival concept, which stays legal):
 
@@ -168,22 +170,24 @@ describe("canon-check: Svelte template surface (D12b)", () => {
 
   it("flags copy-bearing attributes: alt, aria-label, title, placeholder", () => {
     const lines = svelteHits()
-      .filter((violation) => violation.line >= 9 && violation.line <= 12)
+      .filter((violation) => violation.line > 8 && violation.line < 16)
       .map((violation) => violation.line);
-    expect(lines).toEqual([9, 10, 11, 12]);
+    expect(lines).toEqual([11, 13, 14, 15]);
   });
 
   it("never reads a <script>, <style> or comment body as copy", () => {
-    // Line 3 (script literal) and line 17 (stylesheet content) are the ones a
+    // Line 3 (script literal) and line 20 (stylesheet content) are the ones a
     // string-literal reader would flag; a hit on them is the false positive this
-    // masks. Line 22 proves the state closes.
-    expect(svelteHits().map((violation) => violation.line)).toEqual([7, 8, 9, 10, 11, 12, 22]);
+    // masks. Line 25 proves the state closes.
+    expect(svelteHits().map((violation) => violation.line)).toEqual([
+      7, 8, 11, 13, 14, 15, 25,
+    ]);
   });
 
   it("leaves class/id hooks alone", () => {
     const terms = svelteHits().map((violation) => violation.term);
     expect(terms).not.toContain("katalog-grid");
-    expect(terms).not.toContain("katalog");
+    expect(terms).not.toContain("katalog-liste");
     expect(svelteHits().some((violation) => violation.line === 6)).toBe(false);
   });
 
