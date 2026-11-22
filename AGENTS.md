@@ -85,6 +85,32 @@ Work is committed in coherent checkpoints and pushed regularly; features land as
 PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
 resolution status in a comment.
 
+## Standing rule — ticket lifecycle is agent-owned
+
+The owner does not create, move or close tickets. Agents do, autonomously.
+
+**Board:** https://github.com/users/m-nti/projects/2
+**Template:** `.github/ISSUE_TEMPLATE/task.yml` (blank issues disabled).
+**Labels:** `type:*` (feature, bug, chore, spike, docs), `area:*` (design, frontend,
+backend, qa, docs, infra, narrative, audio), `phase:*` (foundation, design-gates,
+scaffold, build, polish, release), `priority:*` (P0, P1, P2).
+
+1. **Every unit of work is an issue.** Write the body as: Context → Scope/non-goals →
+   Acceptance criteria (binary, one per line) → Evidence/DoD → Dependencies → References.
+   Title format `[AREA] Imperative summary` (e.g. `[B4] Pack theatre: 4-card focus reveal`).
+2. **Discovering work files a ticket immediately** — a review finding, a measured defect,
+   a missing ADR, a deferral. Prose in a doc is not a tracker.
+3. **Transitions are automatic:**
+   - start → board **In Progress**, assign the working agent/author;
+   - PR opened → **In Review**, PR body says `Closes #N`;
+   - merge/close → **Done** (the PR closes it), and the steward files follow-ups for
+     anything deferred.
+4. **The PR steward reconciles the board at merge**: linked issues closed, status set,
+   partial work split into remaining issues.
+5. **No user action is required** at any point. If a tracker operation needs a permission
+   the current token lacks (e.g. `project` scope), say so once with the exact command and
+   continue filing issues in the repo.
+
 ## Standing rule — no small-project bias
 
 Treat this as a production product, always. When choosing tooling, architecture or
