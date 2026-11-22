@@ -329,9 +329,14 @@ describe("canon-check: the real tree (D12b)", () => {
     // `scanned` already listed the file before #49; this is the assertion that the
     // *template* was read, so a regression to markup-only is a red test.
     const { report } = run([]);
+    // Every `.svelte` file under `src/`, in scan order: adding a component means
+    // adding it here, because the point is that the template (not just the file
+    // name) was read. #80 added CardDialog and CardTile after #49 wrote the list.
     expect(report.templates).toEqual([
       "src/App.svelte",
+      "src/lib/components/CardDialog.svelte",
       "src/lib/components/CardFace.svelte",
+      "src/lib/components/CardTile.svelte",
     ]);
   });
 
