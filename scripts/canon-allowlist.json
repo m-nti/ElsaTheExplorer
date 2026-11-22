@@ -12,7 +12,7 @@
     "New live copy goes in src/ and design/copy/copy-deck.md with the canon name. Do not add",
     "entries for new text; rewrite it."
   ],
-  "maxBaseline": 7,
+  "maxBaseline": 3,
   "entries": [
     {
       "file": "AGENTS.md",
@@ -325,43 +325,15 @@
     },
     {
       "file": "design/ux/binder.md",
-      "match": "\"Catalogue: {pct} per cent done",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
-    },
-    {
-      "file": "design/ux/binder.md",
-      "match": "This clears the Catalogue",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live `reset.body` EN not renamed; the copy deck's `reset.body` says 'This clears the Collection'."
-    },
-    {
-      "file": "design/ux/binder.md",
       "match": "Die Nassabteilung/The Wet Collection was replaced",
       "status": "allowed",
       "reason": "History: resolved owner ruling recording the retired room name."
     },
     {
       "file": "design/ux/interaction-patterns.md",
-      "match": "This clears the Catalogue",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live `reset.body` EN not renamed; the copy deck's `reset.body` is the SSOT."
-    },
-    {
-      "file": "design/ux/interaction-patterns.md",
       "match": "the archive contains no wet-dog, rain, mud or bathing content",
       "status": "allowed",
       "reason": "Canon declaration in the room list (Der Abfahrtsaal note)."
-    },
-    {
-      "file": "design/ux/interaction-patterns.md",
-      "match": "\"Catalogue: {pct} per cent done",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
     },
     {
       "file": "docs/adr/ADR-0009-pwa.md",
