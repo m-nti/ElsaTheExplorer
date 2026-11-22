@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tileAlt } from "$lib/domain/tile";
+import { tileAlt, tileNumberLabel } from "$lib/domain/tile";
 
 describe("tileAlt", () => {
   it("uses the manifest description when present", () => {
@@ -18,5 +18,15 @@ describe("tileAlt", () => {
 
   it("never returns untrimmed text", () => {
     expect(tileAlt({ alt: "  Elsa am Beet.  " }, "x")).toBe("Elsa am Beet.");
+  });
+});
+
+describe("tileNumberLabel", () => {
+  it("reads the printed number without its plate prefix", () => {
+    expect(tileNumberLabel("No. 01")).toBe("01");
+  });
+
+  it("keeps a bare number unchanged", () => {
+    expect(tileNumberLabel("03")).toBe("03");
   });
 });

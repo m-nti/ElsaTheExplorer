@@ -13,3 +13,11 @@ export function tileAlt(photo: Pick<CardPhoto, "alt">, fallbackName: string): st
   if (fromManifest.length > 0) return fromManifest;
   return fallbackName.trim();
 }
+
+/**
+ * The spoken number for `tile.aria.open`: the plate prints “No. 01”, the
+ * accessible name reads “Karte 01 öffnen”, so the plate prefix is dropped.
+ */
+export function tileNumberLabel(printedNumber: string): string {
+  return printedNumber.replace(/^No\.\s*/i, "").trim();
+}
