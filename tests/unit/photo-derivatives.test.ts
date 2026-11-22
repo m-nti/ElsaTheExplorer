@@ -15,6 +15,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { crc32, deflateSync } from "node:zlib";
 import sharp, { type Sharp } from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -123,6 +124,34 @@ function gradient(width: number, height: number): Sharp {
     }
   }
   return sharp(data, { raw: { width, height, channels: 3 } });
+}
+
+/**
+ * A PNG that *declares* any size while staying tiny: a real IHDR plus a stub IDAT. This is the
+ * decompression-bomb shape the acceptance caps exist for — a header read must reject it before
+ * any bitmap is allocated (§10). No image data, no decode, 68-ish bytes on disk.
+ */
+function pngDeclaring(width: number, height: number): Buffer {
+  const chunk = (type: string, data: Buffer): Buffer => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(data.length, 0);
+    const typed = Buffer.concat([Buffer.from(type, "latin1"), data]);
+    const checksum = Buffer.alloc(4);
+    checksum.writeUInt32BE(crc32(typed) >>> 0, 0);
+    return Buffer.concat([length, typed, checksum]);
+  };
+
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8; // bit depth, 8-bit greyscale
+
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk("IHDR", ihdr),
+    chunk("IDAT", deflateSync(Buffer.alloc(16))),
+    chunk("IEND", Buffer.alloc(0)),
+  ]);
 }
 
 type Fixtures = { rotated: Buffer; landscape: Buffer; alpha: Buffer };
@@ -502,10 +531,97 @@ describe("idempotency and --check", () => {
 });
 
 // ---------------------------------------------------------------------------
+// SEC-001 — a retired photo must not leave a servable derivative behind
+// ---------------------------------------------------------------------------
+
+describe("stale derivative pruning", () => {
+  it("removes the rungs of a photo that left the source set and leaves the rest untouched", () => {
+    const dirs = runDir("prune", { fixtures: ["landscape", "alpha"], captions: null });
+    expect(generate(dirs).status).toBe(0);
+
+    // Both photos at every rung: 4 files per rung (2 photos × jpeg+webp), 8 per photo.
+    expect(filesIn(join(dirs.out, "tile"))).toHaveLength(4);
+    const kept = snapshot(dirs.out);
+    const alphaFiles = [...kept.keys()].filter((file) => file.includes("alpha."));
+    expect(alphaFiles).toHaveLength(8);
+
+    // The owner deletes a photo (or renames it — same effect on the id set).
+    rmSync(join(dirs.source, "alpha.png"));
+
+    const result = generate(dirs);
+    expect(result.status, result.stderr).toBe(0);
+
+    // Its rungs are gone, not merely unlisted: nothing servable survives for a retired photo.
+    for (const file of alphaFiles) expect(existsSync(file), `${file} outlived its photo`).toBe(false);
+    expect(filesIn(dirs.out).filter((file) => file.endsWith(".derived-state.json"))).toHaveLength(1);
+
+    // The surviving photo's files are byte-identical — pruning is not a re-render.
+    for (const [file, fingerprint] of kept) {
+      if (file.includes("alpha.") || file.endsWith(".derived-state.json")) continue;
+      expect(snapshot(dirs.out).get(file), `${file} was touched`).toBe(fingerprint);
+    }
+
+    expect(manifestOf(dirs.manifest).photos.map((entry) => entry.filename)).toEqual(["landscape.jpg"]);
+    expect(result.stdout).toContain("prune: removed 8 stale file(s)");
+
+    // And the tree is back in sync.
+    const check = generate(dirs, ["--check"]);
+    expect(check.status, check.stderr).toBe(0);
+  }, 30_000);
+
+  it("reports a stale derivative as drift in --check without deleting it", () => {
+    const dirs = runDir("prune-check", { fixtures: ["landscape", "alpha"], captions: null });
+    expect(generate(dirs).status).toBe(0);
+
+    // A file that belongs to no photo — what a stale render or a hand copy leaves behind.
+    const orphan = rungFile(dirs, "retired-photo", "tile", "jpeg");
+    writeFileSync(orphan, readFileSync(rungFile(dirs, "landscape", "tile", "jpeg")));
+
+    const check = generate(dirs, ["--check"]);
+    expect(check.status).toBe(1);
+    expect(check.stderr).toContain("stale derivative tile/retired-photo.jpg");
+
+    // The gate reports; it never deletes. The clean run is the one that prunes.
+    expect(existsSync(orphan)).toBe(true);
+    expect(generate(dirs).status).toBe(0);
+    expect(existsSync(orphan)).toBe(false);
+  }, 30_000);
+});
+
+// ---------------------------------------------------------------------------
 // Negative proofs — a broken input must fail, not be skipped
 // ---------------------------------------------------------------------------
 
 describe("input rejection", () => {
+  it("refuses the acceptance caps without decoding: 32 MP, 8000 px edge and 20 MiB", () => {
+    const dirs = runDir("caps", { fixtures: ["landscape"], captions: null });
+
+    // A decompression bomb: 68 bytes declaring 8000×8000 (64 MP). Nothing is decoded.
+    writeFileSync(join(dirs.source, "bomb.png"), pngDeclaring(8000, 8000));
+    // Same trick for the edge cap: 0.9 MP, but a 9000 px long edge.
+    writeFileSync(join(dirs.source, "wide.png"), pngDeclaring(9000, 200));
+    // Over the compressed-byte cap; the header is never even read.
+    writeFileSync(join(dirs.source, "huge.jpg"), Buffer.alloc(21 * 1024 * 1024));
+
+    const result = generate(dirs);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("bomb.png: 8000×8000 exceeds the 32 MP cap");
+    expect(result.stderr).toContain("wide.png: 9000×200 exceeds the 8000 px edge cap");
+    expect(result.stderr).toContain("huge.jpg: 22020096 B exceeds the 20 MiB source cap");
+
+    // Not one derivative byte, and no manifest claiming these photos exist.
+    for (const id of ["bomb", "wide", "huge"]) {
+      for (const rung of RUNGS) {
+        for (const format of FORMATS) expect(existsSync(rungFile(dirs, id, rung, format))).toBe(false);
+      }
+    }
+    expect(existsSync(dirs.manifest)).toBe(false);
+
+    // The healthy photo is unaffected by the three refusals.
+    expect(existsSync(rungFile(dirs, "landscape", "tile", "jpeg"))).toBe(true);
+  }, 30_000);
+
   it("rejects an undecodable source instead of silently skipping it", () => {
     const dirs = runDir("corrupt", { fixtures: ["landscape"], captions: null });
     writeFileSync(join(dirs.source, "broken.jpg"), "this is not a JPEG, it is a sentence\n");

@@ -13,6 +13,11 @@
 > truth), and **`verification-before-completion`** (every claim below carries the command that
 > produced it). `cs-backend-engineer` was considered and **not** staffed: this ticket adds no
 > PHP — `photos.php` is untouched and was read only as the runtime contract.
+> 
+> **Review round 2 (security review on PR #43, verdict COMMENT, no critical/high):** SEC-001
+> closed — stale derivatives are pruned on a clean run (§4.5); §6(e) corrected to match the
+> fail-loud behaviour; the acceptance caps (32 MP / 8000 px / 20 MiB) now have refusal tests
+> driven by a decompression bomb (§4.2, §6(l)).
 
 ---
 
@@ -66,7 +71,7 @@ than shipping an oversized rung. §4 proves that with real files.
 | File | Status | Purpose |
 | --- | --- | --- |
 | `scripts/photo-derivatives.mjs` | new | sharp 0.35.5 generator: four rungs × JPEG/WebP, manifest v2, `--check` drift gate, byte table |
-| `tests/unit/photo-derivatives.test.ts` | new | 16 tests: manifest shape, orientation, budgets, metadata stripping, idempotency, drift, input rejection, PHP parity |
+| `tests/unit/photo-derivatives.test.ts` | new | 19 tests: manifest shape, orientation, budgets, metadata stripping, idempotency, drift, acceptance caps, stale-derivative pruning, input rejection, PHP parity |
 | `docs/build/i3-verification.md` | new | this evidence |
 | `knip.json` | **modified, 2 lines** | `ignoreBinaries: ["php"]` (the parity harness) and the now-stale `sharp` entry removed from `ignoreDependencies` — sharp is imported by an entry script, so knip reports it as used. Gate config only; see §8(h). |
 
@@ -159,6 +164,21 @@ broken derivatives: 0
 healthy derivatives: 2      # one bad drop does not stop the ladder
 ```
 
+The acceptance caps are refused **from the header, before any bitmap exists** (§10). A
+decompression bomb is 68 bytes on disk that *declare* 8000×8000:
+
+```
+$ <source contains bomb.png (8000×8000 declared), wide.png (9000×200), huge.jpg (21 MiB), plus one healthy photo>
+$ node scripts/photo-derivatives.mjs --source …/caps/src --out …/caps/derived --manifest …/caps/photos.json
+  ✗ bomb.png: 8000×8000 exceeds the 32 MP cap (§10)
+  ✗ wide.png: 9000×200 exceeds the 8000 px edge cap (§10)
+  ✗ huge.jpg: 22020096 B exceeds the 20 MiB source cap (§10)
+exit 1        # 0 derivative bytes for any of the three, no manifest, healthy photo still rendered
+```
+
+The header read runs with `limitInputPixels: false` on purpose (§6(m)): with sharp's limit on,
+a bomb is rejected as "not decodable" and the operator never learns *which* cap it broke.
+
 Three further refusal proofs, each its own test:
 
 - `manifest: not written` — a run with any failed photo writes **no** manifest, so a
@@ -173,7 +193,7 @@ Three further refusal proofs, each its own test:
 ```
 $ npx vitest run --project unit tests/unit/photo-derivatives.test.ts
 
- ✓ |unit| tests/unit/photo-derivatives.test.ts (16 tests)
+ ✓ |unit| tests/unit/photo-derivatives.test.ts (19 tests)
    ✓ manifest v2 (4)
      ✓ emits the v2 document shape, four rungs per photo, and no transmitted srcset
      ✓ keeps width/height as the oriented source ratio and each rung's own w/h on that ratio
@@ -188,7 +208,11 @@ $ npx vitest run --project unit tests/unit/photo-derivatives.test.ts
      ✓ reports drift and exits non-zero when a derivative changed on disk
      ✓ reports drift when the ladder changed since the last run
      ✓ re-renders when a source changed and the new version reaches the manifest
-   ✓ input rejection (4)
+   ✓ stale derivative pruning (2)
+     ✓ removes the rungs of a photo that left the source set and leaves the rest untouched   (SEC-001)
+     ✓ reports a stale derivative as drift in --check without deleting it
+   ✓ input rejection (5)
+     ✓ refuses the acceptance caps without decoding: 32 MP, 8000 px edge and 20 MiB
      ✓ rejects an undecodable source instead of silently skipping it
      ✓ refuses to write a manifest that would be incomplete
      ✓ skips a symlinked source rather than following it out of the folder
@@ -197,7 +221,7 @@ $ npx vitest run --project unit tests/unit/photo-derivatives.test.ts
      ✓ emits the same per-photo field set, ids, source dims and rung dims as ?list=1
 
  Test Files  1 passed (1)
-      Tests  16 passed (16)
+      Tests  19 passed (19)
 ```
 
 What the assertions pin, not just describe:
@@ -214,6 +238,8 @@ What the assertions pin, not just describe:
 | No original escapes | no file equals the source size; every URL is `derived/<rung>/<id>.<ext>` and none addresses `photos/` |
 | Metadata stripped | the source contains `Exif\0\0`; **no** output contains EXIF, XMP (`ns.adobe.com/xap`) or `ICC_PROFILE` |
 | Idempotent | mtime+size+sha256 identical before/after the second run, manifest byte-identical |
+| A retired photo leaves nothing servable (SEC-001) | deleting a source removes all 8 of its rungs, the survivor's files stay byte-identical, `prune: removed 8` is reported, and `--check` returns to green |
+| Caps refuse before decode | a 68-byte PNG declaring 8000×8000 and a 21 MiB file are rejected with the named cap, zero derivative bytes, no manifest |
 | `--check` gates drift | truncating a rung ⇒ exit 1 naming the file; a changed ladder hash ⇒ exit 1; a normal run repairs both |
 | A replacement photo invalidates | new bytes under the same name ⇒ new `ver` in the manifest (ADR-0008 §6) |
 | Runtime parity | identical per-photo field set, ids, source dims, `aspect`, and rung `w`/`h` against a real `?list=1` (§4.4) |
@@ -245,7 +271,37 @@ GitHub's runner has no PHP in the current workflow, so this gate is **local-only
 CI job provisions PHP (ADR-0008 requires one: "A CI job must run real PHP (`php -S`)"). When
 PHP is absent the test is *skipped and reported as skipped*, never silently green.
 
-### 4.5 Full gate set
+### 4.5 Stale-derivative pruning (SEC-001)
+
+A retired photo must not stay downloadable. Before this fix a rung owned by nobody kept
+answering at its immutable URL while the manifest had already forgotten it.
+
+```
+$ # two photos rendered, then one source removed
+before: alpha.jpg  alpha.webp  landscape.jpg  landscape.webp     (tile rung)
+$ node scripts/photo-derivatives.mjs --source …/src --out …/derived --manifest …/photos.json
+manifest: written …/photos.json (1 photos, pipeline 2)
+prune: removed 8 stale file(s) no longer in the catalogue
+  - tile/alpha.jpg
+  - tile/alpha.webp
+  - pack/alpha.jpg
+  - pack/alpha.webp
+  - detail/alpha.jpg
+  - detail/alpha.webp
+  - download/alpha.jpg
+  - download/alpha.webp
+derivatives: ok — 1 photos, 8 files, 1004.1 KB total (…/derived)
+after:  landscape.jpg  landscape.webp
+
+$ node scripts/photo-derivatives.mjs --check
+check: in sync — 1 photos, 8 files, every rung within its budget
+```
+
+Scope of the deletion is narrow by design: only `<out>/<rung>/`, only regular files, only
+`.jpg`/`.jpeg`/`.webp`, only when the stem is not a current id, and **only on a clean run** — a
+failed run and `--check` never delete anything (`--check` reports the orphan as drift and exits 1).
+
+### 4.6 Full gate set
 
 ```
 $ npm run verify
@@ -282,6 +338,8 @@ branches 44 % ≥ 44, functions 50 % ≥ 50, statements 58.28 % ≥ 58).
 | Quality steps down to the ceiling, floor 40, step 4 (§9) | `renderRung()`; a rung that cannot fit throws instead of shipping |
 | No-original rule (§5) | nothing is copied, no manifest URL addresses `photos/`, every output path is asserted inside the output directory |
 | Manifest v2, no `srcset` (ADR-0004 §2/§4) | `manifestBody()`; `images` is exactly `{jpeg, webp, w, h}` |
+| Stale rungs pruned on a clean run (security review SEC-001) | `pruneStale()`; `--check` reports orphans instead of deleting |
+| Acceptance caps refused before decode (§10) | `orientedSize()` reads the header, then the 20 MiB / 8000 px / 32 MP checks reject by name |
 | Idempotent re-run, ladder-hash invalidation (§13.3) | `.derived-state.json` beside the derivatives (pipeline, ladder hash, per-source `ver`/size/mtime, per-rung sizes and dims) |
 
 Manifest per photo: `id`, `width`/`height` (oriented **source** dims), `aspect`, `ver`,
@@ -318,12 +376,15 @@ object; the ADR and the adjacent rule win, and a test asserts its absence.
 carry it and ADR-0004 §2 does not list it. Array position carries the order. If a consumer
 needs the field, that is a contract change (ADR-0004 §5), not an emitter side-effect.
 
-**(e) `renderable: false` keeps the card, without URLs.** When this sharp build cannot decode a
-format (no libheif/avif), the entry stays in the catalogue with `renderable: false` and **no**
-`images`/aliases (§13.4: "dropping them would silently shrink the collection"), the owner gets
-the explicit "export JPEG from Photos.app" message, and the run still exits 1 — the honest
-failure mode §13.2 asks for. A *corrupt* file is not a capability problem: it is rejected
-outright with no entry at all (§4.2).
+**(e) A photo this sharp build cannot decode is built as `renderable: false`, and the run
+fails — so nothing reaches the manifest.** When the build has no libheif/avif, the in-memory
+entry is assembled the way §13.4 wants it (the card kept, `renderable: false`, **no**
+`images`/aliases, so a later manifest can never point at a file that does not exist), the owner
+gets the explicit "export JPEG from Photos.app" message, and the run exits 1. That makes it the
+building block of the rule in (f): **any** problem on a run suppresses the manifest write, so on
+disk the outcome of a capability gap is "manifest not updated, exit 1" — never a catalogue
+quietly missing a photo *or* a catalogue listing a photo it cannot serve. A *corrupt* file is
+not a capability problem: it is rejected outright with no entry built at all (§4.2).
 
 **(f) A failed run writes no manifest and no state.** A catalogue that silently omits the photo
 that failed is worse than no catalogue; the next clean run writes the complete one.
@@ -357,7 +418,16 @@ When the fixture helper lands, the test should import it instead of duplicating 
 exist yet. Until it does, the ratified numbers live in two places **that check each other**
 (the test fails if the script's budget is loosened). Creating the JSON is a follow-up.
 
-**(l) No `package.json` script entry**, per the ticket. The natural line is
+**(l) The header read runs with `limitInputPixels: false`, and the caps are checked by us.**
+sharp's own pixel limit makes `metadata()` throw `Input image exceeds pixel limit` on a
+decompression bomb — which the script would report as "not decodable", i.e. the operator never
+learns which cap the file broke, and the message points at the wrong remedy. The order is
+therefore PHP's (§7.1 step 3): read the header with no pixel limit, then apply 20 MiB / 8000 px /
+32 MP and name the one that failed. Nothing is decoded by that read; the render pipeline keeps
+`limitInputPixels: MAX_SOURCE_PIXELS` as a second line of defence. Tested with a 68-byte PNG that
+declares 8000×8000 (§4.2).
+
+**(m) No `package.json` script entry**, per the ticket. The natural line is
 `"photos:derived": "node scripts/photo-derivatives.mjs"` and `"photos:check": "node scripts/photo-derivatives.mjs --check"`.
 Reported, not edited; adding them is a one-line PR once the owner picks the names (and note
 `npm run photos` currently exits 1 by design — the B0 stub).

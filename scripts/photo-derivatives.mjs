@@ -27,6 +27,8 @@
  *      exactly `{jpeg, webp, w, h}` — no `srcset` (ADR-0004 §4), no extra bookkeeping.
  *   8. Idempotent: a second run over unchanged sources writes nothing — not one derivative,
  *      not the manifest. `--check` is the read-only drift gate.
+ *   9. A clean run prunes rungs no current photo owns (SEC-001): a deleted or renamed photo
+ *      must not leave a servable derivative behind that the manifest no longer lists.
  *
  * Usage
  *   node scripts/photo-derivatives.mjs                 # photos/ → photos/derived + photos.json
@@ -354,9 +356,15 @@ function scaledDimensions(width, height, edge) {
  * `width`/`height` here would swap the ratio of every EXIF-rotated phone photo — the exact
  * CLS defect D7 in §1. `autoOrient` is the oriented pair, `width`/`height` the stored pair.
  * Pinned by the orientation-6 fixture test.
+ *
+ * `limitInputPixels: false` is deliberate: this is the header read that must happen *before*
+ * the acceptance caps are applied (§7.1 step 3 — PHP's `getimagesize` has no pixel limit).
+ * With sharp's limit on, a decompression bomb would be rejected as "not decodable" instead of
+ * naming the cap it violates. Nothing is decoded here; the render pipeline still passes
+ * `limitInputPixels: MAX_SOURCE_PIXELS` as the second line of defence.
  */
 async function orientedSize(source) {
-  const meta = await sharp(source, { failOn: "error", limitInputPixels: MAX_SOURCE_PIXELS }).metadata();
+  const meta = await sharp(source, { failOn: "error", limitInputPixels: false }).metadata();
   const oriented = meta.autoOrient ?? { width: meta.width, height: meta.height };
   if (!Number.isInteger(oriented.width) || !Number.isInteger(oriented.height)) {
     throw new PhotoError("source has no readable dimensions");
@@ -414,6 +422,42 @@ function writeAtomic(target, data) {
     throw error;
   }
 }
+
+/**
+ * Remove derivative files that no current photo owns (SEC-001 on PR #43).
+ *
+ * Without this, deleting or renaming a photo leaves its rungs behind: they are still valid
+ * immutable URLs at `photos/derived/<rung>/<old-id>.jpg`, and a static host will serve them
+ * forever — a retired photo stays publicly downloadable while the manifest pretends it is
+ * gone. The no-original rule does not cover this; it is a *stale derivative* leak.
+ *
+ * Scope of the deletion is deliberately narrow:
+ *   - only inside `<out>/<rung>/`, only regular files, only `.jpg`/`.jpeg`/`.webp`
+ *   - only when the file's stem is not the id of a photo in the current run
+ *   - only on a clean run (a failed run touches nothing, not even stale files)
+ * `.derived-state.json`, unknown extensions and subdirectories are left alone, so a stray
+ * owner file in the output tree is never deleted by a generator run.
+ */
+function pruneStale(out, ids, { dryRun = false } = {}) {
+  const removed = [];
+
+  for (const rendition of RUNGS) {
+    const dir = join(out, rendition);
+    if (!existsSync(dir)) continue;
+
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      if (![".jpg", ".jpeg", ".webp"].includes(extname(entry.name).toLowerCase())) continue;
+      if (ids.has(parsePath(entry.name).name)) continue;
+
+      if (!dryRun) unlinkSync(resolveInside(out, rendition, entry.name));
+      removed.push(`${rendition}/${entry.name}`);
+    }
+  }
+
+  return removed;
+}
+
 
 // ---------------------------------------------------------------------------
 // Captions (v1 metadata retained — ADR-0004 §2, §13.4)
@@ -870,6 +914,22 @@ async function main(argv) {
   }
 
   if (photos.length > 0) printByteTable(photos, ladder.edges, options.verbose);
+
+  // Stale derivatives are reported by --check (drift) and removed by a clean run (SEC-001).
+  const ids = new Set(photos.filter((photo) => photo.renderable).map((photo) => photo.id));
+
+  if (options.check) {
+    for (const stale of pruneStale(options.out, ids, { dryRun: true })) {
+      problems.push(`stale derivative ${stale} — no current photo owns it; run without --check to prune`);
+    }
+  } else if (problems.length === 0) {
+    const removed = pruneStale(options.out, ids);
+    if (removed.length > 0) {
+      console.log(`\nprune: removed ${removed.length} stale file(s) no longer in the catalogue`);
+      for (const file of removed.slice(0, 12)) console.log(`  - ${file}`);
+      if (removed.length > 12) console.log(`  … and ${removed.length - 12} more`);
+    }
+  }
 
   if (!options.check && problems.length === 0) {
     writeState(options.out, { ladder, manifest: current, photos });
