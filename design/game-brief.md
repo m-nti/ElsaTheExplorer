@@ -16,7 +16,7 @@ Nothing is rewritten; every line is sourced. Lines the owner did not say are mar
 
 **On the pack (PRD §1, verbatim):**
 
-> "five cards at once gives a small payoff per click and something to keep and compare, without
+> "four cards, revealed one after another gives a small payoff per click and something to keep and compare, without
 > pretending to be a product. Each supplied photo gets its own title and caption, so it becomes
 > 'my' card rather than the fourth picture in a folder."
 
@@ -29,7 +29,7 @@ Nothing is rewritten; every line is sourced. Lines the owner did not say are mar
 
 **On the visitor's wishes (PRD §3, user stories, verbatim):**
 
-> "As a visitor, I want to tap one big thing and get five cards at once, so that I do not have
+> "As a visitor, I want to tap one big thing and get four cards, revealed one after another, so that I do not have
 > to decide where to look."
 
 > "As a visitor, I want a pack to hold cards I have not had yet, so that opening another one is
@@ -66,7 +66,7 @@ toggle sit in the header. Touch is first-class; `Esc` closes dialogs.
 *second* and *third* visit, once the wings have names, progress, and one portrait of record
 to wait for? *(inferred (strong))*
 
-**Hooks:** (1) The pack ritual: tear, five cards, the shiniest lands last. (2) The cards'
+**Hooks:** (1) The pack ritual: tear, four cards, the shiniest lands last. (2) The cards'
 voice: dry museum-catalogue titles like "Wächterin der Keksdose" with photo-matched imaginary
 stats. (3) An archive that is *honestly* completable — the deck-walk guarantees every card
 arrives; the visitor is never gambling, only exploring.
@@ -98,7 +98,7 @@ is completion of a catalogue, pursued at the visitor's own pace, with no fail st
 
 The link lands in the family chat. The page opens in German into the dark parlour: one lit
 pack under a spotlight, "Elsa the Explorer — das Archiv eines Hundelebens.", one big button.
-One tap (or `P`): the wrapper tears, five cards rise one at a time — commons first, a rare,
+One tap (or `P`): the wrapper tears, four cards rise one at a time — commons first, a rare,
 and the holographic card lands last, at the peak. A chime, a confetti burst in the set's own
 colours. The visitor taps one card big, reads "Wächterin der Keksdose" and its
 "Fantasiewerte · nur zum Spaß", laughs, and shares it straight back into the chat. Taught by
@@ -117,7 +117,7 @@ completion, catalogue outfits at 25/50/75 %, and Elsas Ehrenmensch at 100 %.
 
 ## Core loop
 
-- **Micro (~20 s):** tear a pack → five cards, holo-last → tap one card big, read its joke →
+- **Micro (~20 s):** tear a pack → four cards, holo-last → tap one card big, read its joke →
   share it back into the chat.
 - **Meso (~2–5 min):** pulled cards are collected into wings; the "aus:" chip and wing
   progress lines turn a lucky pull into "one closer to the Abfahrtsaal"; a wing can
@@ -125,7 +125,8 @@ completion, catalogue outfits at 25/50/75 %, and Elsas Ehrenmensch at 100 %.
   in their frame.
 - **Macro (days–weeks):** the lap continues tomorrow with provably unseen cards; the owner
   curates and keeps adding to the archive, and the catalogue greets the visitor with
-  "Der Katalog hat Zuwachs"; milestones and finally Elsas Ehrenmensch accumulate.
+  "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!"; milestones and
+  finally Elsas Ehrenmensch accumulate.
   Nothing expires, so the loop never pressures.
 
 ## Goal & fail state
@@ -144,7 +145,7 @@ Marked against the **refactor target state**: `[x]` = concept survives from v1 a
 in step 1 of the build order; `[ ]` = new or changed. Legacy code itself is not preserved —
 step 1 restructures everything.
 
-- [x] Pack of five cards, no dupes inside a pack, every card seen once before the lap restarts (unseen-first deck walk — retained concept)
+- [x] Pack of four cards, no dupes inside a pack, every card seen once before the lap restarts (unseen-first deck walk — retained concept)
 - [x] Holo-as-material rarity: rarity fixed per photo id; at least one rare/holo per pack via promotion pity (retained concept)
 - [x] Card voice: bilingual name, mood, caption, photo-matched imaginary stats, labelled as such
 - [x] DE default, EN toggle, persisted and URL-overridable (retained concept)
@@ -156,7 +157,7 @@ step 1 restructures everything.
 - [ ] Holo-last reveal ordering in the pack
 - [ ] "aus: [Wing]" chip on pulled cards and in the dialog
 - [ ] Catalogue rename + copy register: binder becomes "Der Katalog / The Catalogue"; "gesehen" → "gesammelt" (progress verb + tile state) everywhere, both languages; tile badge "Im Katalog / In the catalogue" as location label
-- [ ] "Der Katalog hat Zuwachs" new-cards line
+- [ ] "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" new-arrivals line (cap 44)
 - [ ] Six named wings + New Acquisitions; `set` field in `captions.json`, optional
 - [ ] Catalogue grouped by wings with per-wing progress lines
 - [ ] Wing-completion frame unlocks + chime + announcement
@@ -241,7 +242,7 @@ only changes where a step says so.
    before continuing.
 3. **Rebrand + register.** Elsa the Explorer wordmark/title/OG, "Katalog I" eyebrow,
    "Der Katalog / The Catalogue" rename, "gesehen" → "gesammelt" copy swap, "aus:" chip,
-   "Der Katalog hat Zuwachs" line. One sitting.
+   "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" line. One sitting.
 4. **Wings.** Six named wings + New Acquisitions; `set` field in `captions.json` (optional);
    catalogue grouped by wings with per-wing progress lines. The meso-loop becomes real.
 5. **Milestones & unlocks.** Wing frames, 25/50/75 % catalogue outfits (overall; per-room

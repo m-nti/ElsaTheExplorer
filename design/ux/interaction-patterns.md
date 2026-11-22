@@ -60,7 +60,7 @@ Non-negotiable constraints that shape every pattern:
    household *du* register, museum-catalogue dry humor, no marketing voice.
    The brand name **Elsa the Explorer** is fixed; taglines localize.
 3. **Reduced motion is a first-class state**: with
-   `prefers-reduced-motion: reduce`, all five pack cards appear at once, no
+   `prefers-reduced-motion: reduce`, all four pack cards appear at once, no
    foil movement, no confetti. Every pattern names its fallback explicitly.
 4. **No color-only information**: rarity, progress, and state are always
    carried by text, shape, or count as well.
@@ -99,11 +99,11 @@ implementation change.
 | Pack-Open Button (Primary) | Input | The page's one primary call-to-action: stage trigger + pack seal | Stage (entrance), Pack Dialog footer, Lightbox ("Noch ein Pack") | Draft |
 | Dialog Open / Close | Navigation | Native `<dialog>` lifecycle for pack dialog and card lightbox | Pack Dialog, Card Lightbox | Draft |
 | Focus Trap (Dialog) | Navigation | Focus rules while a modal dialog is open | Pack Dialog, Card Lightbox, Reset Confirmation | Draft |
-| Card Reveal Step | Game-Specific | The five-card haul sequence with choreographed order | Pack Dialog | Draft |
+| Card Reveal Step | Game-Specific | The four-card haul sequence with choreographed order | Pack Dialog | Draft |
 | Card Tilt & Foil Material | Game-Specific | Holo-as-material: pointer tilt + layered foil response | Card Lightbox (exhibit card); static foil on tiles/drop cards | Draft |
 | Card Flip | Game-Specific | Exhibit card flips over like a physical object | Card Lightbox | Draft |
 | Card Browsing (Arrows / Swipe) | Navigation | Walk the catalogue from inside the lightbox | Card Lightbox | Draft |
-| Pack Roving Arrows | Navigation | `←`/`→` focus roving over the five dealt cards (pack dialog only) | Pack Dialog | Draft |
+| Pack Roving Arrows | Navigation | `←`/`→` focus roving over the four dealt cards (pack dialog only) | Pack Dialog | Draft |
 | Pack Scroll-Snap Swipe | Navigation / Layout | ≤ 760 px scroll-snap carousel for the dealt cards | Pack Dialog (mobile) | Draft |
 | Share Button | Input | Native share sheet with clipboard fallback | Card Lightbox, (later: Elsas Ehrenmensch) | Draft |
 | Save / Download Link | Input | Download the original photo | Card Lightbox | Draft |
@@ -233,30 +233,30 @@ implementation change.
 **When to Use**: Every pack opening, inside the pack dialog. This is the Sammelwerk's signature interaction and the choreography is canonical.
 **When NOT to Use**: Nowhere else. The catalogue never animates its tiles into place as a "reveal"; that would cheapen the haul moment.
 
-**Canonical order rule** (design canon — implemented in the draw, not the CSS): within a pack of five, **the holo/rare card always lands in position 4 or 5, never first**. Draw with the existing guarantees (no dupes inside a pack, unseen-first walk, ≥1 holo via promotion), then *order* the five for reveal: commons/rare fill positions 1–3, the highest-rarity card takes position 4 or 5 (coin flip). Two non-common cards: higher rarity last. The chase card — Das Hauptporträt / The Portrait of Record — follows the same rule and outranks everything visually via its gold-glint frame (manifest `chase: true`).
+**Canonical order rule** (design canon — implemented in the draw, not the CSS): within a pack of four (**4-card canon 2026-11-22**; this rule was written for a pack of five and is renumbered, not re-designed), **the holo/rare card always lands in position 3 or 4, never first**. Draw with the existing guarantees (no dupes inside a pack, unseen-first walk, ≥1 holo via promotion), then *order* the four for reveal: commons/rare fill positions 1–2, the highest-rarity card takes position 3 or 4 (coin flip). Two non-common cards: higher rarity last. The chase card — Das Hauptporträt / The Portrait of Record — follows the same rule and outranks everything visually via its gold-glint frame (manifest `chase: true`).
 
 **Interaction Specification**:
 
 | State | Visual | Input trigger | Response | Duration | Audio |
 |-------|--------|---------------|----------|----------|-------|
 | Sachet opening | Pack dialog shows the sachet graphic tearing at center viewport | Pack open | Sachet tear + flash; drop row still empty | 900 ms ease-out | Pack Rip |
-| Card arriving (×5) | Slot `i` receives card; entrance: rise + settle; foil glare sweeps once | Timed, `index * 200 ms` stagger | Card becomes interactive on settle | 200 ms stagger, ~700 ms settle each | Card Tick per card; Rare Chime / Holo Shine for non-commons |
-| Highest-rarity arrival (pos. 4/5) | Strongest foil material; confetti burst "big" if holo | Timed | Same, plus celebration | as above | Holo Shine + celebration |
-| Settled | All five cards in row, interactive, hint line visible: "Tippe eine Karte an, wisch zur nächsten." / "Tap a card, swipe to the next." (copy-deck sync 2026-11-22) | — | Cards openable → Card Lightbox | — | — |
-| Reduced motion | **All five cards appear at once, immediately** — no sachet, no stagger, no confetti; hint and copy carry the beat instead | Pack open | Cards laid out synchronously; still ≥1 holo, still ordered so the holo is printed last in the DOM row | 0 ms | Rip skipped; a single soft tick on layout (no dramatic audio for skipped drama — per `accessibility-requirements.md`) |
-| Fewer than 5 photos | Haul = every photo; no empty slots, no placeholders | — | Same rules, `PACK_SIZE = min(5, photos)` | as above | as above |
+| Card arriving (×4) | Slot `i` receives card; entrance: rise + settle; foil glare sweeps once | Timed, `index * 200 ms` stagger | Card becomes interactive on settle | 200 ms stagger, ~700 ms settle each | Card Tick per card; Rare Chime / Holo Shine for non-commons |
+| Highest-rarity arrival (pos. 3/4) | Strongest foil material; confetti burst "big" if holo | Timed | Same, plus celebration | as above | Holo Shine + celebration |
+| Settled | All four cards in row, interactive, hint line visible: "Tippe eine Karte an, wisch zur nächsten." / "Tap a card, swipe to the next." (copy-deck sync 2026-11-22) | — | Cards openable → Card Lightbox | — | — |
+| Reduced motion | **All four cards appear at once, immediately** — no sachet, no stagger, no confetti; hint and copy carry the beat instead | Pack open | Cards laid out synchronously; still ≥1 holo, still ordered so the holo is printed last in the DOM row | 0 ms | Rip skipped; a single soft tick on layout (no dramatic audio for skipped drama — per `accessibility-requirements.md`) |
+| Fewer than 4 photos | Haul = every photo; no empty slots, no placeholders | — | Same rules, `PACK_SIZE = min(4, photos)` | as above | as above |
 | Second lap (all seen) | Each card wears the "2. Auflage / Second edition" stamp; restart announced before the reveal: "Das waren alle Karten. Jetzt beginnt das Pack von vorn." / "That was every card. The pack starts over." | — | Same sequence | as above | as above |
 
 **Accessibility**:
 - The drop row is an `<ol>` with `aria-label` "Die Karten aus diesem Pack" / "The cards in this pack"; each card is a `<button>` with a full accessible name: number, name, rarity — DE: *"Karte 04 öffnen: Hüterin der verlorenen Socken"* / EN: *"Open card 04: Keeper of the Missing Socks"*.
-- **One summary announcement after the reveal completes**, not per-card interrupts: "5 Karten: … names …" / "5 cards: … names …". SR users get the choreography's *result* in one coherent sentence.
-- Because the holo lands 4th/5th visually, its accessible name must not bury rarity: the rarity label is part of every card's name, so an SR user hears which card shines without waiting.
+- **One summary announcement after the reveal completes**, not per-card interrupts: the deck's `pack.summary` template, "{n} Karten: {names}." / "{n} cards: {names}." (`{n}` is 4 at the canon pack size — the string never asserts a literal count). SR users get the choreography's *result* in one coherent sentence.
+- Because the holo lands 3rd/4th visually, its accessible name must not bury rarity: the rarity label is part of every card's name, so an SR user hears which card shines without waiting.
 - Reduced-motion layout must place the highest-rarity card *last in DOM order* of the drop, matching the visual order rule, so tab order tells the same story.
 - The open trigger and seal are disabled for the whole opening; **✕ and `Escape` stay live** (deliberate skip path). The busy state is announced once via the live region.
 
 **Animation spec** (reduced-motion fallback): specified in-table — the fallback is canonical, not an afterthought (PRD F22). **SSOT: the 200 ms stagger interval and ~700 ms settle stated above are the single source of truth for reveal pacing** (this table; implementations must not tune them locally). Pacing remains a playtest open question (see Open Questions). Entrance transitions use only `transform` + `opacity` (compositor-friendly); the glare sweep is a background-position step.
 
-**Implementation Notes** (Svelte 5): The reveal lives in `<PackDialog>`; the *draw + ordering* lives in `lib/deck.ts` (pure functions, typed) — Vitest asserts: five unique ids, unseen-first, ≥1 holo after promotion, and the sorted reveal order (holo/rare in positions 4–5). Per-card arrival is a staggered list render (`{#each}` keyed by id; `index * 200` delay per item), not `setTimeout` chains — reduced motion renders the array directly with no stagger. `rarityOf()` remains the single rarity source; the promotion rule mutates the drawn card's presentation rarity, never the photo's identity.
+**Implementation Notes** (Svelte 5): The reveal lives in `<PackDialog>`; the *draw + ordering* lives in `lib/deck.ts` (pure functions, typed) — Vitest asserts: four unique ids, unseen-first, ≥1 holo after promotion, and the sorted reveal order (holo/rare in positions 3–4). Per-card arrival is a staggered list render (`{#each}` keyed by id; `index * 200` delay per item), not `setTimeout` chains — reduced motion renders the array directly with no stagger. `rarityOf()` remains the single rarity source; the promotion rule mutates the drawn card's presentation rarity, never the photo's identity.
 
 ---
 
@@ -336,7 +336,7 @@ implementation change.
 **Category**: Navigation
 **Status**: Draft
 **When to Use**: Inside the card lightbox: moving to the previous/next entry of the whole catalogue. Decided input set (owner ruling): **chevron buttons** (visible, touch parity), `←`/`→` keys, and horizontal swipe — three redundant inputs over the same `navigateCard(±1)` path, scoped to the lightbox. This quietly teaches the entire library from inside one exhibit.
-**When NOT to Use**: In the pack dialog (its five cards are tapped directly, not paged); never as page-level navigation — the decided `←`/`→`/chevron scope is the lightbox only: they do nothing when no lightbox is open.
+**When NOT to Use**: In the pack dialog (its four cards are tapped directly, not paged); never as page-level navigation — the decided `←`/`→`/chevron scope is the lightbox only: they do nothing when no lightbox is open.
 
 **Interaction Specification**:
 
@@ -372,7 +372,7 @@ implementation change.
 
 **Category**: Navigation
 **Status**: Draft
-**When to Use**: Inside the **pack dialog** only: `←`/`→` move keyboard focus across the five dealt cards of the drop row (wrapping at both ends); `Enter`/`Space` opens the focused card in the lightbox. This is the pack dialog's own keyboard model — deliberately distinct from Card Browsing, which is lightbox-only.
+**When to Use**: Inside the **pack dialog** only: `←`/`→` move keyboard focus across the four dealt cards of the drop row (wrapping at both ends); `Enter`/`Space` opens the focused card in the lightbox. This is the pack dialog's own keyboard model — deliberately distinct from Card Browsing, which is lightbox-only.
 **When NOT to Use**: In the card lightbox (that is Card Browsing's decided `←`/`→` scope — they do nothing in the pack dialog's content when the lightbox is closed… and are swallowed by the lightbox when it is open); on the catalogue grid (Catalogue Grid Roving Arrows); never page-scope.
 
 **Interaction Specification**:
@@ -400,7 +400,7 @@ implementation change.
 
 **Category**: Navigation / Layout
 **Status**: Draft
-**When to Use**: The pack dialog's drop row at **≤ 760 px viewport width**: the five dealt cards become a horizontal scroll-snap carousel; a horizontal swipe moves card to card; the **8 px tap-vs-drag threshold** (craft-study value, same as the tilt pattern) separates "open this card" taps from drags that scroll the row.
+**When to Use**: The pack dialog's drop row at **≤ 760 px viewport width**: the four dealt cards become a horizontal scroll-snap carousel; a horizontal swipe moves card to card; the **8 px tap-vs-drag threshold** (craft-study value, same as the tilt pattern) separates "open this card" taps from drags that scroll the row.
 **When NOT to Use**: Above 760 px (the row is fully visible — no carousel); in the card lightbox (its swipe is Card Browsing's ≥ ~40 px threshold over the whole catalogue, with chevrons as the visible affordance); never as the only path — keyboard parity via Pack Roving Arrows is mandatory.
 
 **Interaction Specification**:
@@ -434,7 +434,7 @@ implementation change.
 **Category**: Input
 **Status**: Draft
 **When to Use**: Sending the exact exhibit currently open — button "Teilen / Share" in the lightbox action row. (Later: Elsas Ehrenmensch reuses this pattern with the capstone's URL.)
-**When NOT to Use**: Anywhere a native share sheet would be the wrong granularity (never share the whole catalogue; never share from the pack dialog's five cards — share the opened exhibit).
+**When NOT to Use**: Anywhere a native share sheet would be the wrong granularity (never share the whole catalogue; never share from the pack dialog's four cards — share the opened exhibit).
 
 **Interaction Specification**:
 
@@ -852,7 +852,7 @@ implementation change.
 **Category**: Feedback · **Status**: Draft
 **When to Use**: Every state change a screen-reader user must know without focus moving: pack opening, haul summary, exhibit open, flip, restart, language switch, department completion, milestones, share status. **When NOT to Use**: Anything the user just did with focus already on the result.
 **Spec**: one shared live element, `role="status" aria-live="polite"`; updates are text writes; rapid successive messages replace, never queue. Critical-only events (none today) would need `role="alert"` — do not reach for it casually. All announcement strings live in the copy deck in both languages.
-**Notes**: Keep announcements under ~2 sentences; the haul summary lists card names joined with commas ("5 Karten: A, B, C, D, E." / "5 cards: A, B, C, D, E.").
+**Notes**: Keep announcements under ~2 sentences; the haul summary lists card names joined with commas ("4 Karten: A, B, C, D." / "4 cards: A, B, C, D.").
 
 ---
 
@@ -913,7 +913,7 @@ implementation change.
 
 **Motion reduction overrides** (`prefers-reduced-motion: reduce` — canonical
 behavior, not an afterthought):
-- Pack reveal: **all five cards appear at once**; no sachet, no stagger, no
+- Pack reveal: **all four cards appear in the final grid**; no sachet, no stagger, no
   confetti, no foil movement (PRD F22). The reveal-order rule survives as DOM
   order (highest rarity last in the drop row).
 - Tilt & foil: **fully static** — no idle sway, no pointer tilt, layers fixed
@@ -943,7 +943,7 @@ behavior, not an afterthought):
 | Interaction Event | Sound Category | Notes |
 |------------------|---------------|-------|
 | Pack open (tear) | Pack Rip | Descending filtered noise burst (~2400 → 520 Hz, ref tear) + a few micro-ticks; "foil ripping". The signature sound. |
-| Card reveal (each card) | Card Tick | Very short bandpass tick per arriving card; must not fatigue across five cards or repeated expeditions. |
+| Card reveal (each card) | Card Tick | Very short bandpass tick per arriving card; must not fatigue across four cards or repeated expeditions. |
 | Rare card reveal | Rare Chime | Two-note rising figure, quieter than holo. Distinct from the tick; reward, not alarm. |
 | Holo / chase card reveal | Holo Shine | Sine chime with shimmer overtone (ref chime recipe: notes at 1318–3136 Hz + 2.76× partial, ~1.6 s decay); the "it shines" moment. Chase card uses the same sound — its gold frame is the visual differentiation, not a louder sound. |
 | Milestone (department complete, 25/50/75 %) | Milestone Chime | Single warm tone, quieter than holo. Celebratory but brief — the catalogue changes quietly, not with fireworks. |

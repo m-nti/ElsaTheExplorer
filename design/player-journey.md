@@ -37,7 +37,7 @@ and deploys statically. Everything else is free to be redesigned.
 
 A friend or family member follows a chat link expecting nothing more than
 "some dog pictures," and within ten seconds is standing in a dark collector's
-parlour where the pack is the only lit object — and then holding five
+parlour where the pack is the only lit object — and then holding four
 foil-bordered entries of the catalogue like specimens pulled from a drawer.
 The first expedition is a laugh; the reveal — where the shiny card always
 lands late, never first — is the moment the visitor realizes this room was
@@ -164,17 +164,17 @@ is Elsen's entire distribution never starts.
 
 ### Phase 2: First Expedition (the click, the tear, 30 seconds – 2 minutes) · *Die erste Expedition*
 
-**Emotional state on arrival**: Hovering, half-committed, curious what "five
+**Emotional state on arrival**: Hovering, half-committed, curious what "four
 cards" actually looks like.
 
 **Primary question the player is asking**: "What happens if I open this?"
 
 **Goal**: Press one obvious thing and receive an unambiguous, generous
-payoff — five entries at once — with zero decisions required first.
+payoff — four entries at once — with zero decisions required first.
 
 **Key experience the game must deliver**:
 The single most important interaction in the product: one press (button, pack
-seal, or `P`), the pack tears open in the center of the viewport, and five
+seal, or `P`), the pack tears open in the center of the viewport, and four
 distinct entries drop in, one at a time. The feedback chain must be immediate:
 the rip sound, the tear animation, the tick per card — the player must know
 the press was *received* within 100 ms. Copy stays in the catalogue register,
@@ -185,7 +185,7 @@ pack at a time." (copy-deck sync 2026-11-22) The trigger itself becomes a status
 working ("Pack wird geöffnet" / "Opening the pack" — explorer variant:
 *"Expedition läuft"* / *"Expedition in progress"*) and blocks re-entry so a
 double-click cannot double-draw. By the end of this phase the player has seen
-the collection's rules *working* — five different entries, at least one shiny
+the collection's rules *working* — four different entries, at least one shiny
 — without ever having been told the rules.
 
 **Emotional state on exit**: Delighted and slightly possessive — "these are my
@@ -195,14 +195,14 @@ finds."
 gallery with extra clicks" and never opens a second pack.
 
 **Edge & failure paths**:
-- **Fewer than five photos exist.** The expedition returns *everything* there
-  is, complete, not half-empty: five slots never show voids. A pack must never
+- **Fewer than four photos exist.** The expedition returns *everything* there
+  is, complete, not half-empty: four slots never show voids. A pack must never
   render a placeholder slot.
 - **`photos.php` down mid-session.** The already-loaded list keeps the session
   fully functional; a re-fetch failure must not clear the catalogue or reset
   progress.
 - **Reduced motion preference.** No tear animation, no stagger, no confetti:
-  all five entries appear at once, immediately. The emotional beat must
+  all four entries appear at once, immediately. The emotional beat must
   survive via copy and order, not animation.
 - **Sound blocked or unavailable (autoplay policy, no WebAudio).** The reveal
   proceeds silently and identically; sound is an enhancement layer, never a
@@ -227,7 +227,7 @@ remember.
 
 **Key experience the game must deliver**:
 This is the phase the catalogue deliberately *choreographs*. The reveal order
-is designed, not random: **the holo/rare card always lands 4th or 5th, never
+is designed, not random: **the holo/rare card always lands 3rd or 4th, never
 first** — anticipation is built before the payoff, and the strongest material
 arrives when attention has peaked. Each arrival gets its tick sound and a
 small entrance; rarity reads instantly through foil strength and the star
@@ -236,13 +236,13 @@ strip, and never through color alone (stars count 3/4/5 + printed label
 shuffle produced only commons, the promotion rule fires and one card becomes
 holo: the "guaranteed shine" promise must be kept every single expedition,
 visibly. The confetti flourish and chime close the beat. With reduced motion,
-the choreography collapses to "all five at once" — which is why the printed
+the choreography collapses to "all four at once" — which is why the printed
 order and the copy carry the anticipation instead.
 
 **Emotional state on exit**: "The fourth one — that's the one I'm sending to
 Mum."
 
-**Risk if this phase fails**: The reveal feels like a random five-image
+**Risk if this phase fails**: The reveal feels like a random four-image
 slideshow; the player stops watching *which* card arrives and the rarity
 system (and later, the departments) never becomes meaningful.
 
@@ -265,14 +265,14 @@ system (and later, the departments) never becomes meaningful.
   three entries land, all rules (no dupes, ≥1 holo) still hold, and nothing in
   the UI implies a missing fourth.
 - **Announcement ordering for screen readers.** The full haul summary
-  ("5 Karten: names…") arrives after the reveal completes, not during it, so
-  SR users get one coherent sentence instead of five interrupted ones.
+  ("4 Karten: names…") arrives after the reveal completes, not during it, so
+  SR users get one coherent sentence instead of four interrupted ones.
 
 ---
 
 ### Phase 4: Reading the Catalogue (the catalogue grid, 2–15 minutes) · *Im Katalog blättern*
 
-**Emotional state on arrival**: Holding five finds and a question: "how big is
+**Emotional state on arrival**: Holding four finds and a question: "how big is
 this library?"
 
 **Primary question the player is asking**: "How much is in the collection —
@@ -574,7 +574,7 @@ working life, entry by entry, and that the collection itself — the Sammelwerk
 
 - **Beginning**: The catalogue is a stranger — a grid of entries, a few
   "gesammelt" ticks. Progress feels like *sampling the holdings*: "I've read
-  five of her."
+  four of her."
 - **Middle**: The departments have names and personalities; the reader catches
   themselves saying "Außenstelle Garten is missing its digging entry." The frames
   have started to change as departments complete — the catalogue is visibly

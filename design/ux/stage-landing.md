@@ -42,12 +42,12 @@ back into a wing that has grown since last time.
 
 **The player goal** (what the player wants to accomplish):
 
-Pull a new accession — five cards of Elsa — with one obvious action, without
+Pull a new accession — four cards of Elsa — with one obvious action, without
 reading anything first.
 
 **The game goal** (what the game needs to communicate or capture):
 
-Communicate the library's promise — five cards per accession, at least one in
+Communicate the library's promise — four cards per accession, at least one in
 foil, every card is collected once before any repeats — and surface the
 visitor's catalogue progress so returning readers see the catalogue filling and
 first-time visitors understand nothing is missing yet.
@@ -142,7 +142,7 @@ Desktop (≥1120px wide viewport):
 │ │  │ WAS STECKT                 │   │  ║ │   (cover)     │  ║  │   │
 │ │  │ IM KATALOG?     (h1, 2 ln) │   │  ║ ╰───────────────╯  ║  │  │   │
 │ │  │                            │   │  ║  🐾  ELSA THE      ║  │  │   │
-│ │  │ Fünf Karten pro Pack, min- │   │  ║      EXPLORER      ║  │  │   │
+│ │  │ Vier Karten pro Pack, min- │   │  ║      EXPLORER      ║  │  │   │
 │ │  │ destens eine glänzt. Jede  │   │  ║  1. Auflage        ║  │  │   │
 │ │  │ kommt einmal dran ...      │   │  ╚═══════════════════╝  │  │   │
 │ │  │                            │   │  (button .pack__seal —   │  │   │
@@ -437,6 +437,10 @@ the museum register lives in the words, not in new required reading.
 - Layout budgets are set so **DE at +40 % over the EN baseline still fits**; DE
   strings longer than the EN baseline are the design driver.
 - No RTL language is targeted (de/en only); the layout is not mirrored.
+- **4-card canon 2026-11-22**: the pack is **four cards** (owner canon, mobile-first).
+  The lede opens "Vier Karten pro Pack" / "Four cards per pack"; every count on this
+  screen reads four, and the holo/rare still lands late (3rd or 4th). The H1 is
+  untouched — it never stated a count.
 - Copy mapping is now fixed in the deck: eyebrow → "Katalog I" / "Catalogue I"
   (D1 — "Das Kartenwerk" survives only inside `meta.title`); H1 → "Was steckt im
   Katalog?" / "What's in the catalogue?" (D2); the collection is **Der Katalog /
@@ -447,8 +451,8 @@ the museum register lives in the words, not in new required reading.
   `brand.tagline` (the same key as `stage.tagline`) → "Das Leben einer Hündin, die
   weiß, dass sie wichtig ist." / "The life of a dog who knows she is important.";
   `meta.description` → "Ein Kartenarchiv für eine sehr wichtige Hündin: Pack öffnen,
-  fünf Karten lesen, den Katalog füllen. Sechs Säle, ein Hauptporträt. Ohne Konto,
-  ohne Tracking." / "A card archive for a very important dog: open a pack, read five
+  vier Karten lesen, den Katalog füllen. Sechs Säle, ein Hauptporträt. Ohne Konto,
+  ohne Tracking." / "A card archive for a very important dog: open a pack, read four
   cards, fill the catalogue. Six rooms, one Portrait of Record. No account, no
   tracking." (copy-deck sync 2026-11-22).
 
@@ -459,7 +463,7 @@ the museum register lives in the words, not in new required reading.
 | Text Element | English Baseline Length | Max Characters | Expansion Budget | RTL Behavior | Overflow Behavior | Risk |
 |--------------|------------------------|----------------|-----------------|--------------|-------------------|------|
 | H1 line 1/2 ("What's in / the catalogue?") | ~9 / 14 | 13 / 19 | 40 % | n/a | `<br>` split from the copy deck; H1 font clamps at 320px; a 3rd wrapped line is acceptable | Low |
-| Lede (`stage.lede`) | ~103 | 120 | 40 % | n/a | Wraps to 4 lines max | Low |
+| Lede (`stage.lede`) | ~101 | 120 | 40 % | n/a | Wraps to 4 lines max | Low |
 | CTA "Open a pack" / "Pack öffnen" | 11 | 16 | 40 % | n/a | Button grows horizontally, min-height fixed | Low |
 | Catalogue label "{seen} of {total} collected" / "{seen} von {total} gesammelt" | ~26 | 36 + digits | 40 % | n/a | Wraps to 2 lines; track stays the same size | Medium — "gesammelt" is long; tested at 2 digits |
 | Catalogue note | ~58 | 82 | 40 % | n/a | Wraps to 3 lines | Low |

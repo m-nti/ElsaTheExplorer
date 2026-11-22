@@ -64,6 +64,7 @@
 | Collection | **Der Katalog** | **The Catalogue** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13) |
 | Second-lap stamp | **2. Auflage** | **Second edition** | ~~2nd printing~~ |
 | Brand | **Elsa the Explorer** | **Elsa the Explorer** | translated in either language |
+| Pack size | **vier Karten** | **four cards** | ~~fünf / five~~ — **4-card canon 2026-11-22** (mobile-first); the holo/rare still lands late, now 3rd or 4th |
 
 ### 0.4 Voice law (checked line by line)
 
@@ -158,7 +159,7 @@ No string may be assembled by concatenating a noun with a count.
 | `brand.name` | Elsa the Explorer | Elsa the Explorer | 40 | n/a — untranslated in both, owner canon | BR |
 | `brand.tagline` | Das Leben einer Hündin, die weiß, dass sie wichtig ist. | The life of a dog who knows she is important. | 60 | page-hero line, wraps freely; DE 55 / EN 47. **re-voiced 2026-11-22** · VOICE | BR (EN new) |
 | `meta.title` | Elsa the Explorer — Das Kartenwerk | Elsa the Explorer — The Card Library | 60 | browser tab truncates ≈ 55; brand first so the cut is safe | STG §13 |
-| `meta.description` | Ein Kartenarchiv für eine sehr wichtige Hündin: Pack öffnen, fünf Karten lesen, den Katalog füllen. Sechs Säle, ein Hauptporträt. Ohne Konto, ohne Tracking. | A card archive for a very important dog: open a pack, read five cards, fill the catalogue. Six rooms, one Portrait of Record. No account, no tracking. | 155 | search/social snippet; DE 152 / EN 151 — 3-4 spare, so no further growth. **re-voiced 2026-11-22** · VOICE | PROPOSED (STG requires OG tags but supplies no prose) |
+| `meta.description` | Ein Kartenarchiv für eine sehr wichtige Hündin: Pack öffnen, vier Karten lesen, den Katalog füllen. Sechs Säle, ein Hauptporträt. Ohne Konto, ohne Tracking. | A card archive for a very important dog: open a pack, read four cards, fill the catalogue. Six rooms, one Portrait of Record. No account, no tracking. | 160 | search/social snippet; **4-card canon 2026-11-22**. Measured DE 156 / EN 150 — the pre-pass note said 152 / 151, a miscount, and DE was already 1 over the old 155 cap; cap raised **155 → 160** rather than cutting "sehr wichtige Hündin", which is the voice. **re-voiced 2026-11-22** · VOICE | PROPOSED (STG requires OG tags but supplies no prose) |
 | `meta.og.site_name` | Elsa the Explorer | Elsa the Explorer | 40 | reuses `brand.name` | BR |
 | `meta.og.locale` | de_DE | en_GB | 5 | machine value, not prose | STG |
 | `meta.html.lang` | de | en | 2 | machine value; drives pronunciation | A11Y |
@@ -204,7 +205,7 @@ No string may be assembled by concatenating a noun with a count.
 | `stage.h1.line1` | Was steckt | What's in | 13 | **space-critical** — fixed two-line H1; DE 10, +40 % of EN (9) = 13 = cap | STG §13 |
 | `stage.h1.line2` | im Katalog? | the catalogue? | 19 | **space-critical** — DE 11, +40 % of EN (14) = 19.6 → 19; the cap is the EN string itself, a third wrapped line is the fallback | STG §13 |
 | `stage.tagline` | see `brand.tagline` | see `brand.tagline` | — | same key, no duplicate | BR |
-| `stage.lede` | Fünf Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt — Ordnung muss sein. | Five cards per pack, at least one shines. Every card comes up before any repeats — as is only proper. | 120 | DE 114 / EN 103; wraps to 4 lines max. **re-voiced 2026-11-22** · VOICE | PROPOSED from BR hooks + PL progress note |
+| `stage.lede` | Vier Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt — Ordnung muss sein. | Four cards per pack, at least one shines. Every card comes up before any repeats — as is only proper. | 120 | DE 113 / EN 101 (re-measured 2026-11-22; the earlier 114/103 note was a miscount). "Vier / Four" costs nothing on the cap. **4-card canon 2026-11-22**. wraps to 4 lines max. **re-voiced 2026-11-22** · VOICE | PROPOSED from BR hooks + PL progress note |
 | `stage.cta` | Pack öffnen | Open a pack | 16 | **space-critical** — DE 11 / EN 11; button grows horizontally, min-height fixed | STG, PL |
 | `stage.cta.busy` | Pack wird geöffnet | Opening the pack | 20 | **space-critical** — DE 18 exceeds the 16 budget of the idle label; the button grows, never truncates | PL |
 | `stage.cta.empty` | Noch keine Karten | No cards yet | 18 | **space-critical** — disabled state must change text, not only opacity | PL |
@@ -226,7 +227,7 @@ No string may be assembled by concatenating a noun with a count.
 | Key | DE | EN | Max | 40 % / space | Source |
 | --- | --- | --- | --- | --- | --- |
 | `pack.dialog.title` | Dein Neuzugang | Your new arrival | 17 | **space-critical** — `aria-labelledby` target, single-line flex head; cap raised from 15 (D19) | PL, PCK |
-| `pack.eyebrow` | 1. Auflage · fünf frische Karten | 1st edition · five fresh cards | 34 | **space-critical** — DE 32 / EN 30; ellipsis in the head; the sachet art repeats it and wraps instead. "1. Auflage" is untouched canon; only the tail is re-voiced. **re-voiced 2026-11-22** · VOICE | PCK §13 |
+| `pack.eyebrow` | 1. Auflage · vier frische Karten | 1st edition · four fresh cards | 34 | **space-critical** — DE 32 / EN 30 (measured; "vier / four" does not move the length, so the cap is unchanged and still catches); ellipsis in the head; the sachet art repeats it and wraps instead. "1. Auflage" is untouched canon; the tail is re-voiced and the count is owner canon (**4-card canon 2026-11-22**). **re-voiced 2026-11-22** · VOICE | PCK §13 |
 | `pack.hint` | Tippe eine Karte an, wisch zur nächsten. | Tap a card, swipe to the next. | 48 | **space-critical** — DE 41 is the driver; hides under 380px height rather than shrink. Both gestures still taught. **re-voiced 2026-11-22** · VOICE | PL, PCK |
 | `pack.btn.another` | Noch ein Pack | Another pack | 17 | **space-critical** — DE 13 / EN 12; wraps to its own row ≤380px | PL (also the lightbox primary action) |
 | `pack.btn.catalogue` | see `nav.catalogue` | see `nav.catalogue` | — | same key | PCK |
@@ -507,7 +508,7 @@ Every row names the winner. "Winner" is the document whose string this deck ship
 | --- | --- | --- |
 | D23 | `state.empty.count` "Noch nichts da" vs `state.empty.owner` "Noch keine Karten …" | Different slots: the count line versus the message. PL fixes "Noch keine Karten" as the *trigger/empty message*; BND fixes "Noch nichts da" as the *count*. Merging them would either lose the owner instruction or make the count a paragraph |
 | D24 | `meta.title` "… Das Kartenwerk" vs `brand.tagline` "Das Archiv eines Hundelebens." | Different slots: browser title versus page hero line. BR requires a localised tagline; STG fixes the document title |
-| D25 | `stage.cta` "Pack öffnen" vs `pack.eyebrow` "1. Auflage · fünf Karten" | Different slots: the action vs the accession's edition line. "1. Auflage" as the *page* eyebrow is the one that was retired (D1) |
+| D25 | `stage.cta` "Pack öffnen" vs `pack.eyebrow` "1. Auflage · vier frische Karten" | Different slots: the action vs the accession's edition line. "1. Auflage" as the *page* eyebrow is the one that was retired (D1) |
 
 ---
 
@@ -588,6 +589,7 @@ or any screenshot:
 | "Badegast des Jahres", "Unwetterwarnung Stufe Pfote", "nasser Hund und Stolz" | — (no replacement; the card bank entries stay retired) | Owner water ruling — must not be re-pulled from the card bank at runtime |
 | "Den Katalog ansehen" / "See the catalogue" | Zum Katalog / To the catalogue | D4 |
 | "Fünf Karten. Ein Sammelwerk." | Was steckt im Katalog? | D2 |
+| fünf Karten / five cards as the **pack count** — "1. Auflage · fünf frische Karten", "Fünf Karten pro Pack", "five cards per pack" | **vier Karten / four cards** ("1. Auflage · vier frische Karten", "Vier Karten pro Pack") | Owner canon 2026-11-22 (**4-card canon**, mobile-first). The holo/rare still lands late, now **3rd or 4th** (PL §Card Reveal Step). "Fünf Karten. Ein Sammelwerk." above is retired on *both* grounds (D2 and this) |
 | "Du hast alle … gesehen. Das Pack beginnt von vorn." | Das waren alle Karten. Jetzt beginnt das Pack von vorn. | A11Y/PRE-refactor lap line, superseded by PL |
 | Diplom, DiplomCard, per-set Diplom | Elsas Ehrenmensch / Elsa's Honorary Human, one surface at 100 % | Owner canon (BND §15 resolved) |
 | "1. Auflage" as the masthead/series label | stage.eyebrow = Katalog I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
@@ -621,6 +623,7 @@ or any screenshot:
       announcement row carries one (D26). `zuwachs.line` and `set.complete.note` are the only
       two rows that carry one at all.
 - [ ] Zero occurrences of `Heft` / `binder` in either column — the arrival line included.
+- [ ] Every pack-count string reads **four / vier** (**4-card canon 2026-11-22**); no `fünf` / `five` as a card count survives outside §13's retired table. The holo/rare order is stated as 3rd or 4th, never 4th or 5th.
 - [ ] No entry matches the water vocabulary list (nass, Regen, Schlamm, baden, Wet
       Collection, rain, mud, bath, wet dog, Pfütze, Handtuch).
 - [ ] No entry still says gesehen / seen / katalogisiert / catalogued.
@@ -646,15 +649,19 @@ or any screenshot:
 Every string this ruling rewrote, with what it replaced. The same rows carry the
 **re-voiced 2026-11-22** marker in their own section; this table exists so a propagation
 pass can follow one list instead of diffing the deck. DE / EN share a cell, old → new.
-Caps moved only where a row says so (the Zuwachs rows).
+Caps moved only where a row says so (the Zuwachs rows), plus `meta.description`
+(155 → 160, where the old note's own arithmetic was wrong). One **count** also
+moved after the voice pass: the pack is **four cards** (4-card canon 2026-11-22),
+so the `stage.lede` opening and the `pack.eyebrow` tail below read "vier / four".
+That is owner canon, not a voice change — the registered voice is untouched.
 
 | Key | Old | New | Why |
 | --- | --- | --- | --- |
 | `brand.tagline` | Das Archiv eines Hundelebens. / The archive of a dog's life. | Das Leben einer Hündin, die weiß, dass sie wichtig ist. / The life of a dog who knows she is important. | The old line described a filing cabinet. The new one is the household's actual thesis — she knows. Also feeds `stage.tagline` (same key). |
 | `meta.description` | Ein Kartenarchiv über Elsa: … den Katalog vervollständigen. Sechs Säle, ein Hauptporträt. Ohne Konto, ohne Tracking. / A card archive of one dog: … complete the catalogue. … | Ein Kartenarchiv für eine sehr wichtige Hündin: … den Katalog füllen. … / A card archive for a very important dog: … fill the catalogue. … | "complete the catalogue" is a compliance task; "fill" is what you do to a shelf. The subject becomes her, not the archive. Facts and privacy floor unchanged. |
-| `stage.lede` | Fünf Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt. / … before any repeats. | … bevor eine wiederkommt — Ordnung muss sein. / … before any repeats — as is only proper. | The mechanic, then the wink. Both promises (one shines, no repeat before a full turn) survive word for word. |
+| `stage.lede` | Fünf Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt. / … before any repeats. | … bevor eine wiederkommt — Ordnung muss sein. / … before any repeats — as is only proper. | The mechanic, then the wink. Both promises (one shines, no repeat before a full turn) survive word for word. The opening sentence now reads "Vier Karten pro Pack" / "Four cards per pack" (**4-card canon 2026-11-22**, mobile-first) — the old column above keeps the five-card wording as the record of this voice pass. |
 | `zuwachs.line` | Das Heft hat Zuwachs: {n} neue Karten. / New in the binder: {n} new cards. | {n} neue Schmuckstücke sind da! / {n} new treasures have arrived! | The owner's benchmark line. "Schmuckstücke" is the new arrival noun; "Heft" is retired with no exception (D5). Cap 47 → 44. This row's one `!` is neutralised for the announcement by D26. |
-| `pack.eyebrow` | 1. Auflage · fünf Karten / 1st edition · five cards | 1. Auflage · fünf frische Karten / 1st edition · five fresh cards | Edition canon untouched; "frisch" is the market-stall warmth that fits an accession. |
+| `pack.eyebrow` | 1. Auflage · fünf Karten / 1st edition · five cards | 1. Auflage · vier frische Karten / 1st edition · four fresh cards | Edition canon untouched; "frisch" is the market-stall warmth that fits an accession. "fünf" in the old column is this pass's starting point; the count is now four (**4-card canon 2026-11-22**), which costs 0 characters. |
 | `pack.hint` | Wähle eine Karte. Wische für die nächste. / Pick a card. Swipe to see the next one. | Tippe eine Karte an, wisch zur nächsten. / Tap a card, swipe to the next. | Shorter and warmer, the verb now matches the real gesture (tap), and both gestures are still taught. |
 | `pack.lap.line` | Von vorn — alle Karten kommen wieder. Ab jetzt mit 2.-Auflage-Stempel. / … From now on with the second-edition stamp. | Von vorn — jede Karte kommt wieder, jetzt mit 2.-Auflage-Stempel. Das Archiv vergisst nichts. / … The archive forgets nothing. | A second lap used to read as a system notice. "Das Archiv vergisst nichts" is affectionate and literally true. |
 | `card.stats.label` (also `plaque.caption`) | Fantasiewerte · nur zum Spaß / Imaginary stats · just for fun | Fantasiewerte · mit voller Überzeugung / Imaginary stats · held with conviction | Same disclaimer, funnier: the household believes its own invented numbers. "Fantasiewerte / Imaginary" still leads, so the values cannot read as data. |
