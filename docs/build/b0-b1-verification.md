@@ -172,3 +172,16 @@ The suite also has an explicit “legacy hex injected into the production pair s
 
 CardFace foil stack completion (5 layers, tilt, pointer mask), three-card vertical slice,
 pack theatre, catalogue, reading room, meta layer, PWA, image pipeline.
+
+## 7. CI record
+
+- PR **#2** (`design/explorer-foundation` → `main`), workflow `verify`.
+- First run `45015230500` failed at the canon step: `scripts/canon-check.mjs` was
+  missing because an in-flight canon change had added the `canon` script to
+  `package.json` before its implementation was committed. Fixed in `262c5e7` by
+  removing the `canon` / `canon:strict` / `test:canon` entries until the canon
+  author lands them with `scripts/canon-check.mjs`; the failure is not masked.
+- Re-run `45015317206`: **verify pass in 29 s** (install, typecheck, stylelint,
+  selector diff, unused CSS, ESLint, knip, jscpd, Vitest, build; Playwright skipped
+  because no e2e spec exists yet).
+- Commits: `7df151c` (B0/B1), `262c5e7` (CI fix).
