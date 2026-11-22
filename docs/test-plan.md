@@ -427,7 +427,7 @@ The gate computes WCAG 2.2 relative luminance and contrast ratio **from
 | U-I18N-11 | Language resolution: `?lang=en` beats stored `de`; `?lang=de` beats stored `en`; invalid/absent param falls back to stored, then `de` |
 | U-I18N-12 | `?lang=` is persisted after use (F9) |
 | U-I18N-13 | No dictionary value contains a hardcoded brand alternate (the brand name is fixed; taglines localize) |
-| U-I18N-14 | Copy canon fixture: reset confirmation body is the ratified `reset.body` — DE "Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN twin, cap 140 |
+| U-I18N-14 | Copy canon fixture: reset confirmation body is the ratified `reset.body` — DE "Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN twin, cap 140 |
 | U-I18N-15 | No water vocabulary in either dictionary (rain, mud, bath, wet, nass, Regen, Schlamm, Bad) | AGENTS.md canon, content audit |
 | U-I18N-16 | Departments are exactly the six canon rooms + `Neuzugänge`, in fixed order, in both languages (C7) |
 | U-I18N-17 | At most one `!` per string; none in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region |

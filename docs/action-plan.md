@@ -48,7 +48,7 @@
 | B2 | CardFace | fixed %-height zones, 4/5 photo window, 5-layer foil, tilt, focus anchor, error state | B1 |
 | B3 | Entrance hall | static shell independent of the manifest; pack CTA; progress line; Zuwachs line; empty/error states | B2 |
 | B4 | Pack theatre | 4-card sequential focus + pull-back; skip semantics; reduced-motion grid; announcements | B3 |
-| B5 | Catalogue | rooms, per-set progress, milestones (door sign/lamp/rope), frame unlocks, empty rooms omitted | B4 |
+| B5 | Collection | rooms, per-set progress, milestones (door sign/lamp/rope), frame unlocks, empty rooms omitted | B4 |
 | B6 | Reading room | 1200 detail, flip, share/save derivative, deep-link fallback, keyboard map | B5 |
 | B7 | Meta layer | Sonderausstellung, Sammelbogen, Der Aushang, card backs, completion (Ehrenmensch + Gesamtverzeichnis) | B6 |
 | B8 | Hardening | perf budgets, a11y Standard, PWA decision, deploy | B7 |
@@ -107,7 +107,7 @@ comments, seasonal events, full-resolution downloads, live ops, monetization.
   with no layout shift and no image larger than its rung's ceiling.
 - Four cards reveal one after another, pull back into a 2×2, and every card is reachable
   by keyboard, announced, and skippable.
-- The catalogue is complete navigable, sets show progress, milestones fire once, and
+- The collection is completely navigable, sets show progress, milestones fire once, and
   Elsas Ehrenmensch is reachable.
 - No UI request ever returns an original photo.
 - Standard accessibility tier verified (contrast, focus, announcements, reduced motion).

@@ -10,7 +10,7 @@
 ## 1 · Principles
 
 1. **One hero motion per moment.** At any instant exactly one thing may move at hero scale: the camera *or* a card *or* a dialog. Everything else is still or a ≤140 ms legibility swap. Two hero motions at once is a bug, not a flourish.
-2. **Motion reveals, never decorates.** Every move must end with something newly legible (a card, a grid, a face). A move whose end state is identical to its start state is deleted.
+2. **Motion reveals, never decorates.** Every move must end with something newly legible (a card, a grid, a face). A move whose end state is identical to its start state is deleted. The one licensed decoration is the confetti burst (§4) — licensed once per pack, holo only.
 3. **Camera moves are motivated.** The camera exists to answer "where is my attention now?". It moves only when the focus card changes or the set becomes the subject — never to fill a pause, never on scroll, never idle.
 4. **Nothing bounces for its own sake.** Monotonic curves only in the reveal: no overshoot, no elastic, no wobble. Springiness in this product belongs to *foil under the pointer* (physics on a material), never to layout, camera or cards.
 5. **Reduced motion is a first-class composition.** The reduced-motion frame is the *final frame of the choreography*, laid out deliberately — not a degraded leftover. It must be beautiful before it is compliant.
@@ -62,7 +62,9 @@ Curves: `--elsa-ease` `cubic-bezier(.2,.8,.2,1)` · `--elsa-ease-out` `cubic-bez
 
 **Stagger rules.** Forward only; max 4 items; skipped on re-entry, reopen and back-navigation (those are instant); the last staggered item must settle before input unlocks — nothing is actionable mid-flight.
 
-**Clock budget.** 4-card default reveal ≤ **3.2 s** wall clock (card-in + holds + 3 camera moves + pull-back + tile settle), measured on a mid-tier phone. A beat that needs more than its token is cut, not stretched.
+**Clock budget.** 4-card default reveal ≈ **2.8 s** wall clock, hard ceiling **3.2 s** (card-in + holds + 3 camera moves + pull-back + tile settle), measured on a mid-tier phone. A beat that needs more than its token is cut, not stretched.
+
+**Scope note.** The wrapper theatre (sachet, tear, flash) precedes the reveal and is *not* in this sheet's vocabulary: it keeps its feel and stays timed by `pack-opening.md` §10 until that spec is rewritten. This sheet governs everything from the first card entering focus.
 
 ## 4 · Motion vocabulary by surface
 
@@ -70,18 +72,19 @@ Curves: `--elsa-ease` `cubic-bezier(.2,.8,.2,1)` · `--elsa-ease-out` `cubic-bez
 | --- | --- | --- | --- | --- |
 | **Reveal — focus beat** | Card rises into the focus frame, settles; camera holds | `translateY` 6%→0, `scale` .96→1, opacity 0→1 | `--elsa-dur-cardin` / soft | rotate, blur, foil sweep on top of it, sound before settle |
 | **Reveal — camera move** | Dolly to the next focus card; previous left behind | camera `scale`+`translate` only | `--elsa-dur-focus` / focus | simultaneous card entrance (use `--elsa-overlap` at 65%), any exit animation |
-| **Pull-back** | `c: 1 → 0`; cards travel to grid cells | camera + per-card `translate`/`scale` | `--elsa-dur-pullback` / pullback, tiles +12% | confetti, flash, per-card sound, overshoot |
+| **Pull-back** | `c: 1 → 0`; cards travel to grid cells | camera + per-card `translate`/`scale` | `--elsa-dur-pullback` / pullback, tiles +12% | confetti *during* the move (it fires only after the last tile settles), flash, per-card sound, overshoot |
+| **Celebration (holo pull only)** | One small canvas burst, gravity settle, then gone | canvas paint + trailing opacity fade | ≤ 1.2 s, no loop | more than once per pack, during the pull-back, on an ordinary pull, on a tile entrance, on a milestone |
 | **Card flip** | `rotateY` ±180°, `translateZ` lift mid-flip | transform only, `preserve-3d` on wrapper | `--elsa-dur-flip` / flip | flip during camera move; both faces legible at once |
 | **Tile entrance** | 8 px lift-in + fade into its cell | `translateY`, opacity | `--elsa-dur-tile` / soft, 40 ms stagger | scale, layout shift, stagger > 4 |
 | **Dialog open / close** | Glass case lifts: scale 0.98→1, veil fades | transform + opacity (veil opacity only) | 200 / 160 ms | animating blur radius, springy scale, backdrop parallax |
 | **Milestone flourish** | One glint pass across static geometry, then still | opacity/`background-position` step | `--elsa-dur-flourish` | scale-in, confetti, looping, page-scale |
-| **Capstone** | Sequence: stamp, then glint, then one line | each part transform/opacity | parts ≤ 520 ms, overlapping | one long animation, camera move, shake |
+| **Capstone** | Sequence: stamp, then glint, then one line, then the **larger celebration** | each part transform/opacity; canvas | parts ≤ 520 ms, overlapping | one long animation, camera move, shake, a party that outranks the certificate |
 
 ## 5 · Reduced motion (`prefers-reduced-motion: reduce`)
 
 | Surface | Becomes | Must NOT be stripped |
 | --- | --- | --- |
-| Reveal | **No camera, no focus sequence.** All 4 cards render directly in their grid slots, as the pull-back's final frame | reading/DOM order (holo last), the "1 von 4" counter, the fact that these are four distinct finds |
+| Reveal | **No camera, no focus sequence, no confetti.** All 4 cards render directly in their grid slots, as the pull-back's final frame | reading/DOM order (holo last), the "1 von 4" counter, the fact that these are four distinct finds |
 | Pull-back | Does not exist — the overview is simply the layout | the set reads as a set; no "where did they go" moment |
 | Card flip | Instant swap, or ≤100 ms cross-fade; no 3D | front/back state and its label |
 | Tile entrance | None — cells are filled at first paint | the arrival is still visible as *presence* + announcement |
@@ -100,6 +103,7 @@ Rule: under reduced motion **no information may be carried by a movement that no
 - **No scroll-linked motion, ever.** No `filter` animation while scrolling; no `backdrop-filter` radius animation (veil opacity only).
 - **60 fps on a 2019 mid-tier phone**, ≥ 8 ms of headroom per frame during the pull-back; a dropped-frame in the pull-back is a release blocker, not a polish item.
 - **Camera scale cap 2.40** — above it the scaled paint area costs more than the intimacy is worth. Beyond the cap, shrink the card, not the room.
+- **Confetti is one short canvas job.** ≤ 1.2 s, fixed particle cap, no per-frame allocation, loop stops and the canvas unmounts at the end. It starts only after the last tile settles, and never under reduced motion.
 
 ## 7 · Sound coupling
 
@@ -114,7 +118,7 @@ Rule: under reduced motion **no information may be carried by a movement that no
 
 - **Simultaneous dumps** — four cards appearing at once in the default path. That is the withdrawn reveal, and it is the reduced-motion composition only.
 - **Parallax on text.** Type is printed matter; it does not slide under a moving camera. Ever.
-- **Confetti on every pull.** Confetti belongs to the capstone, at most. A holo find earns the glint flourish — not paper rain.
+- **Confetti as a default.** One small burst, **once per pack, only when a holo is present**, ≤ 1.2 s — and the capstone's larger celebration is the only other licensed use. No burst on an ordinary pull, a tile entrance or a milestone.
 - **Camera shake, punch-in, handheld drift.** The archive is a tripod.
 - **Long queues of micro-animations** (card → chip → star → shadow, each 200 ms). One hero + at most one support per moment; if the queue is needed to be noticed, the composition is wrong.
 - **Motion on the photograph.** Nothing animates inside the window or its 2 cqw halo (art-bible §3, §5).
@@ -124,5 +128,5 @@ Rule: under reduced motion **no information may be carried by a movement that no
 
 - `pack-opening.md` §5–§10 still specifies **five cards**, a 200 ms stagger and an all-at-once reduced-motion state; its motion rows are superseded here, its layout/copy/state content is not (four cards).
 - `interaction-patterns.md` Animation Standards keeps the 200 ms reveal stagger and 700 ms ascend as SSOT; that SSOT moves to this sheet's tokens.
-- `art-bible.md` §7 says "620–900 ms theatre, 150 ms stagger" — predates this sheet; the bible's §1/§7 *intent* (one lit object, one hero motion) stands unchanged.
-- Confetti's ownership must be resolved once: this sheet grants it to the capstone; if the reveal keeps any, the "no confetti on every pull" rule binds it to holo + a single pass.
+- `art-bible.md` §7 now cites this sheet as the SSOT for motion values and states the four-card reveal (aligned 2026-11-22); its §1/§7 *intent* (one lit object, one hero motion) is unchanged.
+- **Confetti is settled:** a single small burst (≤ 1.2 s) once per pack when a holo is present; the capstone gets the larger celebration; nothing else. `pack-opening.md` must carry that number and replace the "big burst ~1900 ms" row when it is rewritten.

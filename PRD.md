@@ -17,7 +17,7 @@
 > 3. **Collection meta is approved in full**: six themed sets + loose cards ("Neuzugänge"),
 >    holo-last reveal order, "2. Auflage" stamps, per-set frame unlocks, 25/50/75 % milestones,
 >    Das Entdecker-Diplom / The Explorer's Diploma at 100 %, one chase card (Das
->    Hauptporträt). The binder becomes **Der Katalog / The Catalogue**; copy shifts from
+>    Hauptporträt). The binder becomes **Die Sammlung / The Collection**; copy shifts from
 >    "gesehen" to "katalogisiert". Storage stays first-party `localStorage` (`lucky-elsa.*`),
 >    no accounts, no analytics.
 >
@@ -300,7 +300,7 @@ of this document's plan.
 
 | Skill | Owns |
 | --- | --- |
-| `skill-router` | Matching each task to a skill or agent, keeping the catalogue honest |
+| `skill-router` | Matching each task to a skill or agent, keeping the collection honest |
 | `create-prd` | This document's structure, the "specify only what changes a decision" discipline |
 | `product-designer` | Design critique, component hierarchy, usability checks and visual handoff |
 | `brainstorm-experiments` | A low-cost pack-opening usability experiment with a pre-set threshold |

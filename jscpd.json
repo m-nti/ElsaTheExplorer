@@ -12,6 +12,7 @@
     "**/qa-shots/**",
     "**/photos/**",
     "**/legacy/vendor/**",
+    "**/legacy/**",
     "**/reports/**",
     "**/docs/**",
     "**/design/**",

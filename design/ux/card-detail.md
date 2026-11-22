@@ -61,7 +61,7 @@ across languages, sessions and deep links.
 
 | Question | Answer |
 |----------|--------|
-| What was the player just doing? | Tapping a rising card in the pack flow; tapping a tile in the catalogue; or opening a shared deep link (`?photo=`). |
+| What was the player just doing? | Tapping a rising card in the pack flow; tapping a tile in the collection; or opening a shared deep link (`?photo=`). |
 | What is their emotional state? | Peak interest in exactly one object; slightly breathless after a pull, calm after browsing. |
 | What cognitive load are they carrying? | Low — one card. But they may be mid-conversation in a chat app, so glances must suffice. |
 | What information do they already have? | The card's face from tile/pack size; nothing more. Deep-link visitors may know nothing except the link worked. |
@@ -98,7 +98,7 @@ closing to continue browsing.
 |-------------|-------------|-------|
 | Pack card selection | `pack-opening.md` §7.2 | Parent dialog stays open underneath |
 | Binder tile activation | `binder.md` §7.2 | Tile scroll-anchored behind |
-| Deep link `?photo=<id>` | Shared link / reload | Opens after catalogue load, in the URL's language; **an id not present in the catalogue (deep-linked-away photo) silently does NOT open the dialog — the stage renders intact and focus stays with the pack CTA; the URL param is left untouched** |
+| Deep link `?photo=<id>` | Shared link / reload | Opens after catalogue load, in the URL's language; **an id not present in the collection (deep-linked-away photo) silently does NOT open the dialog — the stage renders intact and focus stays with the pack CTA; the URL param is left untouched** |
 | `←`/`→`/chevrons from another card | Within this dialog | The dialog never closes while navigating |
 
 ---
@@ -328,8 +328,8 @@ originating card button (pack card / catalogue tile); with no originating card
 | Share copied | Clipboard fallback succeeded | Status: "Link kopiert." | — | Status clears after 3.4s (current timing kept) |
 | Share failed | Clipboard refused | Status: "Link konnte nicht kopiert werden. Er steht oben in der Adresszeile." | — | Failure is never silent |
 | Completed-room frame | Opened card belongs to a completed room | The **gilt frame variant (R3b, VS)** renders around the card face — decorative only (R10) | — | Same frame tokens as the room's tiles |
-| Capstone plaque | The capstone surface is opened for study (header component, not a catalogue card) | Grand frame treatment; **no Fantasiewerte band** — bands 4–5 collapse and the photo grows to compensate | Serial band reads "Katalog I · abgeschlossen" | Phase 3 (Full Vision); **Elsas Ehrenmensch / Elsa's Honorary Human** per owner canon; per-set diplomas do not exist |
-| Second lap | Opened card was pulled after lap restart | "2. Auflage" stamp on the plate **(GDD R6, Phase 3)** + the dialog's stamp line beneath the actions: "Zweite Auflage — der Katalog kennt sie schon." / "Second printing — the catalogue already knows this one." | — | Stamp is decorative (R10); the dialog line is its text form; catalogue tiles never show stamps |
+| Capstone plaque | The capstone surface is opened for study (header component, not a catalogue card) | Grand frame treatment; **no Fantasiewerte band** — bands 4–5 collapse and the photo grows to compensate | Serial band reads "Sammlung I · abgeschlossen" | Phase 3 (Full Vision); **Elsas Ehrenmensch / Elsa's Honorary Human** per owner canon; per-set diplomas do not exist |
+| Second lap | Opened card was pulled after lap restart | "2. Auflage" stamp on the plate **(GDD R6, Phase 3)** + the dialog's stamp line beneath the actions: "Zweite Auflage — die Sammlung kennt sie schon." / "Second printing — the collection already knows this one." | — | Stamp is decorative (R10); the dialog line is its text form; catalogue tiles never show stamps |
 | Chase / gold-glint | Opened card is Das Hauptporträt (`chase: true`, GDD R-G) | **Gold-glint keystone frame** around the face — same material family as the room tile's frame, saturated for the dialog stage | — | Decorative (R10); never announced as rarity |
 | Reduced motion | System setting | No tilt spring, no idle sway, no flip animation (instant), halo/shadow static, foil material static | All inputs unchanged | Canon: foil movement off; information identical |
 | Deep link | `?photo=` | Card opens pre-announced; closing returns focus to `#open-pack`; **unknown id → dialog never opens, stage intact, focus stays with `#open-pack`** | URL cleaned on close (only when the card opened) | F12 |
@@ -342,7 +342,7 @@ originating card button (pack card / catalogue tile); with no originating card
 
 | Input | Platform | Action | Visual Response | Audio Cue | Notes |
 |-------|----------|--------|-----------------|-----------|-------|
-| `←` / `→` | Keyboard | Previous/next card (wraps over the whole catalogue — **scope per the library's Card Browsing decision**: the lightbox browses the entire catalogue, never only the current pack) | In-place crossfade 150ms | tick | Canon F20; disabled when the catalogue has 1 card |
+| `←` / `→` | Keyboard | Previous/next card (wraps over the whole catalogue — **scope per the library's Card Browsing decision**: the lightbox browses the entire catalogue, never only the current pack) | In-place crossfade 150ms | tick | Canon F20; disabled when the collection has 1 card |
 | `↑` / `↓` | Keyboard | Nudge foil tilt while the card has focus (§5.3 A) | Foil/glare track the nudge | none | Adopted from the reference; does not collide with `←→` |
 | `Tab` / `Shift+Tab` | Keyboard | Walk: dialog → ✕ → ‹ → card → › → Noch ein Pack → Foto speichern → Teilen → (wrap) | Focus ring per element | none | Card is `role="button"` `tabindex="0"` |
 | Drag (pointer/touch) | Mouse/Touch | Tilt the card | Foil layers + glare + halo track; spring settles | none | Grab cursor on the card zone |
@@ -539,7 +539,7 @@ numbers are read (F2a), preventing misreading them as data.
 | "Im Bild: …" note | ~30 | 44 | 40 % | n/a | First thing to yield (see above); never the sentence | Low |
 | Fantasiewerte label ("Imaginary stats · just for fun" / "Fantasiewerte · nur zum Spaß") | 30 | 42 | 40 % | n/a | Wraps to 2 short lines above the chips | Low |
 | Stat keys + values | manifest-driven | key 12, value 4 | 40 % | n/a | Key wraps inside the chip (L4 reserves the value box) | Low |
-| Stamp line (dialog, Phase 2) "Second printing — the catalogue already knows this one." / "Zweite Auflage — der Katalog kennt sie schon." | ~57 | 80 | 40 % | n/a | Status/hint area wraps to 2 lines | Low |
+| Stamp line (dialog, Phase 2) "Second printing — the collection already knows this one." / "Zweite Auflage — die Sammlung kennt sie schon." | ~57 | 80 | 40 % | n/a | Status/hint area wraps to 2 lines | Low |
 | Action buttons ("Another pack"/"Noch ein Pack", "Save this photo"/"Foto speichern", "Share"/"Teilen") | 12/15/5 | 17/21/7 | 40 % | n/a | Mobile 2-col grid: buttons wrap to their own rows rather than shrink below 44px hit height | Medium — **HIGH PRIORITY**: mobile actions row |
 | Status messages (§12) | 12–60 | 17–85 | 40 % | n/a | Reserved slot wraps to 2 lines | Low |
 | Hint line ("Tap to flip · ← → for the next" / "Karte antippen zum Umdrehen · ← → zur nächsten") | ~38 | 54 | 40 % | n/a | Wraps to 2 lines; hidden ≤380px height | Low |
@@ -564,14 +564,14 @@ numbers are read (F2a), preventing misreading them as data.
 **Layout & Rendering**
 - [ ] The dialog never scrolls at any listed viewport; all six bands visible simultaneously
 - [ ] All §6 states render correctly (front, flipped, navigating, HEIC converting, image error, share states, completed-room frame, capstone plaque, reduced motion, deep link)
-- [ ] A deep link with an id that is not in the catalogue (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v1` write occurs
+- [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v1` write occurs
 - [ ] Photo crop honours the `focus` anchor; the display copy never exceeds 720px; "Foto speichern" delivers the original filename
 - [ ] Holo cards show the adopted halo + ground shadow dressing; reduced motion shows both static
 
 **Input**
-- [ ] Keyboard-only pass: open → read card → `←` wraps to the catalogue end → `→` back → `F` flips → `↑↓` tilt → Escape returns focus to the originating card button (assert `document.activeElement`)
+- [ ] Keyboard-only pass: open → read card → `←` wraps to the collection end → `→` back → `F` flips → `↑↓` tilt → Escape returns focus to the originating card button (assert `document.activeElement`)
 - [ ] Touch pass: tap flips, an 8px+ drag tilts without flipping, chevrons navigate; no browser back-swipe is triggered from the card surface
-- [ ] From the pack flow, closing returns focus to the same pack card; from the catalogue, to the same tile; from a deep link, to `#open-pack`
+- [ ] From the pack flow, closing returns focus to the same pack card; from the collection, to the same tile; from a deep link, to `#open-pack`
 
 **Events & Data**
 - [ ] `card:opened` fires once per open; `seen.v1` gains the id (idempotent re-open test)
@@ -599,5 +599,5 @@ numbers are read (F2a), preventing misreading them as data.
 | Keyboard tilt discoverability: is `↑↓` hint-worthy in the dialog hint line, or learnable? (Hint line has one row budget.) | ux-designer | with playtest | — |
 | Should `←→` from a pack-opened card step within the five pulled cards only, or the whole catalogue (current + canon)? Canon says the lightbox browses; confirm no playtest confusion | game-designer + ux-designer | with playtest | — |
 | Share text: card sentence or printed name only (PRD §9.7)? | user | before launch | — |
-| ~~Diplom: CardDetail render vs. dedicated honours view~~ **RESOLVED 2026-11-22 (owner canon):** the capstone **Elsas Ehrenmensch / Elsa's Honorary Human** lives in the catalogue header (binder.md §6); this dialog renders it only for study via the capstone-plaque state | owner + ux-designer | 2026-11-22 | RESOLVED |
+| ~~Diplom: CardDetail render vs. dedicated honours view~~ **RESOLVED 2026-11-22 (owner canon):** the capstone **Elsas Ehrenmensch / Elsa's Honorary Human** lives in the collection header (binder.md §6); this dialog renders it only for study via the capstone-plaque state | owner + ux-designer | 2026-11-22 | RESOLVED |
 | Foil name gradient: cap animation of `background-position` under "no motion" preference — static gradient at a fixed flattering stop needs art sign-off | art-director | with art bible pass | — |

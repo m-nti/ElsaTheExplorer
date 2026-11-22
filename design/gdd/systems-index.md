@@ -13,7 +13,7 @@ Elsa the Explorer is a single-page static web game: a pack-opening card library 
 combat, no economy and no fail state. The visitor is an explorer and reader of an
 archive-catalogue of one dog's life; the collection itself is the product. The mechanical
 scope is deliberately small and every system serves one of the three loop layers from the
-brief — the pack ritual (micro), the wing-completion meta (meso), and the catalogue
+brief — the pack ritual (micro), the wing-completion meta (meso), and the collection
 milestones that culminate in Elsas Ehrenmensch (macro). Ten systems carry the whole game.
 Stack (owner-decided): **Svelte 5 + Vite 8 + TypeScript (strict) + Vitest + Playwright**,
 built locally and deployed as static files to IONOS — the runtime stays server-render-free,

@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-A bulletin strip in the catalogue header: today's card, read-only, plus **Elsa-Prognose** over three trait groups. Ten seconds, dry, warm, no obligation. It is the only thing that differs between two identical visits.
+A bulletin strip in the collection header: today's card, read-only, plus **Elsa-Prognose** over three trait groups. Ten seconds, dry, warm, no obligation. It is the only thing that differs between two identical visits.
 
 **It is not a reward, and it is not a retention mechanism.** The tile is display-only: it collects nothing, opens nothing, writes nothing, grants no stamp or milestone and never touches the pack's unseen-first pool (`mechanics.md` I2/I4, `collection-meta.md` R-K). Missing a day costs nothing and is never mentioned — the exact condition the slate's kill verdict demanded. No `lucky-elsa.*` key is written; refused storage (private window) changes nothing.
 
@@ -75,7 +75,7 @@ Wing unions (slugs from R-A): `sofa = nap-wing ∪ portrait-room` · `vigilance 
 - `<section aria-labelledby>` with an `<h2>`; the date is `<time datetime="YYYY-MM-DD">` whose text comes from `Intl.DateTimeFormat` in the page language.
 - The card's printed name is real text beside the tile; the photo plate is `aria-hidden="true"` with `alt=""` (the name is not duplicated into an alt).
 - Forecast is a `<dl>`: `<dt>` = trait name, `<dd>` = `{value}/10`. Values are text, never a bar, gauge or tint.
-- Empty, standard and capstone differ by **text**, never by colour, dimming or an icon; all text ≥ 4.5:1 on the catalogue surface.
+- Empty, standard and capstone differ by **text**, never by colour, dimming or an icon; all text ≥ 4.5:1 on the collection surface.
 - Nothing is focusable inside, so no focus trap and a silent rollover cannot move the visitor's focus. Motion: none, or opacity-only ≤ 100 ms (`prefers-reduced-motion` removes even that). No sound.
 
 ## 6. Copy Keys (DE/EN — PROPOSED except `tag:title`, which is canonical)
@@ -112,7 +112,7 @@ Build-order step 4, once wing totals exist: pure selectors in one module (`fnv1a
 
 ## 9. Edge Cases
 
-- **Offline / manifest failure:** no manifest → `hidden`; the catalogue's own error state speaks. No cached card is ever shown as today's.
+- **Offline / manifest failure:** no manifest → `hidden`; the collection's own error state speaks. No cached card is ever shown as today's.
 - **Clock change:** local components only, so DST and timezone travel cannot shift the date mid-day the way a UTC path would. A backwards jump re-renders an earlier day (correct, not an error); a year outside `[2000, 2100]` → `hidden` rather than a farcical date.
 - **`N = 1`:** `h mod 1 = 0` every day — the same card daily, no special string, no fallback card invented.
 - **0 % / 1 %:** empty line at zero; with one collected card the traits already compute (a union may read 1–10) — no floor, no "unlock at five".

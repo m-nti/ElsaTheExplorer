@@ -102,7 +102,7 @@ implementation change.
 | Card Reveal Step | Game-Specific | The four-card haul sequence with choreographed order | Pack Dialog | Draft |
 | Card Tilt & Foil Material | Game-Specific | Holo-as-material: pointer tilt + layered foil response | Card Lightbox (exhibit card); static foil on tiles/drop cards | Draft |
 | Card Flip | Game-Specific | Exhibit card flips over like a physical object | Card Lightbox | Draft |
-| Card Browsing (Arrows / Swipe) | Navigation | Walk the catalogue from inside the lightbox | Card Lightbox | Draft |
+| Card Browsing (Arrows / Swipe) | Navigation | Walk the collection from inside the lightbox | Card Lightbox | Draft |
 | Pack Roving Arrows | Navigation | `←`/`→` roving over the settled drop cards, `↑`/`↓` row-jump in the 2 × 2 (pack dialog only) | Pack Dialog | Draft |
 | Share Button | Input | Native share sheet with clipboard fallback | Card Lightbox, (later: Elsas Ehrenmensch) | Draft |
 | Save / Download Link | Input | Download the original photo | Card Lightbox | Draft |
@@ -110,11 +110,11 @@ implementation change.
 | Language Toggle (DE / EN) | Input | Two-button pressed-state pair in the masthead | Masthead | Draft |
 | Sound Toggle | Input | On/off toggle with remembered state | Masthead | Draft |
 | Progress Bar | Feedback | Overall "gesammelt" progress with numeric label | Stage, Lightbox (dialog copy) | Draft |
-| Set Progress Line | Feedback / Layout | Per-department progress row with frontier and completion state | The Catalogue (set section headers) | Draft |
+| Set Progress Line | Feedback / Layout | Per-department progress row with frontier and completion state | The Collection (set section headers) | Draft |
 | Zuwachs Accession Line | Feedback | The acquisitions notice — DE: *"{n} neue Schmuckstücke sind da!"* / EN: *"{n} new treasures have arrived!"* (cap 44; copy-deck sync 2026-11-22) | Stage, Catalogue header | Draft |
-| View Toggle | Input / Navigation | Segmented Alle Karten ↔ Nach Räumen view switch | The Catalogue (header) | Draft |
-| Collection Grid Tile | Game-Specific | Button tile in the catalogue grid, all states | The Catalogue | Draft |
-| Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Catalogue (flat + grouped) | Draft |
+| View Toggle | Input / Navigation | Segmented Alle Karten ↔ Nach Räumen view switch | The Collection (header) | Draft |
+| Collection Grid Tile | Game-Specific | Button tile in the collection grid, all states | The Collection | Draft |
+| Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Collection (flat + grouped) | Draft |
 | Keyboard Shortcut | Input | Global single-key actions (`P`, `F`, arrows) | Global (page + lightbox) | Draft |
 | Close Button | Input | Icon-only dialog dismissal | Pack Dialog, Card Lightbox | Draft |
 | Live Region Announcement | Feedback | `role="status"` line for non-focus events | Global (`#live`), share status | Draft |
@@ -200,7 +200,7 @@ implementation change.
 **Category**: Navigation
 **Status**: Draft
 **When to Use**: While any modal dialog is open — pack dialog, card lightbox, reset confirmation. Native `<dialog>` provides the base; this pattern specifies what must be verified on top of it.
-**When NOT to Use**: Never outside a modal context. The catalogue grid and stage are not trapped — `Tab` walks the page freely.
+**When NOT to Use**: Never outside a modal context. The collection grid and stage are not trapped — `Tab` walks the page freely.
 
 **Interaction Specification**:
 
@@ -230,7 +230,7 @@ implementation change.
 **Category**: Game-Specific
 **Status**: Draft
 **When to Use**: Every pack opening, inside the pack dialog. This is the Sammelwerk's signature interaction and the choreography is canonical.
-**When NOT to Use**: Nowhere else. The catalogue never animates its tiles into place as a "reveal"; that would cheapen the haul moment.
+**When NOT to Use**: Nowhere else. The collection never animates its tiles into place as a "reveal"; that would cheapen the haul moment.
 
 **Canonical order rule** (design canon — implemented in the draw, not the CSS): within a pack of four (**4-card canon 2026-11-22**; this rule was written for a pack of five and is renumbered, not re-designed), **the holo/rare card always lands in position 3 or 4, never first**. Draw with the existing guarantees (no dupes inside a pack, unseen-first walk, ≥1 holo via promotion), then *order* the four for reveal: commons/rare fill positions 1–2, the highest-rarity card takes position 3 or 4 (coin flip). Two non-common cards: higher rarity last. The chase card — Das Hauptporträt / The Portrait of Record — follows the same rule and outranks everything visually via its gold-glint frame (manifest `chase: true`).
 
@@ -380,7 +380,7 @@ implementation change.
 **Category**: Navigation
 **Status**: Draft
 **When to Use**: Inside the **pack dialog** only: `←`/`→` move keyboard focus across the settled drop row, `↑`/`↓` jump a row in the 2 × 2 layout; `Enter`/`Space` opens the focused card in the lightbox. This is the pack dialog's own keyboard model — deliberately distinct from Card Browsing, which is lightbox-only.
-**When NOT to Use**: In the card lightbox (that is Card Browsing's decided `←`/`→` scope — they do nothing in the pack dialog's content when the lightbox is closed… and are swallowed by the lightbox when it is open); on the catalogue grid (Catalogue Grid Roving Arrows); never page-scope.
+**When NOT to Use**: In the card lightbox (that is Card Browsing's decided `←`/`→` scope — they do nothing in the pack dialog's content when the lightbox is closed… and are swallowed by the lightbox when it is open); on the collection grid (Catalogue Grid Roving Arrows); never page-scope.
 
 **Interaction Specification**:
 
@@ -476,7 +476,7 @@ implementation change.
 **Category**: Input
 **Status**: Draft
 **When to Use**: Keeping the photo — "Foto speichern / Save this photo" in the lightbox action row; serves the *original* resolution file (`<a download>`).
-**When NOT to Use**: Never for the catalogue tiles (no bulk download in scope); never a "save to favorites" — that is what "gesammelt" already is.
+**When NOT to Use**: Never for the collection tiles (no bulk download in scope); never a "save to favorites" — that is what "gesammelt" already is.
 
 **Interaction Specification**:
 
@@ -503,7 +503,7 @@ implementation change.
 
 **Category**: Input / Feedback
 **Status**: Draft
-**When to Use**: The catalogue header's "Von vorn / Start over" — the only destructive action in the product. Clears collection state and restarts the deck walk.
+**When to Use**: The collection header's "Von vorn / Start over" — the only destructive action in the product. Clears collection state and restarts the deck walk.
 **When NOT to Use**: Anywhere else. Nothing else in Elsa the Explorer is destructive; no other control may chain this pattern.
 
 > **Critical rule**: A reset control NEVER executes directly. It always opens
@@ -512,7 +512,7 @@ implementation change.
 
 **Structure** (Confirmation Dialog — these strings are canon / SSOT; the confirm button is labelled with the action, never "OK" / "Ja"):
 - Title: "Von vorn?" / "Start over?"
-- Body (one line, listing what is lost): DE: *"Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN: *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default."* (copy-deck sync 2026-11-22)
+- Body (one line, listing what is lost): DE: *"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN: *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default."* (copy-deck sync 2026-11-22)
 - Confirm button: Primary-styled **destructive** — DE: *"Alles löschen"* / EN: *"Delete everything"* — labeled with the action, never "OK" / "Ja".
 - Cancel button: Secondary — "Abbrechen" / "Cancel". **Default focus here.**
 - Scope note (binding, per project facts): reset clears **all** `lucky-elsa.*`
@@ -526,7 +526,7 @@ implementation change.
 
 | State | Visual | Input trigger | Response | Duration | Audio |
 |-------|--------|---------------|----------|----------|-------|
-| Trigger (default) | Quiet outline button in the catalogue tools row; never visually loud — the danger lives in the confirmation, not the trigger | click / `Enter` | Confirmation dialog opens (Dialog Open / Close rules) | 200 ms open | soft warning tick (distinct from confirm) |
+| Trigger (default) | Quiet outline button in the collection tools row; never visually loud — the danger lives in the confirmation, not the trigger | click / `Enter` | Confirmation dialog opens (Dialog Open / Close rules) | 200 ms open | soft warning tick (distinct from confirm) |
 | Confirmation — default focus | Cancel focused | `showModal()` | — | — | — |
 | Confirmed | — | click confirm / `Enter` | Clears all `lucky-elsa.*` keys, re-renders catalogue + progress in the default language, announces result | 150 ms close | final weighted confirm tone |
 | Cancelled | — | `Escape`, backdrop click, Cancel click | Dialog closes; nothing changed; focus returns to the reset button | 150 ms close | modal-close tick |
@@ -624,9 +624,9 @@ implementation change.
 | Default (partial) | Thin foil-accented fill on a dark track; numeric label above, quiet explanatory note below: "Jede Karte kommt dran, bevor eine wieder auftaucht." / "Every card gets a turn before any come back around." | — | — | — | — |
 | Value increases | Fill width animates to the new ratio; label re-renders | entry marked "gesammelt" | — | 300 ms ease-out | none (the card's own sounds cover the beat) |
 | At zero | Empty track; label reads the honest count ("Du hast 0 von 24 gesammelt.") | reset / fresh start | — | 300 ms | — |
-| At maximum (100 %) | Fill complete; the line is joined by the completed-catalogue affordances (Elsas Ehrenmensch in the catalogue header; Das Gesamtverzeichnis plaque beside it) | last entry | — | 300 ms | milestone chime |
+| At maximum (100 %) | Fill complete; the line is joined by the completed-catalogue affordances (Elsas Ehrenmensch in the collection header; Das Gesamtverzeichnis plaque beside it) | last entry | — | 300 ms | milestone chime |
 | Loading | Label "Karten werden gesucht" / "Finding the cards"; track at 0 — the *label*, not a spinner, is the loading indicator | page load | — | — | — |
-| Empty (no photos) | Label "Noch keine Karten" / "No cards yet"; track at 0 with the catalogue's curator-directed empty state carrying the explanation | — | — | — | — |
+| Empty (no photos) | Label "Noch keine Karten" / "No cards yet"; track at 0 with the collection's curator-directed empty state carrying the explanation | — | — | — | — |
 
 **Accessibility**:
 - `role="progressbar"` with `aria-valuemin/max/now` kept in sync (`now = seen`, `max = total`); labelled via the visible label (`aria-labelledby`).
@@ -644,7 +644,7 @@ implementation change.
 
 **Category**: Feedback / Layout
 **Status**: Draft
-**When to Use**: The catalogue's six themed department rows + the loose department, each showing name, count, and frontier. This pattern is the refactor's new meta layer made visible.
+**When to Use**: The collection's six themed department rows + the loose department, each showing name, count, and frontier. This pattern is the refactor's new meta layer made visible.
 **When NOT to Use**: Not a navigation control (clicking a set row must not filter/hide the grid — the grid is one continuous list; departments are annotation, not tabs); never inside dialogs.
 
 **Canonical departments** (design canon, order fixed; manifest `set` field assigns, `Neuzugänge` is the automatic default):
@@ -665,9 +665,9 @@ implementation change.
 | Just gained an entry | Count ticks up, fill animates | card of this set marked | — | 300 ms ease-out | none (card sounds suffice) |
 | Department complete | Line flips to its completion state. Visible note (carries the surface's one permitted `!`): DE: *"Der Rahmen leuchtet, als hätte er gewartet!"* / EN: *"The frame is glowing, as if it had been waiting!"*; live region: DE: *"{set} ist komplett. Alle da."* / EN: *"{set} is complete. All present."* — no `!` (copy-deck sync 2026-11-22). **Exclamation rule: at most one `!` per surface; never in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region.** The **permanent frame variant** for this set now applies to its tiles | last card of set | Small one-time flourish + live region announcement | 300 ms + one-time flourish ~800 ms | milestone chime (set-scale, quieter than the Ehrenmensch chime) |
 | Loose department | Same pattern, labeled "Neuzugänge / New Acquisitions"; completion possible and celebrated the same way | — | — | — | — |
-| Milestone crossing (25/50/75 % overall) | Surfaced once via a catalogue-level flourish + live region; **milestone announcements are overall-catalogue** — copy key `catalogue:milestone-reached { pct }` (the GDD references this key; do not rename in one place only), with the outfit resolved from the milestone — SSOT: binder spec §12 (**25 % gilded door sign / Türschild, 50 % reading lamp / Leselampe, 75 % velvet rope / Samtband**): DE: *"Katalog: {pct} Prozent geschafft — {outfit}."* / EN: *"Catalogue: {pct} per cent done — {outfit}."* ({outfit} resolves from the milestone — no competing copy; announced, so no `!`; copy-deck sync 2026-11-22); the outfit then persists in the catalogue's presentation | overall ratio crosses | one-time | one-time | milestone chime |
-| 100 % overall | All lines complete; the **single capstone Elsas Ehrenmensch / Elsa's Honorary Human** is presented in the catalogue header; the Das Gesamtverzeichnis / The Master Index plaque stands beside it | last entry | Completion announcement once: DE: *"Katalog komplett — Elsas Ehrenmensch ist eingetragen."* / EN: *"Catalogue complete — Elsa's Honorary Human is entered."* — no `!` (copy-deck sync 2026-11-22); ceremony beats in player-journey.md Phase 7 | — | Ehrenmensch chime |
-| Empty department (0 cards exist in it) | **Decision: omit** — the catalogue only shows departments that exist in the current collection | — | — | — | — |
+| Milestone crossing (25/50/75 % overall) | Surfaced once via a catalogue-level flourish + live region; **milestone announcements are overall-catalogue** — copy key `catalogue:milestone-reached { pct }` (the GDD references this key; do not rename in one place only), with the outfit resolved from the milestone — SSOT: binder spec §12 (**25 % gilded door sign / Türschild, 50 % reading lamp / Leselampe, 75 % velvet rope / Samtband**): DE: *"Sammlung: {pct} Prozent geschafft — {outfit}."* / EN: *"Catalogue: {pct} per cent done — {outfit}."* ({outfit} resolves from the milestone — no competing copy; announced, so no `!`; copy-deck sync 2026-11-22); the outfit then persists in the collection's presentation | overall ratio crosses | one-time | one-time | milestone chime |
+| 100 % overall | All lines complete; the **single capstone Elsas Ehrenmensch / Elsa's Honorary Human** is presented in the collection header; the Das Gesamtverzeichnis / The Master Index plaque stands beside it | last entry | Completion announcement once: DE: *"Sammlung komplett — Elsas Ehrenmensch ist eingetragen."* / EN: *"Collection complete — Elsa's Honorary Human is entered."* — no `!` (copy-deck sync 2026-11-22); ceremony beats in player-journey.md Phase 7 | — | Ehrenmensch chime |
+| Empty department (0 cards exist in it) | **Decision: omit** — the collection only shows departments that exist in the current collection | — | — | — | — |
 
 **Accessibility**:
 - Each line is text-first: name + numeric count ("3 von 5") — the mini bar is redundant decoration, `aria-hidden`.
@@ -698,7 +698,7 @@ implementation change.
 | State | Visual | Input trigger | Response | Duration | Audio |
 |-------|--------|---------------|----------|----------|-------|
 | Hidden (default) | No line | manifest stamp = stored stamp | — | — | — |
-| Appearing | One quiet line above the catalogue | load with stamp mismatch | Polite announcement once, same string via live region | 200 ms fade-in | none |
+| Appearing | One quiet line above the collection | load with stamp mismatch | Polite announcement once, same string via live region | 200 ms fade-in | none |
 | Displayed | Line persists until dismissal | — | — | — | — |
 | Dismissed | **Once any new card is gesammelt**, the line disappears and the stored stamp updates to the current manifest stamp | first new card marked | Line removed; stamp written; no announcement needed | 200 ms fade-out | none (the card's own sounds cover it) |
 | Reduced motion | Instant show/hide | same | same | 0 ms | none |
@@ -706,7 +706,7 @@ implementation change.
 **Accessibility**:
 - Plain text, never color/icon-only; the count variant states a number.
 - Announced politely on load, once — not repeated per navigation.
-- It is a notice, not a CTA: no click target required; the catalogue below it is the natural next step.
+- It is a notice, not a CTA: no click target required; the collection below it is the natural next step.
 
 **Animation spec**: 200 ms fades; reduced motion: instant show/hide.
 
@@ -718,7 +718,7 @@ implementation change.
 
 **Category**: Input / Navigation
 **Status**: Draft
-**When to Use**: The catalogue header's view switch between the flat list (**"Alle Karten / All cards"**) and the room-grouped view (**"Nach Räumen / By room"** — departments with their Set Progress Lines). Two options, one glance: a segmented pressed-pair like the Language Toggle.
+**When to Use**: The collection header's view switch between the flat list (**"Alle Karten / All cards"**) and the room-grouped view (**"Nach Räumen / By room"** — departments with their Set Progress Lines). Two options, one glance: a segmented pressed-pair like the Language Toggle.
 **When NOT to Use**: Anywhere with more than two views; inside dialogs; as a persisted setting (view choice is session state — it resets to "Alle Karten" on reload; revisit only if playtests ask for persistence).
 
 **Interaction Specification**:
@@ -728,7 +728,7 @@ implementation change.
 | Default (unselected) | Plain text button in the segmented pair | — | — | — | — |
 | Selected (active) | Foil-accented fill + `aria-pressed="true"` | — | — | — | — |
 | Hover / Focus | Lift + focus ring on either half | pointer / Tab | 80 ms | — | none |
-| Press (switch) | Clicking the inactive view re-renders the catalogue grid | click / `Enter` / `Space` | Grid re-renders flat ↔ grouped; Set Progress Lines appear only in grouped view; focus stays on the pressed toggle | instant (a view switch must feel like the grid was always laid out that way) | soft toggle click |
+| Press (switch) | Clicking the inactive view re-renders the collection grid | click / `Enter` / `Space` | Grid re-renders flat ↔ grouped; Set Progress Lines appear only in grouped view; focus stays on the pressed toggle | instant (a view switch must feel like the grid was always laid out that way) | soft toggle click |
 | Press (already active) | No-op | click | Nothing changes; no announcement | — | — |
 
 **Accessibility**:
@@ -747,7 +747,7 @@ implementation change.
 
 **Category**: Game-Specific
 **Status**: Draft
-**When to Use**: Every card in the catalogue grid — one button per entry, in collection order.
+**When to Use**: Every card in the collection grid — one button per entry, in collection order.
 **When NOT to Use**: In the pack dialog (haul cards are the Card Reveal Step's slots, not tiles); tiles are never drag sources or multi-select targets (out of scope, PRD F31).
 
 **Interaction Specification**:
@@ -781,7 +781,7 @@ implementation change.
 
 **Category**: Navigation
 **Status**: Draft
-**When to Use**: On the catalogue grid (flat **and** grouped views): `←→↑↓` move keyboard focus tile-to-tile in the visual two-dimensional order; `Home`/`End` jump to the first/last tile; `Enter`/`Space` open the focused entry in the lightbox.
+**When to Use**: On the collection grid (flat **and** grouped views): `←→↑↓` move keyboard focus tile-to-tile in the visual two-dimensional order; `Home`/`End` jump to the first/last tile; `Enter`/`Space` open the focused entry in the lightbox.
 **When NOT to Use**: Inside any dialog (dialogs own their own focus loops); in the pack dialog (Pack Roving Arrows over the dealt row); never as a `Tab` trap — **`Tab` still leaves the grid**: the grid is one tab stop, arrows move inside it.
 
 **Interaction Specification**:
@@ -870,7 +870,7 @@ implementation change.
 #### Empty State
 
 **Category**: Feedback · **Status**: Draft
-**When to Use**: The catalogue grid when zero photos exist. **When NOT to Use**: For transient loading.
+**When to Use**: The collection grid when zero photos exist. **When NOT to Use**: For transient loading.
 **Spec**: Rule — every empty state has a message, the exact next action, and no blame. DE: *"Noch keine Karten. Leg Elsa-Fotos in den Ordner photos und führe dann npm run photos aus."* / EN: *"No cards yet. Put Elsa's photos in the photos folder, then run npm run photos."* The curator is the only person who can act, and the message speaks to them in the page language. The pack trigger reads "Noch keine Karten" / "No cards yet" and is disabled. Tone: friendly, factual, no "Error".
 
 ---
@@ -972,7 +972,7 @@ behavior, not an afterthought):
 | Card reveal (each card) | Card Tick | Very short bandpass tick per arriving card; must not fatigue across four cards or repeated expeditions. |
 | Rare card reveal | Rare Chime | Two-note rising figure, quieter than holo. Distinct from the tick; reward, not alarm. |
 | Holo / chase card reveal | Holo Shine | Sine chime with shimmer overtone (ref chime recipe: notes at 1318–3136 Hz + 2.76× partial, ~1.6 s decay); the "it shines" moment. Chase card uses the same sound — its gold frame is the visual differentiation, not a louder sound. |
-| Milestone (department complete, 25/50/75 %) | Milestone Chime | Single warm tone, quieter than holo. Celebratory but brief — the catalogue changes quietly, not with fireworks. |
+| Milestone (department complete, 25/50/75 %) | Milestone Chime | Single warm tone, quieter than holo. Celebratory but brief — the collection changes quietly, not with fireworks. |
 | Elsas Ehrenmensch earned (100 %) | Ehrenmensch Chime | The one fullest, longest tone in the palette; fires once, ever (flag-guarded). |
 | Dialog open | Modal Open — soft tick | Quieter variant of Card Tick; draws attention without a new timbre family. |
 | Dialog close | Modal Close — soft tick | Slightly lower pitch than open. |
@@ -989,7 +989,7 @@ behavior, not an afterthought):
 
 ## Gaps & Patterns Needed
 
-- **Ehrenmensch presentation**: Elsas Ehrenmensch (the catalogue-header
+- **Ehrenmensch presentation**: Elsas Ehrenmensch (the collection-header
   capstone) and the Das Gesamtverzeichnis / The Master Index plaque need a
   presentation pattern (shareable certificate surface) before the completion
   meta is built. It will likely combine Dialog Open / Close + Share Button +

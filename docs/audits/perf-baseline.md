@@ -16,7 +16,7 @@
 |---|---:|---:|---|
 | `photos.php?list=1` | 6,634 | 0.87–6.9 ms warm (94 ms cold) | `Cache-Control: no-store` |
 | `photos.php?thumb=elsa-01.jpg` (hit) | 61,909 | 4.7 ms | 540×720 |
-| `photos.php?thumb=…` (miss) | 61,909 | **2.186 s** | GD resize of a 3.98 MB / 24.5 MP source |
+| `photos.php?thumb=…` (miss) | 61,909 | **2.186 s** | GD resize of a 3.98 MB / 24.47 MP source |
 | `photos.php?view=elsa-01.jpg` | **3,983,035** | 14.3 ms | byte-identical to the original |
 | `photos/elsa-01.jpg` (direct) | **3,983,035** | 0.68 ms | original is publicly reachable |
 | `photos/thumbs/elsa-01.jpg` (static, LCP) | **111,795** | 7.7 ms | 720×540 |
@@ -44,7 +44,10 @@
 | 233A150F… / IMG_2225 | 0.172 / 0.062 s | 57,148 / 33,408 | 720×405 / 405×720 |
 | **All ten cold, serialized** | **≈5.14 s** | **529,970 (517.5 KB)** | — |
 
-Static `photos/thumbs/` set: 924,041 B, 10 files — **all over the legacy 45 KB target; 9/10 over the 80 KB pack ceiling.**
+Static `photos/thumbs/` set: 924,041 B, 10 files — these are **720 px JPEGs**, so they are
+measured against the ratified **pack** ceilings (≤ 110 KB JPEG / ≤ 80 KB WebP): **1/10 over
+the 110 KB JPEG ceiling** (111,920 B) and **all ten over the 80 KB WebP ceiling**. None is a
+tile (their 720 px edge is twice the 360 px tile rung), so the tile ceiling does not apply.
 
 ## Runtime (puppeteer)
 
@@ -60,14 +63,20 @@ Static `photos/thumbs/` set: 924,041 B, 10 files — **all over the legacy 45 KB
 
 ## 4G projection at the new ladder (200 KB/s + ~1 RTT/file)
 
+> **Projection, not measurement.** Every row below is derived from the ratified ceilings
+> (art-bible §8 / ADR-0008) at a modelled 200 KB/s; the pre-refactor measurements are in
+> §Server routes and §Cold thumbnail generation above. WebP ceilings are shown because WebP is
+> the default; the JPEG fallback ceiling for each rung (tile 55 / pack 110 / detail 210 /
+> download 500 KB) applies when the client does not take WebP.
+
 | Scenario | Bytes | Transfer | +1 RTT |
 |---|---:|---:|---:|
-| Current detail (`?view=` original) | 3,983,035 | 19.9 s | 20.1 s |
-| Current 10 static thumbs | 924,041 | 4.62 s | 4.77 s |
-| tile 360 WebP ≤36 KB ×10 | ≤360,000 | ≤1.80 s | ≤1.95 s |
-| pack 720 WebP ≤80 KB | ≤80,000 | ≤0.40 s | ≤0.55 s |
-| detail 1200 WebP ≤150 KB | ≤150,000 | ≤0.75 s | ≤0.90 s |
-| download 1600 WebP ≤350 KB | ≤350,000 | ≤1.75 s | ≤1.90 s |
+| Current detail (`?view=` original) — **measured** | 3,983,035 | 19.9 s | 20.1 s |
+| Current 10 static thumbs — **measured** | 924,041 | 4.62 s | 4.77 s |
+| tile 360 WebP ≤ 36 KB ×10 — **projection** | ≤ 360,000 | ≤ 1.80 s | ≤ 1.95 s |
+| pack 720 WebP ≤ 80 KB — **projection** | ≤ 80,000 | ≤ 0.40 s | ≤ 0.55 s |
+| detail 1200 WebP ≤ 150 KB — **projection** | ≤ 150,000 | ≤ 0.75 s | ≤ 0.90 s |
+| download 1600 WebP ≤ 350 KB — **projection** | ≤ 350,000 | ≤ 1.75 s | ≤ 1.90 s |
 
 ## Budget table
 
@@ -75,12 +84,12 @@ Static `photos/thumbs/` set: 924,041 B, 10 files — **all over the legacy 45 KB
 |---|---:|---:|---|
 | JS gzip | ≤60 KB | 19.8 KB | OK (unminified v1 sources) |
 | CSS gzip | ≤30 KB | 15.3 KB | OK locally (projection) |
-| CSS uncompressed | ≤45 KB | 65,034 B | **OVER 1.45×** |
+| CSS uncompressed (**CSS budget, not an image ceiling**) | ≤45 KB | 65,034 B | **OVER 1.45×** |
 | Font per woff2 | ≤30 KB | 33,252 B | **OVER 1.11×** |
 | FCP ≤200 ms | ≤200 ms | 1,180 ms throttled / 92 ms local | **OVER on 4G** |
 | LCP <2.5 s | <2,500 ms | 1,660 ms (warm loopback; excludes 2.19 s cold GD) | OK with caveat |
 | CLS | 0 | 0 | OK |
-| Critical thumb | ≤45 KB | 111,920 / 61,909 B | **OVER** |
+| Critical thumb | ≤ 55 KB JPEG / ≤ 36 KB WebP (tile) | 111,920 / 61,909 B (both 720 px, i.e. pack-sized) | **OVER** |
 | First-load total | ≤250 KB | 650,222 B | **OVER 2.6×** |
 | Detail never original | 0 | 3,983,035 B | **OVER** |
 | IONOS gzip/brotli | — | — | NOT ASSESSED |
@@ -97,7 +106,7 @@ Static `photos/thumbs/` set: 924,041 B, 10 files — **all over the legacy 45 KB
 1. **Stop serving the original as a detail image** — 3.98 MB → ≤210 KB JPEG / ≤150 KB WebP (−94.7 % / −96.2 % per open).
 2. **Kill the double LCP fetch** — 174,168 B → 62,248 B (or ≤55 KB tile) by not hard-coding the static thumb before `app.js` rewrites it.
 3. **Emit the 360/720/1200 ladder** — 10 thumbs 924 KB → ≤360 KB WebP (−61 %).
-4. **Enforce per-rung byte ceilings** — worst thumb 111.8 KB vs 36/55 KB.
+4. **Enforce per-rung byte ceilings** — worst thumb 111.8 KB vs the ratified pack ceilings of 80 KB WebP / 110 KB JPEG.
 5. **Fix CSS + font bytes** — CSS 65 KB raw vs 45 KB; Chivo 33.3 KB vs 30 KB.
 
 ## Verdict

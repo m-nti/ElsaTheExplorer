@@ -67,19 +67,19 @@ cancelled — the answer would be more photos, not more surfaces.
 **MDA / loop** — *Expression* ▸ *Relatedness*, *Discovery* underneath. Adds the missing loop: collect → **choose five** → mount → send → hear back. Every existing verb is receive-and-read; this is the first make-and-give.
 **Fiction** — A museum with wings and plaques mounts *Sonderausstellungen*. The visitor graduates from reader to guest curator — the promotion the Ehrenmensch promises and never lets them perform.
 **Effort / risk** — **M**. Risk: a five-card link is a thin object if the wall label is generic — the label is the feature, not the cards. Second risk: nothing forces a recipient to care; mitigated by pack symmetry (five cards) and the sender's name on the wall.
-**A11y** — Selection is an `aria-pressed` toggle on existing tiles, never drag-and-drop; the exhibition renders in catalogue order, so there is no ordering mechanic to be keyboard-hostile. Mounted view = ordered list of existing card components + heading; focus to the title on open, back to the trigger on close; live region announces "Ausstellung geöffnet: fünf Karten, kuratiert von …"; stale ids are named in text ("Drei Karten dieser Ausstellung sind nicht mehr im Katalog"), never silently dropped.
-**Constraints / sharpened** — Clean, and unusually so: fragments are never sent to the server, so sharing tells IONOS nothing — not even which cards. Shared cards are already public in the catalogue (no new exposure); no public feed means no moderation, no live ops. **One to five cards**, in the visitor's own order — the arrangement *is* the exhibition and travels in the link (canonical decision 4); the wall label is **auto-composed** from the dominant wing and card copy with a derived number ("Sonderausstellung Nr. {nr}"), no free-text input and therefore no empty-title or moderation state — **title override retired 2026-11-22: derived exhibition number only**; a single local draft (`lucky-elsa.exhibition.v1`, ordered ids only) so it is a thing they own, not a one-off link — *no shelf of saved exhibitions* (retired 2026-11-22: a shelf is a second collection axis); recipients walk it with `←`/`→` using the Reveal Theatre components.
+**A11y** — Selection is an `aria-pressed` toggle on existing tiles, never drag-and-drop; the exhibition renders in catalogue order, so there is no ordering mechanic to be keyboard-hostile. Mounted view = ordered list of existing card components + heading; focus to the title on open, back to the trigger on close; live region announces "Ausstellung geöffnet: fünf Karten, kuratiert von …"; stale ids are named in text ("Drei Karten dieser Ausstellung sind nicht mehr im Sammlung"), never silently dropped.
+**Constraints / sharpened** — Clean, and unusually so: fragments are never sent to the server, so sharing tells IONOS nothing — not even which cards. Shared cards are already public in the collection (no new exposure); no public feed means no moderation, no live ops. **One to five cards**, in the visitor's own order — the arrangement *is* the exhibition and travels in the link (canonical decision 4); the wall label is **auto-composed** from the dominant wing and card copy with a derived number ("Sonderausstellung Nr. {nr}"), no free-text input and therefore no empty-title or moderation state — **title override retired 2026-11-22: derived exhibition number only**; a single local draft (`lucky-elsa.exhibition.v1`, ordered ids only) so it is a thing they own, not a one-off link — *no shelf of saved exhibitions* (retired 2026-11-22: a shelf is a second collection axis); recipients walk it with `←`/`→` using the Reveal Theatre components.
 
 ### 02 · Das Elsa-Lexikon — **KEEP (sharpened to a motif glossary)** · *seeds 5 + 3 + 4*
 
-**Pitch** — The archive grows a glossary: ~20 recurring terms of dog life — *Deckenbindung*, *Sofakomfort*, *Stockrecht*, *Fensternase*, *Krümelaufsicht* — each illustrated by two to four cards and defined in the catalogue's deadpan register.
+**Pitch** — The archive grows a glossary: ~20 recurring terms of dog life — *Deckenbindung*, *Sofakomfort*, *Stockrecht*, *Fensternase*, *Krümelaufsicht* — each illustrated by two to four cards and defined in the collection's deadpan register.
 **MDA / loop** — *Discovery* ▸ *Expression*, *Relatedness* at the end. Adds a cross-link loop: read a card → meet a term → follow it to cards you haven't collected → read those. It turns a linear catalogue into the small network a real catalogue is.
 **Fiction** — Every serious catalogue has an index and a glossary; the glossary is where an institution admits what it cares about. *"Deckenbindung, die — der Zustand, in dem eine Decke nicht mehr dem Menschen gehört."*
 **Effort / risk** — **M** (one view + one optional manifest field + copy). Risk: copy cost — 20 terms × 4 strings is one honest sitting that competes with the owner's scarcest resource. Mitigation: ship with 8 terms seeded from the existing card-bank jokes; terms appear only when a `terms` entry exists, so a half-curated glossary is a smaller glossary, never a broken room. Second risk: overlap with *Das Gesamtverzeichnis* — clean split, the Verzeichnis is numbers, the Lexikon is vocabulary.
 **A11y** — Real `<dl>` semantics, an alphabetical in-page index as a list of links, no hover reveals, no colour-only "belegt durch" state (it reads "belegt durch 2 von 3 Karten"); card-back content extends the existing flip announcements.
 **Constraints / sharpened** — Clean: one optional `terms` field passed through by `photos.php`, no new state beyond the seen-set. **Kills the per-card definition** (60 entries is admin the owner will not pay) in favour of motifs. **Absorbs seed 3's forecast** as one line of the card back's information surface — number, the card's term, and *Elsa-Prognose*, a deterministic one-liner seeded by (date, card id): *"Heute günstig für Sofa. Ungünstig für Staubsauger."* Nothing expires and nothing is rewarded when you look. **Absorbs seed 4 as identity, not as a reward** (canonical decision 2): the back is an *identity / information* surface, its variants unlocked by milestone state — never a cosmetic economy, and no locked back is ever teased.
 
-### 03 · Der Katalogausweis — **KEEP (reframed)** · *seed 9*
+### 03 · Der Sammlungsausweis — **KEEP (reframed)** · *seed 9*
 
 **Pitch** — A short copy-pasteable "catalogue pass" encoding the visitor's collection, so a new phone or a wiped browser isn't a restart — no account, no server, no sync.
 **MDA / loop** — *Competence* and trust, not delight. It adds no loop; it **protects** the macro loop by making investment survivable.
@@ -99,21 +99,21 @@ cancelled — the answer would be more photos, not more surfaces.
 
 ### 05 · Der Grundriss — **KEEP (small, and it earns its space)** · *new*
 
-**Pitch** — A small floor plan of the seven rooms in the catalogue header; a room lights when its wing completes, and the 25/50/75 % furniture — door sign, reading lamp, velvet rope — is drawn *into* the plan.
+**Pitch** — A small floor plan of the seven rooms in the collection header; a room lights when its wing completes, and the 25/50/75 % furniture — door sign, reading lamp, velvet rope — is drawn *into* the plan.
 **MDA / loop** — *Discovery*, *Fantasy*, *Competence* at a glance. Adds no loop; it gives existing rewards a home and the archive a shape.
-**Fiction** — "Der Katalog" is a building with named rooms. A plan is how a visitor learns this is a place and not a list — the cheapest way to make seven names architectural.
+**Fiction** — "Die Sammlung" is a building with named rooms. A plan is how a visitor learns this is a place and not a list — the cheapest way to make seven names architectural.
 **Effort / risk** — **S**. Risk: chrome competing with the progress lines, and the temptation to add a "you are here" token — that makes it a game map and is forbidden; it is a plaque, not a HUD. Second risk: decoration if rooms complete invisibly; it must change visibly on completion or it dies.
 **A11y** — `aria-hidden` decorative SVG *plus* the same information in the existing progress lines (never SVG-only); interactive rooms are named buttons with a text list beside the plan; no hover-only reveals; existing milestone announcements carry the events.
 **Constraints / sharpened** — Clean; reuses wing colour roles and existing tokens only (Panda token discipline, no new colours), and stays quiet to honour "the card is the only lit object": hairline stroke, one lit room at a time. A header plaque (~240×140) that replaces scattered milestone chrome with one legible object — not a page, not a nav surface.
 
 ### 06 · Das Lesetagebuch — **KEEP (trimmed to notable events)** · *seeds 8 + 12*
 
-**Pitch** — A short local reading diary in the archive's voice — wing completions, milestones, the chase card, the diploma — plus a "Katalogbrief" button that turns it into a message for the family chat.
+**Pitch** — A short local reading diary in the archive's voice — wing completions, milestones, the chase card, the diploma — plus a "Sammlungsbrief" button that turns it into a message for the family chat.
 **MDA / loop** — *Relatedness* ▸ *Narrative*. Adds the dimension the collection lacks: time. *"14. März — Der Ruhesaal ist vollständig. Acht von acht gesammelt."*
 **Fiction** — An archive keeps an accessions log; a reader keeps a marginal note. Two chronologies, one book — and only one of them is the visitor's.
 **Effort / risk** — **S**. Risk: it reads as surveillance if it logs everything. Trimmed hard: **notable events only** — no pack counts, no visit counts, no absences, no "you haven't been here in three weeks" (a guilt mechanic, forbidden). Capped at ~40 entries; reset clears it.
-**A11y** — Reversed `<ol>` of `<time>`-stamped items, plain text, no chart; the Katalogbrief is a selectable text block with a copy button and status line, never an image of text.
-**Constraints / sharpened** — Clean, but `lucky-elsa.journal.v1` must join the R-E contract and **R7's named-lost list** — the reset copy changes with this feature. **Merges seed 12 (Katalogbrief) in as the share payload** rather than shipping a second social feature: progress, one wing still open, one card recommendation, one term.
+**A11y** — Reversed `<ol>` of `<time>`-stamped items, plain text, no chart; the Sammlungsbrief is a selectable text block with a copy button and status line, never an image of text.
+**Constraints / sharpened** — Clean, but `lucky-elsa.journal.v1` must join the R-E contract and **R7's named-lost list** — the reset copy changes with this feature. **Merges seed 12 (Sammlungsbrief) in as the share payload** rather than shipping a second social feature: progress, one wing still open, one card recommendation, one term.
 
 ### 07 · Die Chronik — **CONDITIONAL (below the line)** · *seed 7*
 
@@ -143,7 +143,7 @@ neither may grow into a surface with its own progression.
 
 ### Der Aushang / The Bulletin — *the daily reading surface* · `specs/karte-des-tages.md`, `mechanics.md` §1
 
-A read-only bulletin in the Katalog header: today's card, plus *Elsa-Prognose* over three trait groups.
+A read-only bulletin in the Sammlung header: today's card, plus *Elsa-Prognose* over three trait groups.
 Ten seconds, dry, warm, no obligation. **It collects nothing** — the tile has no button, no link, no flip,
 no lightbox; it writes no key and never draws from the pack's unseen-first pool. Its only variation is the
 calendar day, and that variation is *for reading*, never for retention: nothing is missed by not looking,
@@ -169,9 +169,9 @@ whatsoever. Ships with the milestone wing seals in build-order step 5.
 |---|---|---|
 | **3 · Karte des Tages** | **SURFACE REINSTATED 2026-11-22** (the *retention* kill stands) | The original verdict killed the wrong thing. A daily card as *a reason to return* is an expiring card, a daily reward and a calendar in the retention seat — all still forbidden, and the **kill of calendar-driven retention is unchanged**. But the museum has a noticeboard, and a read-only one costs nothing: the surface lives on as **Der Aushang / The Bulletin** (canonical decision 1, `specs/karte-des-tages.md`), which collects nothing, expires nothing and gates nothing. |
 | **4 · Card-back unlocks** | **KEPT, reframed — identity, not reward** (2026-11-22) | The kill was aimed at a **cosmetic reward economy**: cosmetics you only see when you flip, a second reward grammar, a checklist of unlocks. That framing stays dead. The backs themselves are kept as **identity / information surfaces unlocked by milestone state** (canonical decision 2, `mechanics.md` §4): the picker lists unlocked backs only, locked ones are never teased, and no back changes gameplay. The back was already the archive's information surface (02) — this makes the material part of the same idea. |
-| **6 · Vermisste Karte** | **KILLED outright** | It cannot coexist with the honest walk: a card the deck must deliver cannot be hidden, and a card hidden from the catalogue makes "64 von 64" a lie. It invents a fact about Elsa and hands the solo curator an obligation on a schedule they never agreed to. A secret contradicts this product's whole trust contract. |
+| **6 · Vermisste Karte** | **KILLED outright** | It cannot coexist with the honest walk: a card the deck must deliver cannot be hidden, and a card hidden from the collection makes "64 von 64" a lie. It invents a fact about Elsa and hands the solo curator an obligation on a schedule they never agreed to. A secret contradicts this product's whole trust contract. |
 | **9 · Tauschcode as dupe sheet** | **FRAMING KILLED** | Dupe counting is an R-K violation; there is no dupe economy and no tradeable scarcity — repeats are *stamps*, not inventory. Mechanism kept as a save pass (03). |
-| **12 · Katalogbrief** (own addition) | **MERGED** | Not enough for its own surface; as the Lesetagebuch's share payload it costs nearly nothing and gives the diary a reason to exist. |
+| **12 · Sammlungsbrief** (own addition) | **MERGED** | Not enough for its own surface; as the Lesetagebuch's share payload it costs nearly nothing and gives the diary a reason to exist. |
 
 ---
 
@@ -181,10 +181,10 @@ whatsoever. Ships with the milestone wing seals in build-order step 5.
 |---|---|---|---|---|---|
 | 1 | **Sonderausstellung** | Expression, Relatedness | Macro (new verb) | M | The only feature that changes what the visitor *can do*. Converts a readership into curators; the share object is a genuine gift. Best cost-to-charm in the slate. |
 | 2 | **Elsa-Lexikon** | Discovery, Expression | Meso + Macro | M | Deepens the thing already good — the voice — and creates the only cross-link loop. Highest ceiling; ships thin (8 terms) without looking broken. |
-| 3 | **Katalogausweis** | (trust) | Protects Macro | S/M | Fills a failure the design accepts silently: storage eviction destroys months of reading. Unglamorous, and it must ship *before* the features that ask for more investment. |
+| 3 | **Sammlungsausweis** | (trust) | Protects Macro | S/M | Fills a failure the design accepts silently: storage eviction destroys months of reading. Unglamorous, and it must ship *before* the features that ask for more investment. |
 | 4 | **Sammelbogen** | Sensation, Expression | Offline | S/M | The only artefact that leaves the browser and reaches Oma. Cheapest emotional win per line of code. |
 | 5 | **Grundriss** | Discovery, Fantasy | (carrier) | S | Makes the archive a building and gives the 25/50/75 % furniture one legible home. Identity-bearing, low risk. |
-| 6 | **Lesetagebuch** | Relatedness, Narrative | Macro (time) | S | Gives the collection a fourth dimension and produces the Katalogbrief for free. Charm, not mechanics. |
+| 6 | **Lesetagebuch** | Relatedness, Narrative | Macro (time) | S | Gives the collection a fourth dimension and produces the Sammlungsbrief for free. Charm, not mechanics. |
 | — | *Chronik* | Narrative | Macro | M | **Below the line**: strongest single feeling in the archive, gated on editorial labour not yet agreed. |
 | — | *Offline-PWA* | — | — | M | **Deferred**: infrastructure with the worst operational risk and the least delight. |
 
@@ -197,10 +197,10 @@ The recommendation above **is the decision** as of 2026-11-22, not a menu. The c
 
 1. **Die Sonderausstellung** — curated, shareable exhibition (`specs/sonderausstellung.md`)
 2. **Das Elsa-Lexikon** — motif glossary, seeded with 8 terms
-3. **Der Katalogausweis** — copy-paste save pass
+3. **Der Sammlungsausweis** — copy-paste save pass
 4. **Der Sammelbogen** — printable collector's sheet (`specs/sammelbogen.md`)
 5. **Der Grundriss** — floor plan of the seven rooms
-6. **Das Lesetagebuch** — notable-events reading diary + Katalogbrief
+6. **Das Lesetagebuch** — notable-events reading diary + Sammlungsbrief
 
 Shipping *inside* that scope and not counted as features: the two sanctioned surfaces above — **Der
 Aushang** (build-order step 4) and **Kartenrücken** (step 5). They add no loop; Der Aushang adds no
@@ -223,7 +223,7 @@ product *talked about*.
 
 **It adds the missing verb.** Every visitor action today is receive-and-read: open, look, collect. The
 archive is generous but passive, and a passive archive plateaus at 100 %. Five cards to *hang* turns
-completion from an ending into a qualification — you finish the catalogue, then you have something to say
+completion from an ending into a qualification — you finish the collection, then you have something to say
 with it.
 
 **It turns a private object social.** The family chat is this product's only distribution and only social
@@ -235,7 +235,7 @@ transmit, so sharing a curated set is invisible even to the host's logs. A stati
 being able to do this; it can, and it costs nothing.
 
 **The moment to design for:** Oma opens a link in the family chat and finds five cards lit in a row under a
-wall label — *"Omas Ausstellung · Fünf Karten, alle aus dem Ruhesaal. Der Katalog bittet, nicht zu lange
+wall label — *"Omas Ausstellung · Fünf Karten, alle aus dem Ruhesaal. Die Sammlung bittet, nicht zu lange
 hinzusehen."* — and walks them with one thumb.
 
 **The one way it fails:** a generic wall label. If the label reads like a template, the exhibition is five
@@ -249,7 +249,7 @@ the family chat unasked, and someone replies with a card of their own. We ask; w
 
 ## Sequencing, and what must not happen
 
-1. **Katalogausweis** first — the safety net ships before the features that ask for deeper investment.
+1. **Sammlungsausweis** first — the safety net ships before the features that ask for deeper investment.
 2. **Grundriss** and **Sammelbogen** — both S-tier, both identity, both zero risk to the curator loop.
 3. **Elsa-Lexikon** — copy sitting first (8 terms), view second; DE and EN authored together so the
    glossary never ships half-translated.

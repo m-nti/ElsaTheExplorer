@@ -2,7 +2,7 @@
 
 > **Status**: Draft · **Author**: systems-designer · **Last Updated**: 2026-11-22
 > **Revised 2026-11-22 — canon decision 3** (`mechanics.md` §3 P1–P7, `feature-slate.md` § *Open questions* 3): placeholder toggle (reversal of the earlier "no placeholders" ruling), 16 per A4 page in a fixed 4 × 4 grid, crest zero state, flat order with room labels, palette and print-hide contract.
-> **Implements**: the collection as a *Sammelwerk* — what is collected can be laid on paper. The print counterpart of the catalogue, not a reward.
+> **Implements**: the collection as a *Sammelwerk* — what is collected can be laid on paper. The print counterpart of the collection, not a reward.
 > **Depends on**: `collection-meta.md` R-B (seen-set), R-C (derived progress, never stored), Catalogue order and numbering, Photos Pipeline thumbs. **No new storage** — the sheet is derived at print time and nothing is written.
 > **Build phase**: Full Vision — build-order step 6 (with the capstones; closes the "print stylesheet" gap in `interaction-patterns.md`).
 
@@ -50,7 +50,7 @@ type PrintSheet = {
 
 | State | Entry | Render | Exit |
 |---|---|---|---|
-| `absent` | `totalInCatalogue = 0` (empty manifest) | **no print entry point at all** — no button, no toggle; the catalogue's own empty state speaks | manifest gains a photo |
+| `absent` | `totalInCatalogue = 0` (empty manifest) | **no print entry point at all** — no button, no toggle; the collection's own empty state speaks | manifest gains a photo |
 | `ready` | manifest non-empty, `n ≥ 0` | button **enabled, also at `n = 0`**; the placeholder toggle sits beside it (off); the hidden sheet is in the DOM with `pages` wrappers — at `n = 0` that is 1 wrapper holding the crest and `print:empty` | print → `printing` |
 | `printing` | `window.print()` called | browser print dialog owns the screen | dialog closed → `ready` |
 | `degraded` (overlay) | a thumb (or the crest SVG) fails to load | that card prints its frame + number, name, room, `print:placeholder`-style label — never a blank hole; a failed crest prints nothing and the header text still carries the document | resource loads |
@@ -97,7 +97,7 @@ There is **no disabled print button in any state**: at zero the button prints a 
 
 ## 6. Accessibility
 
-- **Print is not a screen-reader path.** A printed sheet is inert: no reading order, no semantics, no live region. The accessible alternative is the on-screen catalogue, which carries the same information (names, numbers, rooms, collected state). The spec does not weaken the catalogue to make print work.
+- **Print is not a screen-reader path.** A printed sheet is inert: no reading order, no semantics, no live region. The accessible alternative is the on-screen catalogue, which carries the same information (names, numbers, rooms, collected state). The spec does not weaken the collection to make print work.
 - The print button is a real `<button>` whose accessible name states the scope: "Sammelbogen drucken — nur gesammelte Karten". **It has no disabled state** (there is none to have, §3): at zero it prints the crest sheet, and the name stays honest because the scope is still "collected cards only". The zero state is communicated by the sheet, not by a dead control.
 - The placeholder toggle is a real `<input type="checkbox">` with its own `<label>` text (`print:toggle`) — never a styled `div` with `aria-pressed`, never a switch that hides its state. **Unchecked on load, session-only: no `lucky-elsa.*` key is written, read or reset for it, and its state is dropped on reload.** Its accessible name states the artifact change ("Noch nicht gesammelte als Platzhalter"), and flipping it announces the new sheet size through the polite live region.
 - The hidden sheet is `display: none` at screen widths and `aria-hidden="true"`, so its duplicate text never reaches the accessibility tree.
@@ -111,7 +111,7 @@ There is **no disabled print button in any state**: at zero the button prints a 
 |---|---|---|
 | `print:action` / `actionHint` | Sammelbogen drucken / Nur gesammelte Karten. | Print collector sheet / Collected cards only. |
 | `print:toggle` | Noch nicht gesammelte als Platzhalter | Include not-yet-collected as placeholders |
-| `print:empty` | Noch keine Karten gesammelt — der Bogen füllt sich mit dem Katalog. | No cards collected yet — the sheet fills itself from the catalogue. |
+| `print:empty` | Noch keine Karten gesammelt — der Bogen füllt sich mit der Sammlung. | No cards collected yet — the sheet fills itself from the catalogue. |
 | `print:crestAlt` | Brandsiegel: Pfote im Kreis | Archive seal: paw in a ring |
 | `print:placeholder` | noch nicht gesammelt | not yet collected |
 | `print:opened` | Druckdialog geöffnet. {n} gesammelte Karten. | Print dialog open. {n} collected cards. |
@@ -124,7 +124,7 @@ There is **no disabled print button in any state**: at zero the button prints a 
 
 ## 8. Acceptance Criteria (binary)
 
-1. GIVEN 0 collected on a non-empty manifest, WHEN the catalogue renders, THEN the print button is **enabled** and the sheet in the DOM is exactly **1 `.print-page`** containing the monochrome crest **and** the `print:empty` instruction line — no empty grid, no `pages = 0`, no disabled button.
+1. GIVEN 0 collected on a non-empty manifest, WHEN the collection renders, THEN the print button is **enabled** and the sheet in the DOM is exactly **1 `.print-page`** containing the monochrome crest **and** the `print:empty` instruction line — no empty grid, no `pages = 0`, no disabled button.
 2. GIVEN 0 collected, WHEN printed, THEN the crest prints at 12 mm in one ink (`currentColor` = `#1c1a20`), survives with "background graphics" off, and the sheet is not blank (the instruction line is present).
 3. GIVEN the crest on any sheet, THEN it appears **once**, in the page-1 header (30 mm) or as the zero-state mark (12 mm) — never on page 2+, never on a card, never in the footer; it carries no lettering and no gradient/foil/filter.
 4. GIVEN 3 collected, WHEN the sheet is built, THEN it holds exactly 3 cards, zero placeholders, in **1 page**.
@@ -144,6 +144,6 @@ There is **no disabled print button in any state**: at zero the button prints a 
 
 ## 9. Build Phase
 
-Full Vision, build-order step 6. Order: **sheet builder (pure, Vitest: filtering, flat order + room label, pagination `max(1, ceil(n/16))`, `n = 0` → 1 crest page, toggle on/off, toggle never persisted)** → **inline crest SVG + print token layer (`#f7f4ee` / `#1c1a20`) + `.print-page` chunking of 16 cells (Playwright print emulation: page count, crest once, no toggle in output)** → button/flow + placeholder toggle (session-only, unchecked on load) + announcements → broken-image fallback → DE/EN print copy check (both homes of `print:empty`). Requires only the catalogue and the seen-set; do not couple it to the Ehrenmensch component.
+Full Vision, build-order step 6. Order: **sheet builder (pure, Vitest: filtering, flat order + room label, pagination `max(1, ceil(n/16))`, `n = 0` → 1 crest page, toggle on/off, toggle never persisted)** → **inline crest SVG + print token layer (`#f7f4ee` / `#1c1a20`) + `.print-page` chunking of 16 cells (Playwright print emulation: page count, crest once, no toggle in output)** → button/flow + placeholder toggle (session-only, unchecked on load) + announcements → broken-image fallback → DE/EN print copy check (both homes of `print:empty`). Requires only the collection and the seen-set; do not couple it to the Ehrenmensch component.
 
 *This revision resolves the doc flag in `motif-sheet.md` §2.8* — `n = 0` no longer "prints nothing", so the crest has a home on paper as well as in the on-screen empty state.

@@ -47,7 +47,7 @@ One unit derived from the card, so ornament tracks size exactly as foil does (bi
 - **Where:** capstone certificate (the only **closed** wreath in the product); wing-completion frame corners; the milestone badge ring (open arc, 3 leaves).
 - **Scale:** leaf 3 cqw, arc radius ≥ 40 cqw; below that leaves merge — show 3 leaves and a hairline instead of a wreath.
 - **Foil:** capstone/keystone only, in the **static gold glint** (no sweep, no spectrum — bible §4 keystone rule). Matte print colours on milestone outfits.
-- **Rule:** open arc = in progress, closed wreath = complete, and it closes *only* on the capstone. Backup: arc state + "Flügel komplett" / "Katalog I · abgeschlossen" — never the arc alone.
+- **Rule:** open arc = in progress, closed wreath = complete, and it closes *only* on the capstone. Backup: arc state + "Flügel komplett" / "Sammlung I · abgeschlossen" — never the arc alone.
 
 ### 3 · Amphora — the holdings
 - **Where:** set/room plaque mark (left of the eyebrow), binder page margin, volume spine label. **Not on the card front; not on the card back** — the back keeps its single centred composition (bible §3).
@@ -117,7 +117,7 @@ Only four marks may carry meaning — three motifs and the seal. Everything else
 | Motif | Means | Shape backup | Text backup | Fails if |
 | --- | --- | --- | --- | --- |
 | meander | "a plate of this archive" | frame geometry, present/absent | number + name already say it | it is the only identifier |
-| laurel | complete vs in progress | open arc vs closed wreath | "Flügel komplett", "Katalog I · abgeschlossen" | only the arc distinguishes |
+| laurel | complete vs in progress | open arc vs closed wreath | "Flügel komplett", "Sammlung I · abgeschlossen" | only the arc distinguishes |
 | pomegranate | which milestone | seed count 1 / 2 / 3 | "25 %" + its label | seeds are colour-coded |
 | print crest | "this sheet is the archive's" | the seal itself, one ink | header title + `print:count` | it is the only mark of a state |
 

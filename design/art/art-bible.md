@@ -1,9 +1,9 @@
 # Art Bible: Elsa the Explorer
 
-> **Status**: Draft · Reframe 2 (card-library positioning; holo-material study merged)
+> **Status**: Draft · Reframe 3 (reveal camera; four-card pack)
 > **Owned By**: art-director
 > **Last Updated**: 2026-11-22
-> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-22 — gate re-run APPROVE
+> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-22 — §2/§7 (motion model, pack size 4, confetti rule); sign-off pending re-run
 
 Scope note: this is a **refinement** of the shipped dark parlour look, not a redesign —
 but the *product definition* has been sharpened, and with it every visual sentence below.
@@ -78,10 +78,10 @@ lighting signature. Rarity, foil and chase rules are untouched by this reframe.
 | --- | --- | --- | --- | --- | --- |
 | **1 · Eintreten / Admittance** | Arrival (landing, `.stage`) | Entering the library after hours. Nothing is open yet; the room is waiting for a reader. | One cool overhead beam (`rgb(228 211 255/14%)`, blur 24px) from top-centre; a wide violet reading pool `rgb(111 77 142 / 20%)` beneath it; a low amber whisper `rgb(192 152 119 / 6%)` bottom-left; dust motes drifting at sleep speed. No foil colour anywhere except on the sealed volume itself. | hushed, stacks-cool, expectant, warm-dark, still | **2 / 10** |
 | **2 · Aus dem Magazin / From the Stacks** | Pack anticipation (`pack-dialog` sachet) | A volume fetched from the closed stacks and set down in front of you, still wrapped. The request slip was honoured. | Light narrows to the packet: saturated foil sheen (the `118deg` band family), crimped serrated edge catching white, one seam flash. The room recedes into `rgb(8 7 12 / 90%)` + blur 18px. | crisp, fetched, paper-cold, tight-focus, tensile | **4 → 7** |
-| **3 · Am Lesetisch / At the Reading Table** | The reveal (five cards ascend) | The reading-table moment: five documents dealt face-up, one at a time, for a reader who just sat down. | Brightest state in the product. White flash (`pack-flash`, ≤ 0.92, one frame), jagged rainbow tear, cards entering with glint shadows; violet table glow `rgb(118 91 139 / 20%)` warms the desk. | bright, generous, dealt, giggly, shiny | **8 / 10** (the only high-energy state) |
+| **3 · Am Lesetisch / At the Reading Table** | The reveal (four cards, one in focus) | The reading-table moment: four documents dealt face-up one at a time, each held in focus, then the camera pulls back to lay the set out — a reader who just sat down, shown the accession. | Brightest state in the product. White flash (`pack-flash`, ≤ 0.92, one frame), jagged rainbow tear, cards entering with glint shadows; violet table glow `rgb(118 91 139 / 20%)` warms the desk. | bright, generous, dealt, giggly, shiny | **8 / 10** (the only high-energy state) |
 | **4 · In den Regalen / Among the Shelves** | Browsing the binder (`.album`) | Walking the stacks. No theatre; the shelf rows are the pleasure — the *catalogue* is browsable. | Coldest, flattest state: desk surface `#15131b` with a 2% white top sheen, even dim light, tiles asleep until hover lifts them 5px. | even, archival, patient, browsable, tidy | **3 / 10** |
 | **5 · Unter der Lampe / Under the Lamp** | Card detail (`.lightbox`) | The card under study: pulled from the shelf, laid under the single lamp, examined. Reverence, not excitement. | The spotlight returns: card centred on `#1d1924 → #131119`, violet halo `rgb(151 119 175 / 14%)`, everything else falls into `rgb(7 6 10 / 82%)` + blur 12px. Holo cards may glint; nothing else moves. | reverent, close-reading, glassy, warm-centred, deliberate | **4 / 10** |
-| **6 · Katalog geschlossen / The Catalogue Closed** | Completion (Elsas Ehrenmensch — *not built; art direction for round two*) | The catalogue is closed: every entry seen. The archive hands the reader a certificate and thanks them for their thoroughness. | The only state whose ambience is **warm**: an accent-gold wash (`--accent #e8c9a5`, `--metal #d4c2a8`) replaces the violet pool; plate, seal and stamp language promoted to the page; serial + "Erste Auflage" typography scaled into a catalogue-certificate. | golden, catalogued, stamped, quietly proud, complete | **6 / 10**, calm not bouncy |
+| **6 · Sammlung geschlossen / The Collection Closed** | Completion (Elsas Ehrenmensch — *not built; art direction for round two*) | The collection is closed: every entry seen. The archive hands the reader a certificate and thanks them for their thoroughness. | The only state whose ambience is **warm**: an accent-gold wash (`--accent #e8c9a5`, `--metal #d4c2a8`) replaces the violet pool; plate, seal and stamp language promoted to the page; serial + "Erste Auflage" typography scaled into a catalogue-certificate. | golden, catalogued, stamped, quietly proud, complete | **6 / 10**, calm not bouncy |
 
 Distinctness test: take one screenshot of each state, shuffle them — a viewer must put
 each in its correct order from lighting alone. If two states match, change the amber/violet
@@ -106,7 +106,7 @@ thumbnail = photo + pearl rim; full card = everything.
 **Plate / starfield / foil geometry.**
 
 - **Plate** (`.card__plate`): flat, frontal, rectangular with softly cut top corners
-  (8/8/4/4). A hard horizontal band — the catalogue header: number, name, mood, rarity
+  (8/8/4/4). A hard horizontal band — the collection header: number, name, mood, rarity
   chip on `#2c2636 → #17151c`. Never rounded into a pill, never given a border that fights
   the foil edge.
 - **Starfield** (card back): radial violet haze + `repeating-conic` star rays at 8° pitch +
@@ -171,7 +171,7 @@ glow to be noticed, the hierarchy is wrong — promote it or delete it.
 | `#aaa3b2` | `--muted` | Secondary text (7.7:1 on `--bg` — the default for anything a reader must read). |
 | `#756e7d` | `--quiet` | Tertiary text. **Decision (owner, 2026-11-22): the token is raised to ≥ 4.5:1 contrast** — no decorative/redundant-text exemption class exists. The final hex is measured at the build-phase token spike and must pass the contrast belt; the shipped `#756e7d` (3.86:1) is the pre-spike measurement only (see §7). |
 | `#d4c2a8` / `#8e7c67` | `--metal`, `--metal-dark` | Brass: eyebrows, counters, captions ("✦" marker). Edition authority. |
-| `#e8c9a5` / `#f7e0c2` | `--accent`, `--accent-bright` | Warm gold: focus rings, hover lifts, print status. **Completion/chase gold** — reserve for earned or interactive things. The Catalogue Closed state (§2) is its home turf. |
+| `#e8c9a5` / `#f7e0c2` | `--accent`, `--accent-bright` | Warm gold: focus rings, hover lifts, print status. **Completion/chase gold** — reserve for earned or interactive things. The Collection Closed state (§2) is its home turf. |
 | `#ead7b7` / `#eccba9` / `#f0dcb9` | `--star-color` tiers | Star fill: common / rare / holo — one warm metal, three brightnesses. |
 
 **Foil — the special material:**
@@ -308,7 +308,7 @@ catalogue and find the good pulls.
 
 1. **Elsa is the subject**, occupying ≥ 40% of the frame; no crowd, no paw-crops, no
    photo that needs a second look to find her.
-2. **One idea per photo.** The pose already contains the catalogue entry: *inspecting*
+2. **One idea per photo.** The pose already contains the collection entry: *inspecting*
    (head tilt, direct gaze), *on duty* (standing/sitting at attention), *asleep on duty*
    (curled, one eye), *fieldwork* (peeking over duvet/cushion edge, digging), *accepting
    tribute* (object in mouth, bowl vigil), *holding court* (sprawled across the good
@@ -373,7 +373,7 @@ UI gradients.
 
 **The binder as an object.** The album is the library's catalogue: pages = grid cells
 (4 → 3 → 2 columns), tiles = sleeved plates waiting on the shelf, the "Von vorn" button =
-closing the catalogue and starting a new lap. The progress bar is the ledger line under
+closing the collection and starting a new lap. The progress bar is the ledger line under
 the page; a restarted lap is announced by the ledger, not a modal.
 
 **Prop density rule: max three ambient elements per state** — the beam, one colour pool,
@@ -425,15 +425,34 @@ and slash) plus exactly one filled mark — the paw crest. On-card the only perm
 "gem" is the 7px rotated-square keyword bullet (`.card__keyword::before`). Sparkles (✧)
 are foil physics, not icons — they may never mark a control.
 
-**Motion feel.** Physical, springy, cause-driven. Tokens: `--speed 220ms`,
-`--ease cubic-bezier(0.2, 0.8, 0.2, 1)` for furniture; theatre runs 620–900ms
-(`sachet-sequence`, `card-ascend` at 150ms stagger). Every animation has a physical
-rationale: the packet *flexes before it tears*, cards *rise as if dealt*, foil *sweeps
-because light moved*. Tilt is spring physics with damping (the study's model: target +
-stiffness + damping, idle sway only when the pointer rests, keyboard arrows nudge the
-same targets — adopt this exact model for card tilt). Nothing loops except holo glint
-(5.2s) and rays (35s), both frozen under reduced motion. UI never enters a card's motion
-budget.
+**Motion feel — one reading at a time.** The room's light moves; the furniture does not
+perform. Exactly one hero motion per moment, and it always ends with something newly
+legible. The reveal is a **virtual camera** — `scale` + `translate` on one stage wrapper,
+never a pile of card animations: one plate in focus, the camera dollies to the next, and
+when the set is complete it **pulls back** into a 2 × 2 grid on mobile / a single row on
+desktop. Intimacy first, overview last; the camera's closeness *is* the emotional beat.
+Focus scale is derived (the focused plate fills 74 % of the stage's short edge, clamped
+1.25–2.40) and the translate is *solved* onto the 50 % / 42 % anchor — the same 42 % as
+the photo crop, so the reading line never shifts between one card and four. The pull-back
+is the only move above 700 ms (760 ms, monotonic, no overshoot); the whole four-card
+reveal is ≈ 2.8 s.
+
+> **Motion values: `design/art/motion-sheet.md` is the SSOT.** Durations, curves, stagger,
+> hand-off overlap and the per-surface rules live there; this bible states intent, the
+> sheet states the numbers, code consumes the sheet's tokens. The wrapper theatre that
+> precedes the reveal is unchanged in feel and stays timed by `pack-opening.md` until that
+> spec is rewritten.
+
+Springiness stays where it is physical: the tilt/foil spring under the pointer (target +
+stiffness + damping; idle sway only when the pointer rests; keyboard arrows nudge the same
+targets). The choreography never bounces — a camera that overshoots reads handheld, and
+the archive is a tripod. Every animation still has a physical rationale: the packet
+*flexes before it tears*, a card is *set down* rather than flown in, foil *sweeps because
+light moved*. The one licensed decoration is the confetti burst: **a single small burst,
+≤ 1.2 s, once per pack and only when a holo is present**. The capstone may run the larger
+celebration, still inside state 6's calm register. No burst on an ordinary pull, a tile
+entrance or a milestone. Nothing loops except holo glint (5.2 s) and rays (35 s), both
+frozen under reduced motion. UI never enters a card's motion budget.
 
 ### UX view (readability, contrast, targets, reduced motion) — measured
 
@@ -466,11 +485,13 @@ Rules and flags:
    reference pattern for any new tilt surfaces.
 4. **Focus.** 2px `--accent-bright` outline, 4px offset (16.7:1) — never weakened; card
    focus uses `#fff0d9` at the same geometry.
-5. **Reduced motion.** Theatre fully disabled (sachet hidden, cards appear at once,
-   confetti off), foil animations frozen to static ≤ 0.3 opacity, tilt targets zeroed
-   (the study's reduced-motion model: targets snap to zero, springs stiffen). Rarity
-   survives via texture + stars + chip label (§4). Any *new* animation ships its
-   reduced-motion state in the same commit.
+5. **Reduced motion.** Theatre fully disabled (sachet hidden, confetti off) and the
+   four cards render directly in their final 2 × 2 / row frame — **the pull-back's last
+   frame, reached without a camera**, with no focus sequence (motion-sheet §5). Foil
+   animations frozen to static ≤ 0.3 opacity, tilt targets zeroed (the study's
+   reduced-motion model: targets snap to zero, springs stiffen). Rarity survives via
+   texture + stars + chip label (§4). Any *new* animation ships its reduced-motion state
+   in the same commit.
 6. **Live feedback.** Status strings go through `role="status"` (`print__status`, `#live`)
    — keep; new flows (Catalogue Closed) inherit this.
 
@@ -486,10 +507,11 @@ Rules and flags:
 - **Gradient name text vs contrast.** Rare/holo names are `background-clip: text`
   gradients; mitigated by the mandated `drop-shadow(0 1px rgb(0 0 0 / 55%))`. Keep the
   shadow whenever the gradient changes.
-- **Theatre length vs "Oma just wants the dog".** The 900ms sachet + 5×620ms ascend is
-  the product's signature; reduced motion already bypasses it. Recommendation (owner
-  decision): a tap-to-skip during the sachet phase. Art direction holds the theatre
-  sacred for the default path; the reader's bypass lives outside it.
+- **Reveal length vs "Oma just wants the dog".** The one-card-at-a-time focus sequence
+  plus the pull-back (≈ 2.8 s for four cards) is the product's signature; reduced motion
+  already bypasses it. Recommendation (owner decision): a tap-to-skip into the overview
+  during the sachet phase. Art direction holds the choreography sacred for the default
+  path; the reader's bypass lives outside it.
 - **8–10px metadata vs Standard contrast tier.** Covered by rules 1–2 above; where the
   fine-print aesthetic and the 4.5:1 floor disagree, the floor wins and the *aesthetic*
   keeps its size-contrast look via colour tokens, not by shrinking further.
@@ -554,14 +576,18 @@ the server) still binds.
 
 **Why it changed — measured baseline** (local PHP 8.6 + GD, 2026-11-22). A 3.98 MB
 5712×4284 original produced a 540×720 JPEG q82 at **61.9 KB** from `photos.php?thumb=`
-— already over this bible's own 45 KB target — and ten such thumbs totalled **517.5 KB**.
-The reading room's `?view=` handed the client **3,983,035 bytes** (the original), and
-originals are directly reachable under `/photos/`. The runtime encoder was the budget
-problem, not the art.
+— already over this bible's then-current **45 KB tile target (retired 2026-11-22; the
+ratified tile ceiling is 36 KB WebP / 55 KB JPEG)** — and ten such thumbs totalled
+**517.5 KB**. The reading room's `?view=` handed the client **3,983,035 bytes** (the
+original), and originals are directly reachable under `/photos/`. The runtime encoder was
+the budget problem, not the art.
 
-**The ladder.** Longest edge, per image, on the wire, compressed. Ceilings are hard
-limits, not targets: the encoder searches quality/effort per image until the ceiling is
-met, and no rung ships above its number.
+**The ladder.** Longest edge, per image, on the wire, compressed. Ceilings are hard limits,
+not targets (KB = 1,000 bytes): the encoder searches quality/effort per image until the
+ceiling is met, and no rung ships above its number. These are **delivery budgets**. They are
+distinct from the **safety caps** — 20 MiB compressed input, 32 MP acceptance, 8000 px edge,
+28.5 MP GD rendering ceiling at a 512 MiB host — which bound input and render cost and live in
+`docs/photo-pipeline-implementation.md` §10. A safety cap is never a delivery number.
 
 | Rung | Longest edge | Served to | WebP ceiling | JPEG ceiling | Loading |
 | --- | --- | --- | --- | --- | --- |
@@ -598,9 +624,11 @@ GD is absent, the cache directory is unwritable, thumbnail creation fails, or
 on encoder failure, cache failure or memory exhaustion, respond with the **designed
 image-error state** (`design/ux/card-detail.md`: the set-coloured fallback panel with
 the plate crest — the card stays fully readable without the picture), never the source
-bytes. Originals leave the host only through an explicit "save original" action, or
-are not offered at all. A derivative that cannot be produced is a visible, designed
-absence; a silent promotion of the original to fill the hole is the failure mode.
+bytes. An original **never** leaves the host as an image: the only outward path is the
+explicit `?download=` action, which serves the **1600 px download derivative**, and the
+retired `?view=` endpoint `302`s to that derivative. There is no "save original" action and
+no field that addresses `photos/<file>`. A derivative that cannot be produced is a visible,
+designed absence; a silent promotion of the original to fill the hole is the failure mode.
 
 **Crop, orientation, metadata.**
 - **The 4/5 window stays** (§3 window-ratio) and the card body keeps ratio `0.70` —
@@ -627,9 +655,11 @@ rung is eager on dialog open; the download rung is on demand only and never prel
 **HOST-VERIFIED-PENDING — do not assume locally.** All of the following are unverified
 on IONOS and must be measured there before they are relied on, with the result recorded
 in this section: GD present and enabled; `imagewebp`/`imageavif` support and their
-compiled versions; PHP memory limit vs a 24.5 MP decode (a 5712×4284 source needs
+compiled versions; PHP memory limit vs a 24.47 MP decode (a 5712×4284 source needs
 ~98 MB just for the true-colour buffer before resize — today's silent fallback is
-plausibly the memory kill); max execution time on first-request encoding; cache
+plausibly the memory kill), against the 512 MiB host baseline and the 28.5 MP GD rendering
+ceiling (a 32 MP source is accepted but 28.5–32 MP needs Imagick); max execution time on
+first-request encoding; cache
 directory writability and quota; and whether a host-level rule can deny direct
 `/photos/*.jpg|jpeg` access while PHP still reads the directory. Until each is
 measured, the ladder's runtime half is a proposal, not a fact.
@@ -638,8 +668,8 @@ measured, the ladder's runtime half is a proposal, not a fact.
 manifest, ladder generated on first request. The bytes it buys: reading-room detail
 **3,983,035 B → ≤ 210 KB JPEG (−94.6%)**; ten binder tiles **517.5 KB → ≤ 360 KB
 worst case (−30%)** and less still as WebP; LCP seal preview **61.9 KB → ≤ 55 KB JPEG,
-≤ 36 KB WebP**. Four rungs per photo is four cached files instead of one — trivial
-against the host quota, and the reason the ceilings can be hard.
+≤ 36 KB WebP**. Eight cached files per photo — four rungs × WebP and JPEG — instead of
+one, trivial against the host quota, and the reason the ceilings can be hard.
 
 ### Naming convention
 

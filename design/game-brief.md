@@ -53,13 +53,13 @@ retained; sets become wings/chapters of the archive in the explorer register; th
 reward is canonized as **Elsas Ehrenmensch / Elsa's Honorary Human**.
 
 **Pitch:** An archive of one dog's whole life, collected on cards — open a pack, explore the
-wings, and help complete Catalogue I. *(inferred (strong) — built from the owner's "no moment"
+wings, and help complete Collection I. *(inferred (strong) — built from the owner's "no moment"
 line, the library positioning and the locked meta scope.)*
 
 **Genre:** Collectible card library (pack-opening collection meta), no battles, no deck. *(inferred (strong))*
 
 **Controls:** One big button and a keyboard: click/`P` opens a pack, `←`/`→` walk the revealed
-cards, `Enter` opens a card big, the catalogue grid is plain buttons, `DE`/`EN` and a sound
+cards, `Enter` opens a card big, the collection grid is plain buttons, `DE`/`EN` and a sound
 toggle sit in the header. Touch is first-class; `Esc` closes dialogs.
 
 **Question:** Does exploring the library — guaranteed but unordered — stay fun across the
@@ -73,7 +73,7 @@ arrives; the visitor is never gambling, only exploring.
 
 **Intent:** no goal to reach · soft or no failure · payoff builds *(you said, PRD §1: "without
 pretending to be a product"; this round: the collection itself IS the product — so the "goal"
-is completion of a catalogue, pursued at the visitor's own pace, with no fail state)*.
+is completion of a collection, pursued at the visitor's own pace, with no fail state)*.
 
 ## Look and references
 
@@ -89,7 +89,7 @@ is completion of a catalogue, pursued at the visitor's own pace, with no fail st
   figure drawn (the paw-print SVG mark), never emoji.
 - References: physical TCG pack ritual (the tear, the one-at-a-time reveal, the shiniest card
   held back to close the pack); stamp collecting (wings, printings, the "2. Auflage" stamp,
-  a completion certificate for finishing the catalogue); the museum catalogue register (wings, departments,
+  a completion certificate for finishing the collection); the museum catalogue register (wings, departments,
   acquisitions, plaques).
 - View: 2D, one static page. · Camera: fixed; the pack tears open centre-viewport, cards
   reveal one at a time into the drop row.
@@ -113,7 +113,7 @@ the Abfahrtsaal refuse to be summoned — you open packs and take what the archi
 The one card that cannot be rushed is the Portrait of Record in the Porträtsaal: it arrives
 when the lap reaches it, never by odds. There is no loss and no cost of failure; what changes
 over time is structure, not difficulty — wing progress lines, frame unlocks at wing
-completion, catalogue outfits at 25/50/75 %, and Elsas Ehrenmensch at 100 %.
+completion, collection outfits at 25/50/75 %, and Elsas Ehrenmensch at 100 %.
 
 ## Core loop
 
@@ -124,7 +124,7 @@ completion, catalogue outfits at 25/50/75 %, and Elsas Ehrenmensch at 100 %.
   genuinely be completed within one sitting — that completion chimes and dresses its cards
   in their frame.
 - **Macro (days–weeks):** the lap continues tomorrow with provably unseen cards; the owner
-  curates and keeps adding to the archive, and the catalogue greets the visitor with
+  curates and keeps adding to the archive, and the collection greets the visitor with
   "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!"; milestones and
   finally Elsas Ehrenmensch accumulate.
   Nothing expires, so the loop never pressures.
@@ -153,15 +153,15 @@ step 1 restructures everything.
 - [x] Static deploy to IONOS; build runs locally via Vite; runtime stays server-render-free; `photos.php` remains the runtime manifest source, so the owner's FTP-drop workflow still works with no redeploy (retained concept, new toolchain)
 - [ ] Test harness port: Vitest for logic, Playwright for UI checks (replaces the puppeteer-core `npm run qa`)
 - [ ] **Svelte 5 rebuild:** port the logic into typed core modules (persist, i18n, manifest, packs, theatre, catalogue, card) and rebuild the UI as Svelte 5 components, behaviour-neutral, Vitest + Playwright suites green before and after
-- [ ] Rebrand to **Elsa the Explorer**: wordmark, `<title>`, OG tags, "Katalog I" eyebrow replacing "Serie I/Erste Auflage"; per-language taglines
+- [ ] Rebrand to **Elsa the Explorer**: wordmark, `<title>`, OG tags, "Sammlung I" eyebrow replacing "Serie I/Erste Auflage"; per-language taglines
 - [ ] Holo-last reveal ordering in the pack
 - [ ] "aus: [Wing]" chip on pulled cards and in the dialog
-- [ ] Catalogue rename + copy register: binder becomes "Der Katalog / The Catalogue"; "gesehen" → "gesammelt" (progress verb + tile state) everywhere, both languages; tile badge "Im Katalog / In the catalogue" as location label
+- [ ] Collection rename + copy register: binder becomes "Die Sammlung / The Collection"; "gesehen" → "gesammelt" (progress verb + tile state) everywhere, both languages; tile badge "In der Sammlung / In the collection" as location label
 - [ ] "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" new-arrivals line (cap 44)
 - [ ] Six named wings + New Acquisitions; `set` field in `captions.json`, optional
-- [ ] Catalogue grouped by wings with per-wing progress lines
+- [ ] Collection grouped by wings with per-wing progress lines
 - [ ] Wing-completion frame unlocks + chime + announcement
-- [ ] Catalogue-wide outfit milestones at 25/50/75 % (overall catalogue; per-room markers display-only affordance)
+- [ ] Collection-wide outfit milestones at 25/50/75 % (overall collection; per-room markers display-only affordance)
 - [ ] Reset covers every `lucky-elsa.*` key — language and sound included — with a confirmation that names them
 - [ ] Chase card "Das Hauptporträt / The Portrait of Record" with gold-glint keystone frame
 - [ ] "2. Auflage" stamps on second-lap pulls
@@ -177,7 +177,7 @@ step 1 restructures everything.
 - Collection & Wings · thin stand-in *(the flat seen-set exists; wings, progress, frames are built in the refactor)*
 - Milestones & Unlocks · later *(build order step 5; spec: design/gdd/collection-meta.md)*
 - Chase Card · later *(build order step 6; spec: design/gdd/collection-meta.md)*
-- Catalogue (binder) · thin stand-in *(grid, deep links, dialog walk exist; wing grouping and rename are the refactor)*
+- Collection (binder) · thin stand-in *(grid, deep links, dialog walk exist; wing grouping and rename are the refactor)*
 - Card Detail & Share · in the slice
 - i18n & A11y plumbing · in the slice *(a11y spec: design/accessibility-requirements.md, separate agent)*
 
@@ -240,12 +240,12 @@ only changes where a step says so.
 2. **The theatre bet (core-fun first).** Holo-last reveal ordering, and the foil pass aligned
    to the reference study's stack. The cheapest big feel win; verify with 2–3 family testers
    before continuing.
-3. **Rebrand + register.** Elsa the Explorer wordmark/title/OG, "Katalog I" eyebrow,
-   "Der Katalog / The Catalogue" rename, "gesehen" → "gesammelt" copy swap, "aus:" chip,
+3. **Rebrand + register.** Elsa the Explorer wordmark/title/OG, "Sammlung I" eyebrow,
+   "Die Sammlung / The Collection" rename, "gesehen" → "gesammelt" copy swap, "aus:" chip,
    "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" line. One sitting.
 4. **Wings.** Six named wings + New Acquisitions; `set` field in `captions.json` (optional);
-   catalogue grouped by wings with per-wing progress lines. The meso-loop becomes real.
-5. **Milestones & unlocks.** Wing frames, 25/50/75 % catalogue outfits (overall; per-room
+   collection grouped by wings with per-wing progress lines. The meso-loop becomes real.
+5. **Milestones & unlocks.** Wing frames, 25/50/75 % collection outfits (overall; per-room
    markers display-only), reset covering every `lucky-elsa.*` key — language and sound
    included — with a confirmation that names them.
 6. **Capstones.** The Portrait of Record (chase), "2. Auflage" stamps, Elsas Ehrenmensch,
@@ -256,7 +256,7 @@ only changes where a step says so.
 leaving, stop adding meta and return to curation (more photos, better captions).
 
 **Who it's for / what they feel:** the explorer of a small family archive — a 60-second laugh
-that leaves one honest line of catalogue progress behind; Oma feels no fuss, the friend feels
+that leaves one honest line of collection progress behind; Oma feels no fuss, the friend feels
 the pull of the missing cards.
 
 **Games you love / don't:** *(guessed)* Love physical TCG pack ritual (the tear, the held-back

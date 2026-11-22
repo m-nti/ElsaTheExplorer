@@ -2,12 +2,12 @@
 
 ## Document Status
 
-- Version: 1.1
-- Last Updated: 2026-11-22 (v1.1 revises the image/manifest contract to the ratified derivative design; see `photos.php` runtime endpoints)
+- Version: 1.2
+- Last Updated: 2026-11-22 (v1.2 adds the PWA layer per ADR-0009 / owner decision D-01; v1.1 revised the image/manifest contract to the ratified derivative design; see `photos.php` runtime endpoints)
 - Engine: Web — Svelte 5.59.1 + Vite 8.3.8 + TypeScript 7.0.2 (strict, native compiler) + Vitest 5.1.1 + Playwright 1.65.1 + @sveltejs/vite-plugin-svelte 7.3.1 + sharp 0.35.5 (dev-only) + Panda CSS 2.0 (styling: typed tokens + typed rarity recipes, static artifact output, zero runtime)
 - Host: IONOS shared webspace, static deploy, PHP optional (`photos.php`), never required
 - Requirements Source: `PRD.md` §3–§7 (binding); `design/accessibility-requirements.md` (committed, Standard tier). GDDs/UX/art specs are being authored concurrently and are not yet reviewed here — traceability review (`/architecture-review`) runs once they land.
-- ADRs Referenced: `docs/adr/ADR-0001-stack.md` (Accepted), `docs/adr/ADR-0002-styling-system.md` (Accepted). Pending: ADR-0008 (image derivative & manifest contract) — must be written before the derivative layer ships.
+- ADRs Referenced: `docs/adr/ADR-0001-stack.md` (Accepted), `docs/adr/ADR-0002-styling-system.md` (Accepted), `docs/adr/ADR-0008-image-derivatives.md` (Accepted), `docs/adr/ADR-0009-pwa.md` (Accepted, owner decision 2026-11-22).
 - Path note: the studio skill template names `docs/architecture/architecture.md`; AGENTS.md binds `docs/architecture.md` for this project. AGENTS.md wins.
 
 ---
@@ -23,6 +23,11 @@
 | IONOS GD / WebP / AVIF + PHP memory limit | **HOST-VERIFIED-PENDING** | Webspace limits are not knowable from the repo: which GD builds exist (`imagewebp`, `imageavif`), `memory_limit`, max execution time, whether a directory above the webroot is writable for the derivative cache, and whether `.htaccess` can deny `/photos/<file>`. Verified on deploy (PRD R9); every capability has a documented fallback — no WebP/AVIF → JPEG only, no writable outer dir → `photos/.cache/` + deny, low memory → lower pixel ceiling (`413` above it). |
 | Panda CSS 2.0 × Vite 8 / TS 7 (styling engine) | MEDIUM | Panel-verified 2026-11-22: Panda 2.0 (released 2026-09-29) runs a Rust engine (NAPI `@pandacss/compiler`), reads `.svelte` files natively, is ESM-only; TS 7.1 beta restored the compiler API with Svelte/Vue content mappers, so `svelte-check --tsgo` has a supported forward path. Accepted with the spike ladder in ADR-0002; fallback = dependency-free typed-token codegen via a mechanical transform of Panda's already-plain CSS custom properties output. |
 | WebAudio, HEIC-in-browser | LOW | Carried over from v1 patterns; heic2any stays self-hosted and lazily loaded (PRD F22b, R7). |
+| Service-worker lifecycle | **HIGH → mitigated** | Install/activate/waiting semantics are specified in ADR-0009 §6, not left to the default plugin behaviour: no `skipWaiting` on install, no auto-reload, prompt-gated update, `clients.claim()` at activation only. `vite-plugin-pwa` is used for precache and manifest emission only. Every rule has a Playwright test against a two-build swap server. |
+| `vite-plugin-pwa` × Vite 8 | MEDIUM → resolved | Peer range extended to `^8.0.0` upstream (`vite-pwa/vite-plugin-pwa#924`, merged 2026-04-29) and Vite 8 + 1.2/1.3 reported working in production; `injectManifest` is the supported path for a custom worker. Fallback if a future major regresses: a ~60-line first-party Vite plugin emitting the precache manifest from `build.manifest` (ADR-0009 Consequences). |
+| Cache Storage bounds across browsers | MEDIUM | No standard quota API for Cache Storage. Mitigated by own hard caps (ADR-0009 §4: 20 MB tiles, 32 MB pack+detail, 2 MB snapshot) that do not depend on the browser's quota, plus `QuotaExceededError` degradation to a non-growing cache. Verifiability: an in-page sum over `caches` in the bounds test. |
+| iOS storage eviction | **accepted limitation** | Safari caps script-writable storage for sites without recent interaction (≈ 7 days). A non-installed visitor's offline copy can disappear; the app then reaches `shell-cold` and needs one online visit. Home-screen installs are treated more favourably but remain subject to storage pressure. Documented in ADR-0009 Context; manual test in the release checklist. |
+| Lighthouse PWA scoring | resolved by removal | Lighthouse 12.0.0 (April 2024) removed the PWA category; Lighthouse 13.x ships Performance / Accessibility / Best Practices / SEO only. The PWA gate is therefore deterministic (`E-PWA-*` + CDP `Page.getInstallabilityErrors`), and Lighthouse runs advisory. Anyone quoting a "PWA score" is quoting a metric that no longer exists. |
 
 ---
 
@@ -84,6 +89,12 @@ Layer rule: dependencies point downward only. A component may import a store; a 
 may import the domain layer; the domain layer imports nothing. No component ever
 calls `fetch`, `localStorage` or `AudioContext` directly.
 
+**PWA layer (ADR-0009).** Every request the IO layer makes passes through the service
+worker registered at origin scope `/`; the SW is an IO adapter at the browser boundary, not a
+fifth app layer. It is drawn and specified in "PWA Layer" below. It never imports the app's
+domain or stores — it only reads and writes the caches, and its decisions come from
+`src/lib/pwa/cachePolicy.ts` (pure, unit-tested).
+
 ---
 
 ## Module Ownership
@@ -101,6 +112,10 @@ calls `fetch`, `localStorage` or `AudioContext` directly.
 | `audio.svelte.ts` | sound-designer + ui-programmer | SFX synthesis, mute persistence | Visual state |
 | `a11y/*` | cs-accessibility-engineer | Focus trap/return, announcer regions, motion preference | — |
 | `design/tokens/` + `panda.config.ts` | art-director + technical-artist | Typed token source and Panda 2.0 config: tokens + typed rarity recipes → static artifacts (ADR-0002) | Redefining tokens in component CSS; raw color values outside `design/tokens/` (stylelint-enforced) |
+| `src/sw/*` | lead-programmer + devops-engineer | Service-worker lifecycle, `fetch` dispatch, cache maintenance, snapshot read/write, precedence of caches (ADR-0009) | Business rules; parsing the manifest beyond shape validation; any third-party import |
+| `src/lib/pwa/cachePolicy.ts`, `limits.ts`, `schema.ts` | lead-programmer | Pure cache decisions: admission, pool selection, eviction plan, cache-key normalization, budget constants | Touching `caches`/`fetch`/`indexedDB`, or any global |
+| `src/lib/pwa/register.ts`, `install.ts` | devops-engineer + ui-programmer | Lazy registration, update detection/dismissal, `beforeinstallprompt` capture, visit counting, iOS sheet | Auto-reload; `skipWaiting` without a user action; any auto-opening UI |
+| `public/manifest.webmanifest` + `public/icons/` | technical-artist | Manifest fields, icon set (192/512 any, 512 maskable, apple-touch 180), colours derived from `design/tokens/` | Hand-written colour values; screenshots/shortcuts without an owner decision |
 
 ---
 

@@ -11,10 +11,10 @@
 
 **Elsa the Explorer is a card library — a Sammelwerk — not a gift toy.** The
 collection is the product. Elsa is the *collection mechanism*: every photo the
-owner supplies becomes an entry in the catalogue, and it is the catalogue that
+owner supplies becomes an entry in the collection, and it is the collection that
 the visitor explores, reads, and eventually completes. The visitor is not a
 recipient of a present; they are an **explorer of the library** — someone who
-opened the door, found the catalogue richer than expected, and keeps coming back
+opened the door, found the collection richer than expected, and keeps coming back
 to finish their reading. The register is museum catalogue with warm, dry
 humor: plaques, entries, catalog numbers, departments, acquisitions — written
 in the family's *du* voice, never marketing confetti. Where the old framing
@@ -38,7 +38,7 @@ and deploys statically. Everything else is free to be redesigned.
 A friend or family member follows a chat link expecting nothing more than
 "some dog pictures," and within ten seconds is standing in a dark collector's
 parlour where the pack is the only lit object — and then holding four
-foil-bordered entries of the catalogue like specimens pulled from a drawer.
+foil-bordered entries of the collection like specimens pulled from a drawer.
 The first expedition is a laugh; the reveal — where the shiny card always
 lands late, never first — is the moment the visitor realizes this room was
 *arranged* for them. From then on the experience deepens in one direction
@@ -51,14 +51,14 @@ entire working life, and the visitor starts *planning* the next expedition —
 peak is the chase card surfacing from *Der Porträtsaal*, and the emotional
 end state is the completed
 catalogue: **Elsas Ehrenmensch / Elsa's Honorary Human**, the single shareable
-capstone in the catalogue header, with the **Das Gesamtverzeichnis / The
+capstone in the collection header, with the **Das Gesamtverzeichnis / The
 Master Index** plaque beside it as the stat card that says *you read all of
 her*. After
 that the relationship inverts, politely: the explorer becomes a reader of a
 finished library, waiting on its curator — the owner, whose next acquisition
 ("{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" — copy-deck
 sync 2026-11-22) reopens the Catalogue — and a second lap is walked
-under "2. Auflage" stamps, the catalogue's way of stamping a repeat reader as
+under "2. Auflage" stamps, the collection's way of stamping a repeat reader as
 a regular. What sustains it is not streaks or timers — it is that every new
 photo is an accession to a collection that people are actually reading.
 
@@ -78,7 +78,7 @@ trading cards, museum shops) rather than by system knowledge: they understand
 respect a site that asks nothing of them — no login, no cookies, no consent
 banner — and they feel ownership of "their" catalogue the moment its progress
 survives a page reload. They lean away from challenge and toward *delight and
-completion*; the design's job is to make completing the catalogue feel like
+completion*; the design's job is to make completing the collection feel like
 having read a wonderful book, not like finishing a chore.
 
 ---
@@ -112,16 +112,16 @@ to "what do I do here?" is a single object in the light.
 The dark parlour does its one job, now with a clearer purpose: the room is
 night-dark, the pack is the only lit object, and the room reads as an
 *institution*, not a novelty — the wordmark (Elsa the Explorer, fixed), an
-eyebrow in museum-plaque style (DE: *"Katalog I"* / EN: *"Catalogue I"* —
+eyebrow in museum-plaque style (DE: *"Sammlung I"* / EN: *"Collection I"* —
 copy-deck sync 2026-11-22, D1/D3), and a headline that answers the question
-before it is asked (DE: *"Was steckt im Katalog?"* / EN: *"What's in the
+before it is asked (DE: *"Was steckt im Sammlung?"* / EN: *"What's in the
 catalogue?"*, D2). German first (household language). The visitor must
 never see a loader as their first impression if it can be
 avoided: entries resolve from `photos.php?list=1` → `photos.json` → samples,
 and the layout must not shift while any of this happens. The pack (labeled
 DE: *"Pack öffnen"* / EN: *"Open a pack"* — or explorer-register alternative:
 *"Auf Expedition gehen"* / *"Begin an expedition"*) and the secondary
-"Zum Katalog / To the catalogue" text link (D4) give exactly two doors, not a
+"Zur Sammlung / To the collection" text link (D4) give exactly two doors, not a
 menu. The `P` keyboard hint and the sound toggle are visible but quiet —
 affordances offered, not demands.
 
@@ -151,7 +151,7 @@ is Elsen's entire distribution never starts.
   *"No cards yet. Put Elsa's photos in the photos folder, then run
   npm run photos."* No "Error", no stack trace, no blame.
 - **Storage refused (private window / blocked localStorage).** Everything
-  still works for this visit; the catalogue simply starts empty again next
+  still works for this visit; the collection simply starts empty again next
   time. No warning, no modal — a private-window visitor has chosen that
   trade-off knowingly.
 - **JavaScript disabled / module load failure.** The `<noscript>` line
@@ -199,7 +199,7 @@ gallery with extra clicks" and never opens a second pack.
   is, complete, not half-empty: four slots never show voids. A pack must never
   render a placeholder slot.
 - **`photos.php` down mid-session.** The already-loaded list keeps the session
-  fully functional; a re-fetch failure must not clear the catalogue or reset
+  fully functional; a re-fetch failure must not clear the collection or reset
   progress.
 - **Reduced motion preference.** No tear animation, no stagger, no confetti:
   all four entries appear at once, immediately. The emotional beat must
@@ -226,7 +226,7 @@ late-arriving highlight; leave able to name at least one entry they will
 remember.
 
 **Key experience the game must deliver**:
-This is the phase the catalogue deliberately *choreographs*. The reveal order
+This is the phase the collection deliberately *choreographs*. The reveal order
 is designed, not random: **the holo/rare card always lands 3rd or 4th, never
 first** — anticipation is built before the payoff, and the strongest material
 arrives when attention has peaked. Each arrival gets its tick sound and a
@@ -270,7 +270,7 @@ system (and later, the departments) never becomes meaningful.
 
 ---
 
-### Phase 4: Reading the Catalogue (the catalogue grid, 2–15 minutes) · *Im Katalog blättern*
+### Phase 4: Reading the Catalogue (the collection grid, 2–15 minutes) · *In der Sammlung blättern*
 
 **Emotional state on arrival**: Holding four finds and a question: "how big is
 this library?"
@@ -283,7 +283,7 @@ and discover that the collection has *structure* — departments, progress, and
 a visible frontier of "not yet read."
 
 **Key experience the game must deliver**:
-The catalogue grid is the Catalogue proper — the Sammelwerk made browsable.
+The collection grid is the Catalogue proper — the Sammelwerk made browsable.
 Every entry is a real, readable specimen (openable one by one,
 deep-linkable) with an accessible name that says where it stands — DE:
 *"Karte 07 öffnen: Ministerin für Mittagsschlaf, gesammelt"* / EN: *"Open
@@ -296,7 +296,7 @@ automatic loose department **Neuzugänge / New Acquisitions** turn a flat grid
 into a shaped collection: the visitor discovers that the entries group into
 stories ("she has a whole gardening department") and that each department has
 a frontier. Completion of a department permanently changes its frame variant
-— the catalogue visibly grows richer as the visitor fills it, the way a
+— the collection visibly grows richer as the visitor fills it, the way a
 well-bound book ages well. The overall progress line ("Du hast 14 von 24
 gesammelt" / "You have collected 14 of 24") frames the whole reading
 project.
@@ -313,7 +313,7 @@ is dead weight.
 - **Empty catalogue (no photos at all).** Same designed empty state as
   Phase 1 — message + the one command that fixes it, addressed to the curator.
   An empty state is a starting point, not an error.
-- **Completed catalogue (everything read).** The catalogue at 100 % is a
+- **Completed catalogue (everything read).** The collection at 100 % is a
   showcase, not a dead end: every entry "gesammelt", all department lines
   closed, frames at their completed variants, and the completed-state
   affordances (Elsas Ehrenmensch, Das Gesamtverzeichnis) surfaced here and in Phase 7. The
@@ -425,7 +425,7 @@ Second-lap finds carry the "2. Auflage / Second edition" stamp, which converts
 repetition into seniority — a repeat reader, not a failed draw. Milestones
 surface as small earned honours, not banners: a catalogue outfit upgrade at
 25/50/75 % (the gilded door sign, the reading lamp, the velvet rope)
-25/50/75 % is permanent and visible in the catalogue's presentation.
+25/50/75 % is permanent and visible in the collection's presentation.
 
 **Emotional state on exit**: One specific unfinished thing is in mind — "two
 entries to close Außenstelle Garten."
@@ -452,7 +452,7 @@ once."
   the site "forgetting".
 - **Corrupted or stale storage keys.** `pruneSeen()`-style hygiene: ids that
   no longer exist are dropped silently; department progress recomputed from
-  surviving ids. The catalogue must never show ghost entries.
+  surviving ids. The collection must never show ghost entries.
 - **Curator accessioned 50 photos at once.** The Zuwachs line must survive
   volume (state the count, not enumerate): DE: *"12 neue Schmuckstücke sind da!"* / EN: *"12 new treasures have arrived!"* The grid with >100
   tiles needs lazy thumbnails — performance is a UX feature at this phase.
@@ -464,20 +464,20 @@ once."
 **Emotional state on arrival**: A reader who has been circling the last two
 entries for days. Anticipation with a deadline they set themselves.
 
-**Primary question the player is asking**: "What happens when the catalogue is
+**Primary question the player is asking**: "What happens when the collection is
 complete — was the reading worth it?"
 
 **Goal**: Receive an *artefact*, not a toast. Something permanent, personal,
 and shareable that certifies the whole relationship with the collection.
 
 **Key experience the game must deliver**:
-At 100 % the catalogue declares itself complete in its own register: **Elsas
+At 100 % the collection declares itself complete in its own register: **Elsas
 Ehrenmensch / Elsa's Honorary Human** — the **single** 100 % capstone,
-presented in the catalogue header in the parlour's visual language (the
+presented in the collection header in the parlour's visual language (the
 card-as-lit-object principle applied to a document; explorer framing: the
 reader's own honorary title, countersigned by the collection). It is
 shareable, permanent, and the only completion artefact — beside it stands the
-**Das Gesamtverzeichnis / The Master Index** plaque, the catalogue's own
+**Das Gesamtverzeichnis / The Master Index** plaque, the collection's own
 summary, holo-grade, holding its place of honour unchanged. Before this
 point, the staircase must have been visible: 25/50/75 % catalogue outfits as
 ascending honours, each department's permanent frame variant as six smaller
@@ -485,9 +485,9 @@ honours along the way. The chase card — keystone of *Der Porträtsaal* — is
 the emotional midpoint of completion, not its end: a reader can hold the
 chase card for weeks before the Ehrenmensch. Elsas Ehrenmensch is shareable
 for a reason: it is the one artefact that says *"I read the whole collection"*
-and it belongs in the family chat. The moment it is earned, the catalogue
-announces it once — DE: *"Katalog komplett — Elsas Ehrenmensch ist
-eingetragen."* / EN: *"Catalogue complete. Elsa's Honorary Human is
+and it belongs in the family chat. The moment it is earned, the collection
+announces it once — DE: *"Sammlung komplett — Elsas Ehrenmensch ist
+eingetragen."* / EN: *"Collection complete. Elsa's Honorary Human is
 entered."* After completion, the journey intentionally becomes Phase 6's
 acquisitions loop — completion is a plateau with a door, not a wall.
 
@@ -509,7 +509,7 @@ nothing else; the reader's last emotional beat with the product is a shrug.
   product: it clears every `lucky-elsa.*` key (the Catalogue, room progress,
   milestones, Elsas Ehrenmensch — and sound/language preferences return to their
   defaults), and its confirmation lists exactly what is lost —
-  DE: *"Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und
+  DE: *"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und
   Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN:
   *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary
   Human — sound and language return to their defaults."* (copy-deck sync
@@ -541,9 +541,9 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 | Returning to an intact catalogue | The Return Visit | Relief + possession — "it kept my things" | Progress loss (real or apparent) destroys all trust permanently |
 | "{n} neue Schmuckstücke sind da!" | The Return Visit | Anticipation — "there are new accessions for me" | New photos land silently; the curator's work has no reader-facing moment |
 | The "2. Auflage" stamp on a repeat | The Reveal | Regular's warmth — "read it, still mine" | Repeats feel like failure or broken randomness |
-| A department's permanent frame completing | Reading the Catalogue | Visible growth — "the catalogue got richer" | Department completion passes unnoticed; sets feel cosmetic |
+| A department's permanent frame completing | Reading the Catalogue | Visible growth — "the collection got richer" | Department completion passes unnoticed; sets feel cosmetic |
 | The chase card surfacing | The Reveal | A private event worth telling someone | Chase card reads as any other holo; keystone moment wasted |
-| Milestone outfit at 25/50/75 % | The Return Visit | Earned honour — "the catalogue dresses up for its readers" | Milestones arrive as noise (banners) or not at all |
+| Milestone outfit at 25/50/75 % | The Return Visit | Earned honour — "the collection dresses up for its readers" | Milestones arrive as noise (banners) or not at all |
 | Elsas Ehrenmensch | Completing the Catalogue | Pride with an artefact — "I read all of her" | 100 % is a filled bar and a shrug; the last beat fails |
 | Das Gesamtverzeichnis revealed | Completing the Catalogue | Awe at the collection itself — "look at all of it" | Capstone card feels like any other entry |
 
@@ -557,7 +557,7 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 
 | Hook Type | Hook Description | Systems That Deliver It |
 |-----------|-----------------|------------------------|
-| **Session Start** | "What's new in the Catalogue?" — the catalogue changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "{n} neue Schmuckstücke sind da! / {n} new treasures have arrived!", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
+| **Session Start** | "What's new in the Catalogue?" — the collection changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "{n} neue Schmuckstücke sind da! / {n} new treasures have arrived!", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
 | **Session End** | An expedition always ends with something unfinished: a department one card short, a milestone a few percent away, a chase card still out there | Department progress lines, 25/50/75 % milestones, chase card as long-tail goal, guaranteed ≥1 holo per pack keeping the next haul promising |
 | **Daily Return** | Not time-gated — event-gated: the curator's accession is the "new material" moment | "{n} neue Schmuckstücke sind da!", unseen-first guarantee making the first expedition after an upload fully fresh, 2. Auflage stamps rewarding returns even with nothing new |
 | **Long-Term** | Completion as a keepsake, then the second lap as seniority | Department frame variants (permanent), catalogue outfits, Elsas Ehrenmensch + Das Gesamtverzeichnis, 2. Auflage stamps, the Ehrenmensch's earned date |
@@ -572,21 +572,21 @@ should feel they are slowly assembling the complete picture of one dog's
 working life, entry by entry, and that the collection itself — the Sammelwerk
 — is physically growing more splendid around the photos.
 
-- **Beginning**: The catalogue is a stranger — a grid of entries, a few
+- **Beginning**: The collection is a stranger — a grid of entries, a few
   "gesammelt" ticks. Progress feels like *sampling the holdings*: "I've read
   four of her."
 - **Middle**: The departments have names and personalities; the reader catches
   themselves saying "Außenstelle Garten is missing its digging entry." The frames
-  have started to change as departments complete — the catalogue is visibly
+  have started to change as departments complete — the collection is visibly
   richer than on day one, and the reader did that. Progress feels like
   *knowing* her.
-- **End**: The catalogue is a finished artefact: six complete department
+- **End**: The collection is a finished artefact: six complete department
   lines, the chase card home, outfits earned, Ehrenmensch on the wall. Progress has
   become *possession and testimony* — and the "2. Auflage" stamps on the
   second lap read as a regular reader's marginalia in a book already read.
 
 Progression must never feel like *power*, *speed*, or *skill*: there are no
-numbers to optimise, no timers to beat. The only scoreboard is the catalogue,
+numbers to optimise, no timers to beat. The only scoreboard is the collection,
 and its only competitor is the family member in the same chat thread.
 
 ---
@@ -675,7 +675,7 @@ and its only competitor is the family member in the same chat thread.
 |----------|-------|----------|-----------|
 | Does the entrance survive a slow IONOS first load — does the pack render before the visitor bails? (Watch sessions; no analytics exists or will.) | ux-designer | First watched-session round | Unresolved |
 | Is the holo-lands-4th/5th reveal order *felt* by testers, or only by the design? Ask in session 1 before telling anyone. | ux-designer | First watched-session round | Unresolved |
-| Does "gesammelt" read as possession to German visitors, or is the location badge "Im Katalog" clearer as the carry? (Copy A/B by watching, not by tracking.) | ux-designer + owner | First watched-session round | Unresolved |
+| Does "gesammelt" read as possession to German visitors, or is the location badge "In der Sammlung" clearer as the carry? (Copy A/B by watching, not by tracking.) | ux-designer + owner | First watched-session round | Unresolved |
 | Do the explorer-register alternatives ("Auf Expedition gehen", "Nächste Expedition") beat the neutral register ("Pack öffnen", "Noch ein Pack") for German visitors — or do they read as costume? | ux-designer + owner | First copy pass before refactor merge | Unresolved |
 | Should Elsas Ehrenmensch be printable (browser print stylesheet) in addition to shareable? | ux-designer + ui-programmer | Before completion meta implementation | Unresolved |
 | Does the chase card need its own reveal beat (gold glint flourish) or does that break the "never announced" principle? | game-designer + ux-designer | Before Der Porträtsaal implementation | Unresolved |

@@ -10,7 +10,7 @@
 
 The collection meta turns the existing flat seen-set into an archive of collected cards: six named
 wings plus the automatic shelf of New Acquisitions, per-wing progress, cosmetic frame unlocks
-on wing completion, catalogue "outfit" milestones at 25/50/75 %, one chase card ("Das
+on wing completion, collection "outfit" milestones at 25/50/75 %, one chase card ("Das
 Hauptporträt") in the Porträtsaal, "2. Auflage" stamps on second-lap pulls, and two capstone
 rewards at 100 % ("Elsas Ehrenmensch / Elsa's Honorary Human", "Das Gesamtverzeichnis"). The
 visitor is an
@@ -40,12 +40,12 @@ only
 them.
 
 The register is museum-catalogue seriousness carried by the existing warm dry humour: the
-archive has wings and departments, a catalogue with progress lines, printings with stamps,
+archive has wings and departments, a collection with progress lines, printings with stamps,
 and a diploma signed by the curator. The visitor explores and reads; nothing is asked of them.
 
 The three loop layers served:
 
-- **Meso (session):** a pulled card names its wing; the catalogue shows what's missing; a wing
+- **Meso (session):** a pulled card names its wing; the collection shows what's missing; a wing
   can genuinely be completed inside one visit, ending on a chime and a permanent frame.
 - **Macro (return visits):** the lap restarts with provably unseen cards; the owner curates
   and keeps adding to the archive, surfacing as the arrivals line ("{n} neue Schmuckstücke
@@ -55,14 +55,14 @@ The three loop layers served:
 
 ## Player Fantasy
 
-*"I am exploring and completing the catalogue of Elsa's life, not grinding a game."* The
+*"I am exploring and completing the collection of Elsa's life, not grinding a game."* The
 register is the museum catalogue and the stamp album: wings, departments, acquisitions, a
 Ehrenmensch
 written by the curator. MDA target aesthetics: **Discovery** (what the next pack
-deals), **Challenge-light** (completing a wing), **Expression** (my catalogue wears its
+deals), **Challenge-light** (completing a wing), **Expression** (my collection wears its
 frames), **Relatedness** (the Ehrenmensch is the owner speaking to the explorer). SDT:
 **Competence** gets its first readable feedback system (per-wing lines name exactly what is
-missing); **Autonomy** is preserved — reading the catalogue versus opening packs remains a
+missing); **Autonomy** is preserved — reading the collection versus opening packs remains a
 free choice, and both paths mark cards seen through the same routine; **Relatedness** is the
 capstone. The feeling that must never appear: obligation. No mechanic in this document may be
 experienced as a to-do list.
@@ -102,10 +102,10 @@ work; they must not be re-pulled from the bank at runtime.
 
 **R-B · Seen-state is the only collection state.** A card is "gesammelt / collected"
 when its photo id is in `lucky-elsa.seen.v1`. Both paths — pulled from a pack, opened from
-the catalogue — mark seen through the single existing "card seen" routine. Copy shifts from
+the collection — mark seen through the single existing "card seen" routine. Copy shifts from
 "gesehen/seen" to "gesammelt/collected" everywhere (progress label, tile state, dialog line);
-the unseen tile state reads "noch nicht gesammelt / not yet collected". The catalogue itself is
-renamed **"Der Katalog" / "The Catalogue"**.
+the unseen tile state reads "noch nicht gesammelt / not yet collected". The collection itself is
+renamed **"Die Sammlung" / "The Collection"**.
 
 **R-C · Wing progress is derived, never stored as a count.** Per-wing progress is computed at
 render time as `collected_in_wing / total_in_wing` from the manifest's wing membership and the
@@ -115,7 +115,7 @@ stale counts behind.
 **R-D · Wing completion fires once per manifest state.** When `collected_in_wing ==
 total_in_wing` for a wing with `total_in_wing ≥ 1` and the wing has no stored completion
 snapshot for the *current* manifest generation, the system: (1) writes a completion snapshot
-(R-E), (2) unlocks the wing's frame variant for its catalogue tiles, (3) rings the existing
+(R-E), (2) unlocks the wing's frame variant for its collection tiles, (3) rings the existing
 completion chime (holo-class chime; silent under sound-off), (4) announces via the live
 region, e.g. DE "Der Ruhesaal ist vollständig — acht von acht gesammelt." / EN "The Nap
 Wing is complete — eight of eight collected." The shelf `new-acquisitions` counts toward the
@@ -148,15 +148,15 @@ stored; nothing leaves the browser.
 
 **R-F · Milestones (binder-spec canon).** When overall collected ratio crosses 25 %, 50 %,
 75 % (see Formulas), the corresponding id is appended to `flags.milestones` (once ever per
-reset cycle) and the catalogue outfit upgrades per the binder spec: **25 % = the gilded door
+reset cycle) and the collection outfit upgrades per the binder spec: **25 % = the gilded door
 sign ("Türschild vergoldet"), 50 % = the reading lamp lit ("Leselampe angezündet"), 75 % = the
-velvet rope ("Samtband gespannt")** — catalogue-level outfits, each with its text label, never
+velvet rope ("Samtband gespannt")** — collection-level outfits, each with its text label, never
 colour alone. The announcement copy is the pattern library's single source
-`catalogue:milestone-reached { pct }` (DE *"Katalog-Meilenstein erreicht: {pct} Prozent."* /
-EN *"Catalogue milestone reached: {pct} per cent."*); no competing copy lives in this
+`catalogue:milestone-reached { pct }` (DE *"Sammlung-Meilenstein erreicht: {pct} Prozent."* /
+EN *"Collection milestone reached: {pct} per cent."*); no competing copy lives in this
 document. Outfits are additive CSS inside the existing parlour palette — no new layout, no
-new colours outside the wing colour roles (R-A). Milestones are **overall-catalogue
-milestones with catalogue-level outfits**; per-room markers may appear inside catalogue rows as
+new colours outside the wing colour roles (R-A). Milestones are **overall-collection
+milestones with collection-level outfits**; per-room markers may appear inside collection rows as
 a display-only affordance, but there are **no per-set milestone events and no per-set
 milestone storage**.
 
@@ -169,18 +169,18 @@ museum-catalogue seriousness, zero lottery flavour. If no photo carries the flag
 simply has no keystone and completes like any other — the system must never synthesise or
 substitute a chase card.
 
-**R-H · Second-lap stamps.** At pull time (pack or catalogue), if the photo id is already in
+**R-H · Second-lap stamps.** At pull time (pack or collection), if the photo id is already in
 the seen-set before being marked, the pulled card renders the corner stamp **"2. Auflage" /
-"2nd printing"** and the dialog shows the line "Zweite Auflage — der Katalog kennt sie
-schon." / "Second printing — the catalogue already knows this one." No counter is stored:
+"2nd printing"** and the dialog shows the line "Zweite Auflage — die Sammlung kennt sie
+schon." / "Second printing — the collection already knows this one." No counter is stored:
 the stamp is derived from seen-state at pull time and never persisted. (Printing-stamp
 language is library register; it stays.)
 
 **R-I · Capstones at 100 %.** When all seven sections are simultaneously complete under the
 current manifest: write `flags.diploma` (and refresh it on each re-completion), set
 `flags.masterIndex = true`. The completion reward is the **single** 100 % surface **"Elsas
-Ehrenmensch" / "Elsa's Honorary Human"** (owner canon): one certificate card in the catalogue
-header bearing the subtitle **"Katalog I · vollzählig" / "Catalogue I · all present"**, a
+Ehrenmensch" / "Elsa's Honorary Human"** (owner canon): one certificate card in the collection
+header bearing the subtitle **"Sammlung I · vollzählig" / "Collection I · all present"**, a
 photo collage from the collection, the completion date, the lap number, and the curator's
 closing line (a `diplomaLine` pair in `captions.json` meta, DE/EN; neutral fallback copy if
 absent), shareable and savable through the existing share/save plumbing. **Per-set completion
@@ -192,7 +192,7 @@ Fantasiewerte aggregated (see Formulas), museum-plaque framed, still explicitly 
 **R-J · Reset (owner canon).** "Von vorn" clears **every `lucky-elsa.*` key** — collection
 state (`seen.v1`, `sets.v1`, `flags.v1`) *and* preferences (`lang.v1`, the sound key
 `lucky-elsa.sound.v1`) — and the page returns to its first-visit state: German default,
-sound on, empty catalogue. It requires a one-line confirmation that names what is lost,
+sound on, empty collection. It requires a one-line confirmation that names what is lost,
 including language and sound (UI Requirement R7), and is idempotent: clearing already-empty
 keys is a no-op, and reset never fires milestone/capstone logic as a side effect of clearing.
 
@@ -212,19 +212,22 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
 
 ### Interactions with Other Systems
 
-- **Pack Generation** (provides): the five drawn ids in reveal order, and each draw's
-  was-already-seen bit for R-H. Requires: pack generation must not write `sets.v1`/`flags.v1`
+- **Pack Generation** (provides): the **four** drawn ids in reveal order (owner canon
+  2026-11-22: a pack holds 4 cards — a 2×2 grid on a phone), plus each draw's
+  was-already-seen bit for R-H. Reveal order is the pack's, not this system's: the holo/rare
+  climax lands in **slot 4**, in **slot 3 only** when a second rare/holo was drawn, and never
+  in slot 1. Requires: pack generation must not write `sets.v1`/`flags.v1`
   — collection logic reacts to "card seen" events only.
 - **Reveal Theatre** (consumes): the "aus:" chip data and the stamp bit per revealed card.
-  **Mid-reveal skip (owner canon, 2026-11-22):** skipping/closing the reveal early catalogues
+  **Mid-reveal skip (owner canon, 2026-11-22):** skipping/closing the reveal early collects
   **only the cards already revealed**; the remainder are not collected and stay unseen (they
   remain first in the unseen-first walk). The pack can be reopened immediately — no lockout,
   no partial-pack penalty.
 - **Photos Pipeline** (provides): manifest with per-photo id, bilingual copy, rarity, optional
   `set`, optional `chase`, optional `diplomaLine`. Requires: `npm run photos` passes the new
   optional fields through unchanged; unknown slugs fall back to `new-acquisitions`.
-- **Catalogue** (consumes): wing grouping, progress lines, frame states, milestone
-  outfit state. Catalogue card opens go through the shared "card seen" routine
+- **Collection (binder)** (consumes): wing grouping, progress lines, frame states, milestone
+  outfit state. Collection card opens go through the shared "card seen" routine
   (systems-index circular-dep resolution).
 - **Persistence**: owns the three key contract in R-E; no other system writes those keys.
 - **i18n & A11y plumbing** (requires): every new string exists in `COPY.de`/`COPY.en` index-
@@ -258,7 +261,7 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
   the matched snapshot is treated as history, the wing returns to `open`, its frame *stays*
   unlocked (frames are "once earned per reset cycle", tracked by the surviving snapshot's
   existence — a wing that has ever completed under the current reset cycle keeps its frame),
-  and the catalogue progress line shows the new missing card. No re-chime until re-completion.
+  and the collection progress line shows the new missing card. No re-chime until re-completion.
 - **E2 · Ehrenmensch re-locks with Zuwachs.** If a new photo arrives after 100 %, the diploma
   card (if displayed) shows the note "Der Ehrenmensch wartet auf die neuen Karten. Er hat es
   nicht eilig." / "The Honorary Human is waiting for the new cards. No rush." It
@@ -288,7 +291,7 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
   one-time import, not in-place mutation.
 - **E8 · Milestone jump across reset.** Milestones fire only on *increases* within a reset
   cycle; after reset, `p_all` starts at 0, so no stale re-fire. A card opened from the
-  catalogue while the pack dialog is open counts identically (single "card seen" routine).
+  collection while the pack dialog is open counts identically (single "card seen" routine).
 - **E9 · Degenerate strategy check.** There is none to exploit: reset grants nothing, dupes
   grant nothing, completion grants status only. The unfun equilibrium to watch in playtesting
   is *compulsive re-opening* driven by wing anxiety — the mitigation is that nothing decays,
@@ -297,7 +300,7 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
 
 ## Dependencies
 
-- **Provides to:** Catalogue (grouping, progress, frames, outfits); Reveal Theatre (chip
+- **Provides to:** Collection (binder) (grouping, progress, frames, outfits); Reveal Theatre (chip
   data, stamp bit); Card Detail & Share (stamp line, diploma share payload); milestone and
   completion announcements to the live region.
 - **Requires from:** Photos Pipeline — optional `set`, `chase`, `diplomaLine` fields passed
@@ -318,7 +321,7 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
 
 | Knob | Category | Default | Intended range / rationale |
 | --- | --- | --- | --- |
-| Milestone thresholds | Curve | 0.25 / 0.50 / 0.75 | Fixed quartiles; keep symmetric so each third of the catalogue has one payoff. Tune only if playtests show the middle third feels flat. |
+| Milestone thresholds | Curve | 0.25 / 0.50 / 0.75 | Fixed quartiles; keep symmetric so each third of the collection has one payoff. Tune only if playtests show the middle third feels flat. |
 | Wing size guidance | Curve | 6–10 cards/wing | Editorial, not enforced. Below 5 a wing completes too fast to feel like progress; above 12 the meso-loop can't finish it in one sitting. |
 | Shelf frame reward | Gate | none | Keep: the shelf must never be *more* rewarding to complete than a curated wing, or curating dies. |
 | Chase count | Gate | exactly 1 | More than one chase dilutes it into a rarity tier — forbidden by R-K. Zero is allowed (E6). |
@@ -334,7 +337,7 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
 - All decoration stays inside the existing dark collector's parlour palette; frames, stamps
   and outfits are refinements of the current foil/frame system, never new surface colours.
 - Frame variants: one additional CSS gradient + border treatment per wing, applied to
-  catalogue tiles of completed wings and to the dialog print of those cards. The photo is
+  collection tiles of completed wings and to the dialog print of those cards. The photo is
   never altered.
 - The holo system is aligned to the approved reference study: two `repeating-linear-gradient`
   foil layers with em stops (iridescent rainbow layer + fine diagonal prong layer in overlay
@@ -357,7 +360,7 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   25/50/75 % outfits and the Ehrenmensch are the session- and campaign-level releases.
 - **Failure recovery:** not applicable — no failure exists; the closest analogue (a pack of
   all-duplicates on lap 2+) is mitigated by the stamp itself turning the repeat into content.
-- Playtest probe: after the pack dialog closes, do visitors scroll to the catalogue to check
+- Playtest probe: after the pack dialog closes, do visitors scroll to the collection to check
   a wing line unprompted? If yes twice, the meso-loop works; if never, the kill condition in
   the brief triggers.
 
@@ -368,16 +371,16 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   the rarity label; `new-acquisitions` cards show no chip (the shelf speaks only when spoken
   to). The chip is text-redundant: it never carries state on its own. *(Build phase:
   Vertical Slice — drop row + dialog.)*
-- **R2 · Catalogue grouping:** the catalogue renders as "Der Katalog / The Catalogue" with wings
+- **R2 · Collection grouping:** the collection renders as "Die Sammlung / The Collection" with wings
   as sections, each with a divider (wing name, DE/EN per language) in fixed canonical order
   (R-A table) and its progress line "{x} von {y} gesammelt" / "{x} of {y} collected";
   `new-acquisitions` renders last; empty sections hidden. Keyboard order follows visual
   order. *(Build phase: Phase 2.)*
-- **R3 · Frame unlock visuals:** on wing completion, that wing's catalogue tiles gain its
+- **R3 · Frame unlock visuals:** on wing completion, that wing's collection tiles gain its
   frame variant (R3a) *and* the same frame appears in the dialog print (R3b); a one-line
-  catalogue header note names the unlock; live-region announcement per R-D. Frames persist
+  collection header note names the unlock; live-region announcement per R-D. Frames persist
   until reset (E1 rule) and are always accompanied by the wing's progress line reading
-  "{y} von {y}". *(Build phase: R3a catalogue tiles — Phase 2; R3b dialog frame —
+  "{y} von {y}". *(Build phase: R3a collection tiles — Phase 2; R3b dialog frame —
   Vertical Slice, per owner ruling.)*
 - **R4 · Milestone announcements:** at 25/50/75 %, the outfit upgrade applies (R-F: door
   sign, reading lamp, velvet rope) with its text label, the announcement fires via the
@@ -385,21 +388,21 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   languages on toggle. *(Build phase: Phase 2.)*
 - **R5 · Elsas Ehrenmensch composition:** at 100 %, a dedicated diploma component — canon
   name **"Elsas Ehrenmensch" / "Elsa's Honorary Human"** — renders in
-  the catalogue header: collage of collected photos, subtitle "Katalog I · vollzählig" /
-  "Catalogue I · all present", completion date, lap number, the curator's `diplomaLine`
+  the collection header: collage of collected photos, subtitle "Sammlung I · vollzählig" /
+  "Collection I · all present", completion date, lap number, the curator's `diplomaLine`
   (neutral fallback otherwise), share and save actions re-using existing plumbing;
   reduced-motion honoured; the "Gesamtverzeichnis" plaque sits beside it with its
   imaginary-stats label per PRD F2a. *(Build phase: Phase 3.)*
 - **R6 · Stamp display:** the "2. Auflage" corner stamp appears on the pulled card and the
-  stamp line in the dialog (R-H); catalogue tiles never show stamps (they are pull-history,
+  stamp line in the dialog (R-H); collection tiles never show stamps (they are pull-history,
   not collection state); the stamp is decorative and announced nowhere separately — the
   dialog line is its text form. *(Build phase: Phase 3.)*
 - **R7 · Reset semantics:** one button "Von vorn / Start over"; on press, an inline
-  confirmation names exactly what is cleared — the catalogue, room progress (which takes the
+  confirmation names exactly what is cleared — the collection, room progress (which takes the
   unlocked frames with it), the milestones, the Ehrenmensch, **language and sound**. The
   confirmation body *is* the deck's `reset.body`, quoted in full and never re-worded:
-  **"Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas
-  Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / "This clears the Catalogue,
+  **"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas
+  Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / "This clears the Collection,
   room progress, the milestones and Elsa's Honorary Human — sound and language go back to
   default."** A shorter button label is not this string and would need its own key. Confirm
   clears every `lucky-elsa.*` key; cancel leaves everything
@@ -407,21 +410,20 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
   completion. No `!` anywhere in it (destructive confirmation).
 - **R8 · Zuwachs line (new arrivals):** on load, if the manifest holds photo ids not
   present in the stored seen-set *that were absent from `lastManifestStamp`*, one quiet line
-  above the catalogue, exact copy: **"{n} neue Schmuckstücke sind da!" / "{n} new treasures
+  above the collection, exact copy: **"{n} neue Schmuckstücke sind da!" / "{n} new treasures
   have arrived!"** (cap **44**, both languages; this is the line's single `!`, neutralised to
   `.` on the announcement path). It
   disappears once any of them is collected; it never blocks or redirects anything.
   *(Build phase: Vertical Slice — ships with the step-3 register pass.)*
 - **R9 · Copy set and brand (verb + badge canon):** the **progress verb** is
-  "gesammelt/collected" in every progress line (catalogue, per-wing, dialog) and in the tile
+  "gesammelt/collected" in every progress line (collection, per-wing, dialog) and in the tile
   state marker — collected tiles read "gesammelt" / "collected", unseen tiles read
-  "noch nicht gesammelt" / "not yet collected"; the **catalogue tile badge** is a separate
-  fixed **location label** reading **"Im Katalog" / "In the catalogue"** — it names where the
+  "noch nicht gesammelt" / "not yet collected"; the **collection tile badge** is a separate
+  fixed **location label** reading **"In der Sammlung" / "In the collection"** — it names where the
   card lives, it is not a state verb, and the retired state string (the old verb) survives
   nowhere;
-  everything lives in the copy deck (PRD R5 index-aligned). The catalogue heading becomes "Der
-  Katalog / The
-  Catalogue"; the brand "Elsa the Explorer" is identical in both languages with localized
+  everything lives in the copy deck (PRD R5 index-aligned). The collection heading becomes
+  "Die Sammlung / The Collection"; the brand "Elsa the Explorer" is identical in both languages with localized
   taglines; every new string exists in `COPY.de` and `COPY.en` at the same index (PRD R5);
   German reads as *du*-register, dry and warm; **at most one `!` per surface**, never in an
   error message, a destructive confirmation or an accessibility string, and the terminal
@@ -437,7 +439,7 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
 ## Cross-References
 
 - `design/game-brief.md` — pitch, loop layers, refactor build order, anti-grind commitments (§Avoid, §Out of scope).
-- `design/gdd/systems-index.md` — dependency map, circular-dependency resolution (Collection & Wings ↔ Catalogue), risk table.
+- `design/gdd/systems-index.md` — dependency map, circular-dependency resolution (Collection & Wings ↔ Collection (binder)), risk table.
 - `design/accessibility-requirements.md` — *(authored by the a11y agent; pending)* R1–R10 above are the design inputs to its matrix.
 - `design/ux/interaction-patterns.md` — the pattern library; its Set Progress Line "omit" rule backs the empty-section rule in E4.
 - `PRD.md` — F3 (rarity by photo id), F4 (promotion pity), F5/F6 (no dupes, deck walk), F2a (imaginary-stats label), §5 (privacy, tone, design), §10.4 (uploads deferred). Note: PRD terminology ("Sammelheft", "Erste Auflage") predates the Elsa the Explorer reframe; the copy decisions here supersede it pending a PRD revision.
@@ -449,9 +451,11 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
 
 **Functional (extend the Vitest logic suites and the Playwright UI suites):**
 
-1. Pack of five, no dupes, unseen-first walk, ≥1 rare/holo — asserted through the refactored
+1. Pack of four, no dupes, unseen-first walk, ≥1 rare/holo — asserted through the refactored
    modules, not just the legacy path.
-2. The holo card is never revealed first.
+2. Reveal order across the four slots: the holo/rare climax sits in slot 4; a rare/holo sits
+   in slot 3 only when the pack holds two of them; slot 1 never carries the promoted or
+   highest-rarity card.
 3. A photo with `set: "nap-wing"` renders the chip "aus: Ruhesaal" in DE and "from: The Nap
    Wing" after EN toggle; shelf photos show no chip.
 4. Collecting all members of a wing fires exactly one completion: snapshot written, frame
@@ -497,4 +501,4 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
 4. **"Das Gesamtverzeichnis" trait selection:** aggregate every trait key in the roster, or
    the curator hand-picks five? *(Recommendation: aggregate — zero editorial cost, and the
    average of jokes is itself a joke.)*
-5. **Curator's diploma line:** write it when Catalogue I is nearly done, not now.
+5. **Curator's diploma line:** write it when Collection I is nearly done, not now.

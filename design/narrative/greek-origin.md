@@ -5,7 +5,7 @@
 > **Visible To Player**: **Discoverable** — four quiet surfaces, never front-loaded, never explained.
 > **Cross-References**: `design/features/archive-fiction.md` (§0 house, §2 rooms, §3 voices, §4 Lexikon, §6 naming) · `design/game-brief.md` · `design/gdd/collection-meta.md` (R-I capstone) · `design/art/art-bible.md` (§1–2) · `design/copy/copy-deck.md` (§0.4 voice)
 > **Source**: owner facts, 2026-11-22 (rescue in Greece; three-day journey; pickup 14 May, 02:00, petrol station near Dortmund) + this document for the myth layer. Nothing here is quoted as established by an earlier narrative document.
-> **Purpose**: the household's affectionate mythology — a pantheon of one — layered *over* the archive, never replacing it. The catalogue stays the product; the myth is a margin note for a reader who looks twice.
+> **Purpose**: the household's affectionate mythology — a pantheon of one — layered *over* the archive, never replacing it. The collection stays the product; the myth is a margin note for a reader who looks twice.
 
 ---
 
@@ -17,10 +17,10 @@
 
 1. **A pantheon of one.** One goddess, no other gods, no cycle, no genealogy, no second deity implied anywhere. The word *Pantheon* never ships player-facing.
 2. **The myth never explains itself.** No string says "we call her a goddess". The reader infers it from epithets, relics and one plaque. An explained myth is a costume.
-3. **One myth line per screen.** Plaque, provenance line, epithet, capstone: one, never two. If a myth line competes with a catalogue line for space, the catalogue wins.
+3. **One myth line per screen.** Plaque, provenance line, epithet, capstone: one, never two. If a myth line competes with a catalogue line for space, the collection wins.
 4. **The myth mints nothing.** No card, no number, no room, no progress, no state. It is written in the register's own hand and accessioned like anything else — which is the joke, and the reason it stays small.
 
-`myth:frame:lede` — **core concept, no surface allocated** (copy bank, never rendered as filler) — DE *"Ein Haushalt, eine Göttin, ein Katalog."* / EN *"One household, one goddess, one catalogue."* · ▸SC(46)
+`myth:frame:lede` — **core concept, no surface allocated** (copy bank, never rendered as filler) — DE *"Ein Haushalt, eine Göttin, ein Sammlung."* / EN *"One household, one goddess, one catalogue."* · ▸SC(46)
 
 ---
 
@@ -115,7 +115,7 @@ Two dates, both display-only. **No festival creates state:** nothing is stored, 
 | Founding plaque — entrance/colophon, no heading | `myth:plaque` | Dieses Haus verzeichnet eine Hündin, die auf der letzten Station ihrer Reise bei Dortmund ankam und blieb. | This house records a dog who arrived near Dortmund at the last stop of her journey, and stayed. | ▸SC(112) |
 | Provenance line — record footer of the designated first card | `myth:provenance` | Herkunft: Griechenland · Die letzte Station · 14. Mai, 02:00 | Provenance: Greece · The Last Stop · 14 May, 02:00 | ▸SC(64) |
 | Epithet line — record only until a slot exists | `card:<id>:epithet` | {epithet} | {epithet} | ▸SC(30) |
-| Capstone — one line above the signature, **PROPOSED** | `myth:capstone` | Drei Tage Fahrt, dann blieb sie. Alles Weitere steht im Katalog. | Three days on the road, then she stayed. Everything else is in the catalogue. | ▸SC(76) |
+| Capstone — one line above the signature, **PROPOSED** | `myth:capstone` | Drei Tage Fahrt, dann blieb sie. Alles Weitere steht im Sammlung. | Three days on the road, then she stayed. Everything else is in the catalogue. | ▸SC(76) |
 
 **Budget of the layer:** three surfaces ship quietly (plaque, provenance line, epithets); the capstone line appears only at completion and only if D-2 is approved. The myth never enters room door paragraphs, pack copy, progress lines, error states or card captions. Nothing in the register is rewritten; the provenance line rides on a real photo card and the myth mints none of its own. `myth:frame:lede`, `myth:domain:lede` and `myth:relic:note` are reserved legend lines: banked until a surface is authorised, never rendered as filler.
 

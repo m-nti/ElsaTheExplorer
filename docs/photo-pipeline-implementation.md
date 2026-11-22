@@ -48,8 +48,8 @@ allowlist + `realpath` containment), `slugify()`, caption loading, `jsonResponse
 
 | ID | Decision | Rationale |
 |---|---|---|
-| P1 | Three fixed display sizes **360 / 720 / 1200** plus **1600** for download. Numeric `size=` values are rejected. | One ladder the client, the static generator and the cache all agree on (architecture §Performance Budget, ≤720 px on cards). |
-| P2 | `?image=NAME&size=tile\|pack\|detail&format=jpeg\|webp` is the new canonical endpoint; `?thumb=` and `?view=` become aliases of rungs. | Backward compatible; no client change required on first deploy. |
+| P1 | Three fixed display sizes **360 / 720 / 1200** plus **1600** for download. Numeric `size=` values are rejected with `400`. | One ladder the client, the static generator and the cache all agree on (architecture §Performance Budget; per-format byte ceilings, not a single "≤720" cap). |
+| P2 | `?image=NAME&size=tile\|pack\|detail&format=jpeg\|webp` is the canonical endpoint; `?download=NAME` is the 1600 rung; `?thumb=` is the 720 pack alias; `?view=` is **retired** (302 → `?download=`). | Backward compatible; no client change required on first deploy; no path returns source bytes. |
 | P3 | **No-original rule**: no code path in `photos.php` may emit an unprocessed source byte. Every failure is a status code, never a file. | Privacy + bandwidth + "derivatives are the product". |
 | P4 | Renderer chosen per request: **GD → Imagick → 503**. HEIC/HEIF: **Imagick only**, else 415. | Shared-hosting reality; explicit, testable, no silent degradation. |
 | P5 | Cache key = `sha256(pipelineVersion\|name\|mtime\|size\|rendition\|format\|quality)`; atomic temp+`rename` under a per-key `flock`. | Same-name replacement invalidates correctly; no torn reads. |
@@ -71,9 +71,10 @@ Strict, in this order. Exactly one action may be present; two or more ⇒ `400 a
 |---|---|
 | `?list=1` | JSON manifest (§14) |
 | `?capabilities=1[&probe=1]` | JSON capability report (§6.4) |
-| `?image=NAME&size=…[&format=…][&download=1][&v=…]` | derivative bytes |
-| `?thumb=NAME` | alias → `image=NAME&size=pack&format=jpeg` |
-| `?view=NAME` | alias → `image=NAME&size=detail&format=jpeg` (deprecated, retained for `photo.view`) |
+| `?image=NAME&size=…[&format=…][&v=…]` | derivative bytes (`tile` / `pack` / `detail`) |
+| `?download=NAME[&format=…][&v=…]` | 1600 px derivative, `Content-Disposition: attachment` |
+| `?thumb=NAME` | alias → `image=NAME&size=pack&format=jpeg` (720) |
+| `?view=NAME` | **retired**: `302` → `?download=NAME`; never bytes, never the source |
 | none / anything else | `400 unknown_request` |
 
 Method: `GET` and `HEAD` only; anything else ⇒ `405 method_not_allowed` + `Allow: GET, HEAD`.
@@ -87,13 +88,13 @@ Method: `GET` and `HEAD` only; anything else ⇒ `405 method_not_allowed` + `All
 | `capabilities` | — | literal `1` | any other value ⇒ `400 bad_capabilities` |
 | `probe` | optional with `capabilities` | literal `1` | `400 bad_probe` |
 | `image` | yes for image endpoints | output of `safePhotoName()`: `basename` == input, no `/` `\` NUL, no leading `.`, extension ∈ `IMAGE_TYPES` | `400 bad_name` |
-| `size` | yes for `image` | `tile` \| `pack` \| `detail` (case-sensitive) | anything else, incl. `360`, `800`, `1600`, `large` ⇒ `400 bad_size` |
+| `size` | yes for `image` | `tile` \| `pack` \| `detail` (case-sensitive) | anything else, incl. `360`, `800`, `1600`, `download`, `large` ⇒ `400 bad_size` |
 | `format` | no (default `jpeg`) | `jpeg` \| `webp` (case-sensitive) | anything else incl. `avif`, `png` ⇒ `400 bad_format` |
-| `download` | no | literal `1` | `400 bad_download` |
-| `v` | no | `^[A-Za-z0-9._-]{1,32}$` | `400 bad_version` |
+| `v` | no | `^[A-Za-z0-9._-]{1,32}$` (the `ver` value) | `400 bad_version` |
+| `download` | yes for the download action | same validation as `image` | `400 bad_name` |
 | `thumb` | yes for alias | same validation as `image` | `400 bad_name` |
-| `view` | yes for alias | same validation as `image` | `400 bad_name` |
-| any unknown param | — | — | ignored **only** when it is `_` or a cache-buster listed in §3.6; otherwise `400 unknown_param` |
+| `view` | yes for the retired alias | same validation as `image` | `400 bad_name` |
+| any unknown param | — | — | ignored **only** when it is `_` or a cache-buster listed in §3.5; otherwise `400 unknown_param` |
 
 Parameter reading rules (each is a test case):
 
@@ -101,26 +102,30 @@ Parameter reading rules (each is a test case):
   values that are arrays (`?size[]=a`) ⇒ `400 bad_param_type`.
 - No trimming, no case folding, no numeric coercion. `size=360` is not an alias for
   `tile`; arbitrary sizes are rejected **by design** — the ladder is a contract.
-- `download=1` requires `size`; it promotes the rendition to the `download` rung
-  (1600) and adds `Content-Disposition: attachment; filename="<slug>-1600.<ext>"`.
-  It cannot be combined with `format=webp` **for the public UI**, but the endpoint
-  accepts it (Safari-safe download of WebP is not assumed; the client uses jpeg).
+- `download=NAME` is the download action; it always renders the `download` rung (1600) and adds
+  `Content-Disposition: attachment; filename="<slug>-1600.<ext>"`. It is not a modifier on
+  `?image=` (no `download=1`): the download is a first-class action.
 - Legacy alias disambiguation: `thumb` or `view` present **together with** any of
-  `image`, `size`, `format`, `download` ⇒ `400 ambiguous_request`. `v` is allowed
-  with an alias.
-- `image` + `thumb` both absent but `size` present ⇒ `400 missing_image`.
+  `image`, `size`, `format` ⇒ `400 ambiguous_request`. `v` is allowed with an alias.
+  `image` + `thumb` both absent but `size` present ⇒ `400 missing_image`.
 
 ### 3.3 Rendition table
 
-| `size` | Long-edge target | JPEG q | WebP q | Progressive | Intended use |
-|---|---|---|---|---|---|
-| `tile` | 360 | 82 | 78 | yes | binder grid, pack thumbnail strip |
-| `pack` | 720 | 82 | 80 | yes | card art window, pack theatre (≤720 px budget) |
-| `detail` | 1200 | 86 | 82 | yes | `CardDetail` dialog |
-| `download` (via `download=1`) | 1600 | 88 | 84 | yes | "Foto speichern" |
+| `size` / action | Long-edge target | JPEG q (start) | WebP q (start) | WebP ceiling | JPEG ceiling | Intended use |
+|---|---|---|---|---|---|---|
+| `tile` | 360 | 78 | 72 | ≤ 36 KB | ≤ 55 KB | binder grid, pack thumbnail strip |
+| `pack` | 720 | 80 | 74 | ≤ 80 KB | ≤ 110 KB | card art window, pack theatre |
+| `detail` | 1200 | 82 | 76 | ≤ 150 KB | ≤ 210 KB | `CardDetail` dialog |
+| `?download=` (1600) | 1600 | 85 | 80 | ≤ 350 KB | ≤ 500 KB | "Foto speichern" |
+
+Quality columns are the **starting** quality. The encoder lowers quality (never above the
+start) until the per-format ceiling is met; a rung that cannot meet its ceiling is discarded
+(§9), never shipped. KB = 1,000 bytes.
 
 Rules:
 
+- All JPEG output is **progressive** (`imageinterlace($im, true)` before write); WebP is
+  written at the encoder's default effort.
 - `fit = inside`, **never upscale**: `scale = min(1, target / max(w, h))`,
   `outW = max(1, round(w * scale))`, `outH = max(1, round(h * scale))` — identical
   formula to `scripts/photos.mjs` (§13). No cropping in the pipeline; crop framing is
@@ -136,7 +141,7 @@ Rules:
 ```
 Content-Type: image/jpeg | image/webp
 Content-Length: <bytes>
-Content-Disposition: inline; filename="<slug>-<longedge>.<ext>"   (attachment when download=1)
+Content-Disposition: inline; filename="<slug>-<longedge>.<ext>"   (attachment for ?download=)
 Cache-Control: see §3.5
 ETag: "<32 hex chars>"
 Last-Modified: <source mtime, RFC 1123 GMT>
@@ -161,7 +166,7 @@ appear in any header, body, or log line returned to the client.
 |---|---|
 | display rendition, `v` present and valid | `public, max-age=31536000, immutable` |
 | display rendition, `v` absent | `public, max-age=604800` |
-| `download=1` | `public, max-age=31536000, immutable` (a `v` is always supplied by the client for downloads) |
+| `?download=` (download action) | `public, max-age=31536000, immutable` (a `v` is always supplied by the client for downloads) |
 | `304` | same `Cache-Control` as the 200 it revalidates |
 | any error status | `no-store` |
 | `?list=1`, `?capabilities=1` | `no-store` |
@@ -183,14 +188,15 @@ QA can assert without reading bodies.
 |---|---|---|---|
 | 200 | `ok` | derivative served | — |
 | 304 | `not_modified` | conditional hit | use cache |
-| 400 | `bad_name`, `bad_size`, `bad_format`, `bad_download`, `bad_version`, `bad_param_type`, `ambiguous_request`, `missing_image`, `unknown_param`, `unknown_request`, `bad_list`, `bad_capabilities`, `bad_probe` | validation | programming error; never user-visible |
+| 400 | `bad_name`, `bad_size`, `bad_format`, `bad_version`, `bad_param_type`, `ambiguous_request`, `missing_image`, `unknown_param`, `unknown_request`, `bad_list`, `bad_capabilities`, `bad_probe` | validation (unknown/numeric `size`, unknown `format`, ambiguous alias, unknown action) | programming error; never user-visible |
 | 404 | `not_found` | `photoPath()` returned null (absent, dotfile, bad extension, outside root) | client: `thumb-failed` → next rung → `image-failed` |
 | 413 | `source_too_large` | `filesize > 20 MiB` | owner action: re-export |
-| 413 | `source_too_many_pixels` | `w*h > 32 MP` | owner action: re-export |
+| 413 | `source_too_many_pixels` | `w*h > 32 MP` (acceptance cap) | owner action: re-export |
 | 413 | `source_edge_exceeded` | `max(w,h) > 8000` | owner action: re-export |
 | 415 | `source_undecodable` | corruption, truncated file, extension/content mismatch, unsupported colorspace | client: `image-failed`, printed card stays |
-| 415 | `format_unsupported` | HEIC/HEIF and no Imagick HEIC delegate; `format=webp` and no WebP encoder | client: placeholder asset |
+| 415 | `format_unsupported` | HEIC/HEIF and no Imagick HEIC delegate | client: placeholder asset |
 | 503 | `no_encoder` | neither GD (for the needed output format) nor Imagick | owner action: `?capabilities=1` |
+| 503 | `output_over_ceiling` | render exceeded 4× its rung ceiling after the quality floor (pathological; §9) | render discarded, one log line; never ships oversized bytes |
 | 503 | `cache_unavailable` | cache dir missing/unwritable and no fallback dir | owner action: chmod |
 | 503 | `busy` | `flock` deadline (3 s) or render semaphore saturated | `Retry-After: 1` |
 | 503 | `memory_ceiling` | projected peak > 70 % of `memory_limit` on both renderers (§10.3) | owner action: smaller export |
@@ -330,7 +336,7 @@ harness asserts them):
   "php": "8.6.x",
   "limits": { "source_bytes": 20971520, "source_pixels": 32000000, "source_edge": 8000,
               "render_budget_ms": 15000, "lock_timeout_ms": 3000, "max_concurrent": 4 },
-  "renditions": { "tile": 360, "pack": 720, "detail": 1200, "download": 1600 },
+  "ladder": { "tile": 360, "pack": 720, "detail": 1200, "download": 1600 },
   "formats": ["jpeg", "webp"],
   "gd": { "present": true, "jpeg": true, "webp": true, "avif": true, "png": true, "gif": true },
   "imagick": { "present": true, "version": "7.1.x", "heic": false, "webp": true, "avif": false },
@@ -634,11 +640,31 @@ deploy step — §16.1 step 0 for an out-of-webroot cache, the tracked `.gitkeep
 - `set_time_limit(20)` at the top of image actions (guarded by
   `function_exists('set_time_limit')`; shared hosts may disable it).
 - Measured render budget 15 s; exceeded ⇒ `503 render_timeout`.
-- Output byte caps: tile ≤ 400 KiB, pack ≤ 900 KiB, detail ≤ 2 MiB, download ≤ 4 MiB.
-  Exceeded ⇒ the render is discarded (temp unlinked) and `503 internal`-class failure is
-  logged; response is `415 source_undecodable` with a log line naming the cap. Rationale:
-  a 400 KiB 360 px tile means something is pathological, and shipping it wastes the
-  visitor's data plan (architecture performance budget).
+
+**Two separate byte concepts — never conflated:**
+
+1. **Delivery budgets (the contract, ratified 2026-11-22).** Per file, hard, per format:
+
+   | Rung | WebP ceiling | JPEG ceiling |
+   |---|---:|---:|
+   | `tile` | 36 KB | 55 KB |
+   | `pack` | 80 KB | 110 KB |
+   | `detail` | 150 KB | 210 KB |
+   | `download` | 350 KB | 500 KB |
+
+   The encoder searches quality downward from the start quality (§3.3) until the ceiling is
+   met; a rung is never shipped above its ceiling. This is what CI and the release checklist
+   assert (`Content-Length ≤ ceiling`).
+
+2. **Safety discard guard (not a product budget).** If a render still exceeds **4×** its
+   ceiling after the quality search reaches its floor — a pathological encoder or a corrupt
+   source — the temp file is unlinked, one `error_log` line names the rung and the byte count,
+   and the response is `503` (`output_over_ceiling`), never a shipped oversized image and
+   never the source. Guard values: tile 220 KB, pack 440 KB, detail 840 KB, download 2,000 KB.
+
+   The guard is a safety valve, not a delivery budget: it must never be asserted as the pass
+   condition in a test or a checklist. The largest legitimate delivery number in this document
+   is the 500 KB JPEG download ceiling.
 
 ---
 
@@ -652,8 +678,13 @@ const PHOTO_LADDER             = ['tile' => 360, 'pack' => 720, 'detail' => 1200
 const PHOTO_MAX_SOURCE_BYTES   = 20971520;   // 20 MiB
 const PHOTO_MAX_SOURCE_PIXELS  = 32000000;   // 32 MP  — see §10.2
 const PHOTO_MAX_SOURCE_EDGE    = 8000;       // px, long edge
-const PHOTO_MAX_OUTPUT_BYTES   = ['tile' => 409600, 'pack' => 921600,
-                                  'detail' => 2097152, 'download' => 4194304];
+const PHOTO_MAX_OUTPUT_BYTES   = [   // delivery ceilings, per format, KB = 1000 B (§9)
+    'tile'     => ['webp' => 36000,  'jpeg' => 55000],
+    'pack'     => ['webp' => 80000,  'jpeg' => 110000],
+    'detail'   => ['webp' => 150000, 'jpeg' => 210000],
+    'download' => ['webp' => 350000, 'jpeg' => 500000],
+];
+const PHOTO_OUTPUT_GUARD_MULTIPLE = 4;       // safety discard guard = 4 × ceiling (§9)
 const PHOTO_LOCK_TIMEOUT_MS    = 3000;
 const PHOTO_LOCK_POLL_MS       = 25;
 const PHOTO_RENDER_BUDGET_MS   = 15000;
@@ -846,8 +877,9 @@ curl -s -o /dev/null -w '%{http_code}\n' https://HOST/photos/.cache/.htaccess   
 curl -s https://HOST/photos.php?image=elsa-01.jpg\&size=tile | identify -format '%wx%h\n' -
 # arbitrary sizes must be rejected
 curl -s -o /dev/null -w '%{http_code}\n' 'https://HOST/photos.php?image=elsa-01.jpg&size=800'   # 400
-# the endpoint must not be a source-file proxy
-curl -s 'https://HOST/photos.php?view=elsa-01.jpg' | wc -c   # <<< source size
+# the retired view endpoint must redirect to the download derivative, never the source
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' 'https://HOST/photos.php?view=elsa-01.jpg'   # 302 ...?download=elsa-01.jpg
+curl -sL 'https://HOST/photos.php?view=elsa-01.jpg' | wc -c   # <= 500000, never the source size
 ```
 
 ---
@@ -872,7 +904,7 @@ import sharp from "sharp";
 import ladder from "./photo-ladder.json" with { type: "json" };
 
 async function render(source, outPath, rendition) {
-  const target = ladder.renditions[rendition].edge;
+  const target = ladder[rendition].edge;
   await sharp(source, { failOn: "error", limitInputPixels: 32_000_000 })
     .rotate()                              // EXIF auto-orient, then metadata is dropped
     .resize({ width: target, height: target, fit: "inside",
@@ -947,9 +979,9 @@ now point at rungs of the ladder.
   "photos": [
     {
       "id": "elsa-01",
-      "src":  "photos/derived/detail/elsa-01.jpg",   // unchanged role (detail-capable display copy)
-      "thumb": "photos/derived/pack/elsa-01.jpg",    // unchanged role: grid/card art (720)
-      "view": "photos/derived/detail/elsa-01.jpg",   // unchanged role: dialog (1200)
+      "src":  "photos/derived/detail/elsa-01.jpg",   // deprecated alias → detail rung (1200)
+      "thumb": "photos/derived/pack/elsa-01.jpg",    // deprecated alias → pack rung (720)
+      "view": "photos/derived/download/elsa-01.jpg", // deprecated alias → download rung (1600), matches ?view= 302 target
       "filename": "elsa-01.jpg",
       "caption": { "de": "…", "en": "…" },
       "alt":     { "de": "…", "en": "…" },
@@ -960,19 +992,19 @@ now point at rungs of the ladder.
       "demo": false,
       "heic": false,
       "renderable": true,                    // NEW: false ⇒ client shows the placeholder asset
-      "width": 1200,                         // NEW meaning: long-edge-capped, EXIF-oriented source dims
-      "height": 900,
+      "width": 5712,                         // SOURCE dimensions, EXIF-oriented — aspect ratio authority
+      "height": 4284,
       "aspect": 1.3333,                      // NEW: width/height, 4 dp — lets the client reserve space
-      "sha": "9f2c…",                        // NEW: sha256 of the SOURCE (first 16 hex) ⇒ cache-buster
-      "renditions": {                        // NEW: everything the client needs, no string building
+      "ver": "9f2c…",                        // NEW: source version (static: sha256 prefix; runtime: mtime-size) ⇒ cache-buster, travels as &v=
+      "images": {                            // NEW: everything the client needs, no string building
         "tile":     { "jpeg": "photos/derived/tile/elsa-01.jpg",
-                      "webp": "photos/derived/tile/elsa-01.webp", "width": 360, "height": 270 },
+                      "webp": "photos/derived/tile/elsa-01.webp", "w": 360, "h": 270 },
         "pack":     { "jpeg": "photos/derived/pack/elsa-01.jpg",
-                      "webp": "photos/derived/pack/elsa-01.webp", "width": 720, "height": 540 },
+                      "webp": "photos/derived/pack/elsa-01.webp", "w": 720, "h": 540 },
         "detail":   { "jpeg": "photos/derived/detail/elsa-01.jpg",
-                      "webp": "photos/derived/detail/elsa-01.webp", "width": 1200, "height": 900 },
+                      "webp": "photos/derived/detail/elsa-01.webp", "w": 1200, "h": 900 },
         "download": { "jpeg": "photos/derived/download/elsa-01.jpg",
-                      "webp": "photos/derived/download/elsa-01.webp", "width": 1600, "height": 1200 }
+                      "webp": "photos/derived/download/elsa-01.webp", "w": 1600, "h": 1200 }
       },
       "srcset": {
         "tile": "photos/derived/tile/elsa-01.jpg 360w, photos/derived/pack/elsa-01.jpg 720w",
@@ -986,15 +1018,14 @@ now point at rungs of the ladder.
 
 Rules:
 
-- `width`/`height` are the **oriented, capped** dimensions of the widest rendition the
-  client may display (detail), never the raw sensor size — the current static script
-  reports raw pixels, which is D7 in the other direction.
+- `width`/`height` are the **oriented source** dimensions (`5712×4284` for the hero), the
+  aspect-ratio authority — never a rendition size. Each rendition carries its own `w`/`h`
+  (oriented), so a component cannot render a rung at the wrong ratio.
 - `renderable: false` entries still appear in the manifest (the card exists, the photo
   does not render) — dropping them would silently shrink the collection when one HEIC
   fails.
-- `sha` (source hash) is the static analogue of the runtime's `mtime+size`: the client
-  appends `?v=<sha>` to runtime URLs (§3.5) and can use it to bust the CDN-less browser
-  cache for static ones.
+- `ver` is the source version: static mode uses a sha256 prefix of the source, runtime uses
+  `<mtime>-<size>`; both are ≤ 32 chars and both travel as the `&v=` URL parameter (§3.5).
 - Ladder values are read from `scripts/photo-ladder.json`; `photos.json` carries them so
   a client one deploy ahead of the server still knows the rungs.
 
@@ -1029,13 +1060,13 @@ Same shape as §13.4 with URLs pointing at the endpoint:
 ```jsonc
 "src":   "photos.php?image=elsa-01.jpg&size=detail&format=jpeg&v=1712-4182933",
 "thumb": "photos.php?image=elsa-01.jpg&size=pack&format=jpeg&v=1712-4182933",
-"view":  "photos.php?image=elsa-01.jpg&size=detail&format=jpeg&v=1712-4182933",
-"download": "photos.php?image=elsa-01.jpg&size=detail&download=1&format=jpeg&v=1712-4182933",
+"view":  "photos.php?download=elsa-01.jpg&v=1712-4182933",
+"download": "photos.php?download=elsa-01.jpg&v=1712-4182933",
 ```
 
-Plus `pipeline: 2`, `ladder`, `renderable`, `sha` (runtime `sha` is
-`<mtime>-<size>`, 32 chars max — it is a cache-buster, not a security token), `renditions`
-with `jpeg`/`webp` URLs. `?list=1` computes `renderable` from the decode matrix and the
+Plus `pipeline: 2`, `ladder`, `renderable`, `ver` (runtime `ver` is `<mtime>-<size>`,
+≤ 32 chars — a cache-buster, not a security token), `images` with `jpeg`/`webp` URLs and
+per-rung `w`/`h`. `?list=1` computes `renderable` from the decode matrix and the
 size caps **without decoding** (`getimagesize` + `filesize`), so listing stays cheap; a
 photo that fails at render time still 415s, and the client's error path covers it.
 
@@ -1046,25 +1077,25 @@ photo that fails at render time still 415s, and the client's error path covers i
 
 | Consumer | Guarantee |
 |---|---|
-| Existing `app.js` (`?list=1`, `photo.thumb`, `photo.view`) | works unchanged: `thumb` → 720 pack rung, `view` → 1200 detail rung |
-| `?thumb=NAME` hardcoded anywhere | works unchanged |
-| `?view=NAME` hardcoded | works, now capped at 1200 — documented behaviour change |
+| Existing `app.js` (`?list=1`, `photo.thumb`, `photo.view`) | works unchanged: `thumb` → 720 pack rung, `view` → the `?download=` URL (same bytes the retired `?view=` now 302s to) |
+| `?thumb=NAME` hardcoded anywhere | works unchanged (720 pack alias) |
+| `?view=NAME` hardcoded | works, now `302` → `?download=` (1600) — documented behaviour change; never the source |
 | `photos.json` v2 consumers | v3 is additive; unknown keys ignored |
-| Old cached JS asking for originals | gets a 1200 derivative; no error, smaller payload |
+| Old cached JS asking for originals | follows the `302` to the 1600 download derivative; no error, bounded payload |
 
 ### 14.3 Required client changes (small, listed for the frontend hand-off)
 
 1. Drop the `thumb → src` fallback that assumed `src` is the original; both are
    derivatives now. Use `thumb` → `detail` → placeholder.
-2. Use `srcset`/`renditions` + `width`/`height` from the manifest (CLS).
-3. "Foto speichern" uses `download=1` (1600) — no longer "the original". Copy must not
+2. Use `srcset`/`images` + `width`/`height` from the manifest (CLS).
+3. "Foto speichern" uses `?download=NAME` (1600) — no longer "the original". Copy must not
    promise "original"/"Original" any more (interaction-copy audit).
 4. Remove the `heic.ts`/`heic2any` path for manifest photos (§6.3).
 
 ### 14.4 ADR hooks
 
 - ADR-0004 (manifest v2 contract) must be **amended** with `pipeline`, `ladder`,
-  `renderable`, `sha`, `renditions`, `srcset` and the changed `width`/`height` semantics.
+  `renderable`, `ver`, `images`, `srcset` and the changed `width`/`height` semantics.
 - A new ADR (next free number) records: rendition ladder, no-original rule, cache
   strategy, GD/Imagick detection order, sharp-for-parity. The fallback ladder is:
   Imagick-only → GD-only → static `photos.json` + `photos/derived` (PHP can be absent
@@ -1079,9 +1110,9 @@ Playwright/curl assertion. Every row is a release gate item.
 
 | # | Case | Setup | Request | Expected | Assertions |
 |---|---|---|---|---|---|
-| T01 | ladder, GD | GD+JPEG, clean cache | `image=a.jpg&size=tile` | 200 | `360×270`, `image/jpeg`, progressive, ≤ 400 KiB, `X-Photo-Status: ok` |
-| T02 | ladder, all rungs | same | `size=` tile/pack/detail/(download=1) | 200 | long edge exactly 360/720/1200/1600 (no upscale on small source: long edge = source) |
-| T03 | WebP | GD+WebP | `format=webp&size=pack` | 200 | `image/webp`, RIFF header, ≤ 900 KiB |
+| T01 | ladder, GD | GD+JPEG, clean cache | `image=a.jpg&size=tile` | 200 | `360×270`, `image/jpeg`, progressive, **≤ 55,000 B (55 KB)**, `X-Photo-Status: ok` |
+| T02 | ladder, all rungs | same | `size=` tile/pack/detail; `?download=a.jpg` | 200 | long edge exactly 360/720/1200/1600 (no upscale on small source: long edge = source) |
+| T03 | WebP | GD+WebP | `format=webp&size=pack` | 200 | `image/webp`, RIFF header, **≤ 80,000 B (80 KB)** |
 | T04 | GD absent, Imagick present | `php -d disable_functions=…` or a build without gd | any | 200 | served via Imagick, `X-Photo-Pipeline: 2`, cache key contains `imagick` |
 | T05 | GD + Imagick absent | neither extension | any | **503** `no_encoder` | empty body, `no-store`, **no source bytes**, `X-Photo-Status` |
 | T06 | cache unwritable | `chmod 0555 .cache` | any | **503** `cache_unavailable` | no original bytes, no temp files created, capability probe reports `writable:false` |
@@ -1107,15 +1138,17 @@ Playwright/curl assertion. Every row is a release gate item.
 | T26 | arbitrary size | — | `size=800`, `size=360`, `size=large` | **400** `bad_size` | ladder is a contract |
 | T27 | compress | — | `?image=a.jpg&size=pack` with `Accept-Encoding: gzip` | 200 | `Content-Encoding` absent, byte length == `Content-Length` |
 | T28 | no leakage | — | any error + any success | — | response headers/body contain no absolute path, no `X-Powered-By` |
-| T29 | no-original proof | — | `?view=a.jpg` | 200 | body bytes ≠ source bytes; body ≤ 2 MiB; source `curl /photos/a.jpg` is 403/404 (§12.2) |
+| T29 | no-original proof | — | `?view=a.jpg` | **302** | `Location: ?download=a.jpg`; followed response is a 1600 derivative (≤ 500,000 B), bytes ≠ source bytes; source `curl /photos/a.jpg` is 403/404 (§12.2) |
 | T30 | capabilities | fresh + probe | `?capabilities=1&probe=1` | 200 | exact key set of §6.4; no absolute paths; `probe` statuses present; second call `cached:true` |
 | T31 | notice-free | `error_reporting(E_ALL)`, warnings forced | any error path | mapped status | body contains no `Warning:`, `Notice:`, `Deprecated:`, no `<br />` |
 | T32 | pruning | 4100 cache files seeded | 200 requests | 200 | file count converges ≤ 4000, no request > 500 ms p95 regression, `.prune.lock` respected |
 | T33 | static parity | §13.5 harness | — | pass | exact dims, pixel tolerance, metadata-free |
 | T34 | static build without libheif | sharp format probe false + a HEIC fixture | `npm run photos` | exit 0, warn | HEIC entry skipped with `renderable:false`, no dangling URL |
 | T35 | cache skeleton missing | delete one shard dir (e.g. `<cache>/7`) on a clean cache, cold request | `image=a.jpg&size=tile` | **503** `cache_unavailable` | **no `mkdir` attempt** (assert the dir is still absent), no fatal, no source bytes, one `error_log` line naming the shard |
+| T36 | 60 MP rejection | generated 9000×6750 (60.75 MP) fixture | `image=big.jpg&size=tile` | **413** `source_too_many_pixels` | rejected on header dims only, no decode, no source bytes, `no-store` |
+| T37 | ratified ceilings | warm cache, all rungs × both formats | `size=` tile/pack/detail × `format=` jpeg/webp; `?download=` | 200 | every `Content-Length ≤` its own ceiling: tile 36,000/55,000; pack 80,000/110,000; detail 150,000/210,000; download 350,000/500,000 B |
 
-CI wiring: T01–T35 in the PHP harness job (PHP 8.6 CLI with GD+Imagick, plus a matrix run
+CI wiring: T01–T37 in the PHP harness job (PHP 8.6 CLI with GD+Imagick, plus a matrix run
 with GD only and with neither); T33–T34 in the Node job; T21/T22/T23/T27/T29/T31 as curl
 assertions against `php -S` in the same job (no Apache dependency for CI; the `.htaccess`
 rows are verified manually per §16.3).
@@ -1147,7 +1180,8 @@ rows are verified manually per §16.3).
 2. **Ship `photos.php` v2** in the same FTP session as the new `photos/.htaccess` and
    `photos/.cache/.htaccess` (the deny rules and the code must land together, otherwise
    there is a window where originals are blocked but `?view=` still serves them, or vice
-   versa — either order is safe *as a pair*). `photos/.cache/.htaccess` is committed
+   versa — either order is safe *as a pair*, because v2's `?view=` is a 302 to
+   `?download=` and never reads the source). `photos/.cache/.htaccess` is committed
    (`.gitignore` negation), so a normal "upload the tree" deploy carries it; do not
    exclude `.cache/` from the upload in the FTP client's filters.
 3. **Verify** with §12.2 + T29 + T35 on the live host, and record `capabilities.cache.*`.
@@ -1163,8 +1197,8 @@ derived data and can be deleted at any time, so rollback never needs a schema st
 
 - All three old query forms keep working.
 - `photos.json` v3 is additive; v2 consumers see the same keys with the same roles.
-- The only intentional behaviour changes: `?view=` is capped at 1200 (was original), and
-  `?thumb=` is a 720 JPEG even when GD is missing (was: original).
+- The only intentional behaviour changes: `?view=` now `302`s to `?download=` (1600; was the
+  original), and `?thumb=` is a 720 JPEG even when GD is missing (was: original).
 - PHP remains optional: without `photos.php`, the static ladder serves everything.
 
 ### 16.3 IONOS verification checklist (must be filled in, not ticked from memory)
@@ -1209,9 +1243,9 @@ derived data and can be deleted at any time, so rollback never needs a schema st
 |---|---|---|
 | R1 | IONOS may lack the Imagick HEIC delegate (common) → HEIC cards need a manual export | Handled honestly: `415` + `renderable:false` + placeholder + README instruction. Owner decision pending: export JPEG on drop (recommended) vs. accept a missing card. |
 | R2 | `memory_limit` below 448 MiB makes the 24.47 MP hero unrenderable on GD, and below 512 MiB the GD ceiling drops under the documented 28.5 MP (§10.3) | Imagick disk-backed cache is tried second; otherwise `503 memory_ceiling` with an actionable "re-export at ≤ 6000 px" message. §16.3 requires the real limit **and** `memory.gd_max_pixels` recorded, so the caps are validated against the host, not assumed. |
-| R3 | 32 MP vs the brief's ~24 MP | Justified by measurement (§10.2). If the owner prefers a hard 24 MP, `photos/elsa-01.jpg` must be re-exported in the same session. **Owner decision required.** |
+| R3 | 32 MP acceptance vs the brief's "~24 MP" | **Settled by the ratified contract** (32 MP acceptance, 28.5 MP GD rendering ceiling). Justified by measurement (§10.2): a literal 24 MP cap would reject the repo's own hero (24.47 MP). No further owner decision; a hard 24 MP cap would require re-exporting the hero and an ADR amendment. |
 | R4 | `photos/.htaccess` deny rule (config B) could 403 the derivatives if the regex is written wrong | Mitigated by the `^[^/]+` per-directory scoping and by T29/T12.2 running after every deploy; config A (outside webroot) removes the risk entirely. |
-| R5 | WebP-only delivery would shrink bytes ~25 %, but Safari < 14 lacks it | Not enabled by negotiation in this version; the client may opt in per `<picture>` once `renditions.webp` exists. Ladder already produces it. |
+| R5 | WebP-only delivery would shrink bytes ~25 %, but Safari < 14 lacks it | Always negotiated: WebP is the default where the client advertises it, JPEG is the mandatory fallback through `<picture>`; the client opts in per `<picture>` from `images.*.webp`. Ladder produces both. |
 | R6 | `flock` on a network filesystem can be unreliable | Verify in §16.3; fallback is `503 busy` (fail closed), never a torn file. |
 | R7 | Copy still says "Original" in DE/EN for the save action | Must be rewritten in the same client PR (§14.3.3) — the interaction-copy audit will catch it otherwise. |
 | R8 | sharp/libvips HEIC support differs per platform | `sharp.format` probe + skip-and-warn (§13.2); never emit a dangling URL. |
@@ -1222,9 +1256,10 @@ derived data and can be deleted at any time, so rollback never needs a schema st
 
 - [ ] `photos.php` contains no `serveFile()`, no `imagedestroy()`, and no code path that
       emits a source byte (grep gate in CI).
-- [ ] `?image=…&size=tile|pack|detail&format=jpeg|webp[&download=1][&v=…]` implemented;
+- [ ] `?image=…&size=tile|pack|detail&format=jpeg|webp[&v=…]` and
+      `?download=NAME[&format=…][&v=…]` implemented; per-format ceilings enforced (§9);
       arbitrary sizes and `format=avif` rejected with `400`.
-- [ ] `?thumb=` / `?view=` aliases behave per §3.1; ambiguity rejected.
+- [ ] `?thumb=` (720 alias) and `?view=` (302 → `?download=`) behave per §3.1; ambiguity rejected;
 - [ ] `?capabilities=1[&probe=1]` returns the §6.4 shape with no absolute paths.
 - [ ] Ladder is byte-checked at 360/720/1200/1600 with `withoutEnlargement` semantics.
 - [ ] Cache: out-of-webroot default with a tracked in-webroot deny file as fallback,
