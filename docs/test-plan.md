@@ -132,6 +132,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/lib/data/**', 'src/lib/stores/**', 'src/i18n/**'],
+      // v2 target 90/90/95/90. Until #23 lands the suites, vitest.config.ts
+      // enforces the measured B1 floor (61 lines / 50 functions / 44 branches /
+      // 58 statements) as a ratchet — it may rise, never fall.
       thresholds: { lines: 90, functions: 90, branches: 95, statements: 90 },
     },
     sequence: { shuffle: true },

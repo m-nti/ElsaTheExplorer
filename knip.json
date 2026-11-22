@@ -18,7 +18,8 @@
     "tests/canon/fixtures/**"
   ],
   "ignoreDependencies": [
-    "sharp"
+    "sharp",
+    "heic2any"
   ],
   "ignoreExportsUsedInFile": true
 }

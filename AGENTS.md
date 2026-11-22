@@ -108,6 +108,11 @@ Work is committed in coherent checkpoints and pushed regularly; features land as
 PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
 resolution status in a comment.
 
+Every push runs `.githooks/pre-push` (`git config core.hooksPath .githooks`, set by
+`npm run prepare`): a clean tree, the linux/x64 lockfile check, and `npm run verify` —
+the same gates CI runs. A deliberate bypass is `SKIP_VERIFY=1` and must be named in the
+PR. A red CI run on work pushed with the hook skipped is attributed, not shrugged at.
+
 ## Standing rule — inventory skills AND agents before every task
 
 Before any task, the conductor and every dispatched agent survey both catalogues, then load

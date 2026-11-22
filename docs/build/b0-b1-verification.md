@@ -160,7 +160,10 @@ The suite also has an explicit “legacy hex injected into the production pair s
 1. **`senior-frontend` skill missing** — not installed; `test-setup`/`architecture-review`/`design-system` loaded instead. No equivalent file was available to activate.
 2. **Fonts moved to `public/fonts/`** — runtime assets cannot live only in the archived `legacy/assets/`; everything else in `assets/` moved to `legacy/`.
 3. **`npm run photos` fails intentionally** — B0 archives the v1 generator at `legacy/scripts/photos.mjs`; it resolves paths against `legacy/` and would write wrong artifacts. `scripts/photos.mjs` prints the I3 deferral and exits 1.
-4. **Node engine mismatch** — the machine runs Node 25.2.1; vitest/stylelint declare `^22.12 || ^24 || >=26`. `npm install` succeeds with EBADENGINE warnings. `.nvmrc` pins 24; CI uses Node 22. No gate failed.
+4. **Node engine mismatch** — superseded 2026-11-22: `.nvmrc`, `engines` and CI now pin
+   the newest major (Node 26 / npm 11), which is also what generates the lockfile. The
+   original note: the machine ran Node 25.2.1 while vitest/stylelint declared
+   `^22.12 || ^24 || >=26`; `.nvmrc` pinned 24 and CI used 22.
 5. **Preview port 4173 is occupied by an unrelated Python server on `127.0.0.1`** in this session; Vite preview was verified on 4175. Config pins `127.0.0.1:4173` (matching Playwright's baseURL); CI runners are clean. This is an environment conflict, not a repo defect.
 6. **Vite's CSS minifier drops the standalone layer-order statement** (`@layer reset, base, tokens, recipes, utilities;`) from the emitted CSS; the source `src/app.css` has it, and emitted order is preserved by first layer occurrence (reset → base → tokens → recipes → utilities). Worth a Vite/Panda follow-up; the task’s source requirement is met.
 7. **Chivo font over budget** (see §4) — inherited asset, needs subsetting.

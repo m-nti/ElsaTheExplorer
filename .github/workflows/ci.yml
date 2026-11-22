@@ -22,7 +22,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # Newest major, matching .nvmrc and package.json engines. Node 26
+          # ships npm 11, the version that generates package-lock.json; npm 10
+          # rejects this lock's alias/optional platform packages.
+          node-version: 26
           cache: npm
 
       # Fail closed: no `--if-present`, no `|| true`. A gate declared in

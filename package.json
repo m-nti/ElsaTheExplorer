@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Elsa the Explorer \u2014 a card library. The collection is the product; Elsa is the collection mechanism.",
   "engines": {
-    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
+    "node": ">=26.0.0"
   },
   "scripts": {
     "dev": "vite",
@@ -26,12 +26,15 @@
     "canon:strict": "node scripts/canon-check.mjs --strict",
     "test:canon": "vitest run --project canon",
     "photos": "node scripts/photos.mjs",
-    "prepare": "panda codegen",
+    "prepare": "panda codegen && git config core.hooksPath .githooks || true",
     "gate:unused-css": "node scripts/gate-svelte-css.mjs",
     "jscpd": "jscpd --config jscpd.json .",
-    "ci:gates": "node scripts/ci-gates.mjs"
+    "ci:gates": "node scripts/ci-gates.mjs",
+    "verify": "node scripts/verify.mjs",
+    "lockfile:check": "npm ci --os=linux --cpu=x64 --dry-run --ignore-scripts --no-audit --no-fund && git diff --exit-code -- package-lock.json"
   },
   "dependencies": {
+    "heic2any": "0.0.4",
     "svelte": "5.59.1"
   },
   "devDependencies": {
@@ -61,5 +64,6 @@
     "vite": "8.3.8",
     "vitest": "5.1.1",
     "jscpd": "5.4.3"
-  }
+  },
+  "packageManager": "npm@11.6.2"
 }

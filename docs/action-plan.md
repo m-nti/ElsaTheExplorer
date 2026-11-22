@@ -107,9 +107,10 @@ a shortcut.
 2. The local gate set from `docs/test-plan.md` §8 passes for the task's scope:
    `canon` · typecheck (`tsc` + `svelte-check --tsgo`) · Stylelint + selector-diff +
    unused CSS · ESLint · knip · jscpd · Vitest · build · Playwright · axe · bundle/byte
-   budget · PWA — eleven gates. Today `ci.yml` runs the scaffold subset and uses
-   `--if-present`; **#25** closes that gap, and until it lands a missing script at merge
-   time is called out in the PR instead of being assumed green.
+   budget · PWA — eleven gates. `ci.yml` is fail-closed: `.github/gates.json` declares
+   each gate, a missing script or step is a red build, and `scripts/ci-gates.mjs` fails on
+   `--if-present`/`|| true`. Four gates are declared **pending** with their issue
+   (e2e/axe #24, budget #25, PWA #19) and cannot report success.
 3. A task review recorded **spec ✅ + quality ✅** (fix loop otherwise, cap per SDD).
 4. Ledger appended; commit names the ticket; the PR body states the merge gate.
 
