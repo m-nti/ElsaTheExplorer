@@ -25,7 +25,12 @@ const started = Date.now();
 
 for (const gate of gates) {
   const at = Date.now();
-  const result = spawnSync("npm", ["run", gate.script], { stdio: "inherit" });
+  // Windows has no `npm` executable, only `npm.cmd`, which spawnSync cannot start
+  // without a shell: every gate read as a failed spawn (0 ms, no output).
+  const result = spawnSync("npm", ["run", gate.script], {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
   if (result.status !== 0) {
     failed.push(`${gate.id} (npm run ${gate.script})`);
     console.error(`\nverify: FAILED ${gate.id} — stopping.\n`);
