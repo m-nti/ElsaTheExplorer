@@ -557,7 +557,7 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 
 | Hook Type | Hook Description | Systems That Deliver It |
 |-----------|-----------------|------------------------|
-| **Session Start** | "What's new in the Collection?" - the collection changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "{n} neue Schmuckstücke sind da! / {n} new treasures have arrived!", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
+| **Session Start** | "What's new in the Collection?" — the collection changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "{n} neue Schmuckstücke sind da! / {n} new treasures have arrived!", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
 | **Session End** | An expedition always ends with something unfinished: a department one card short, a milestone a few percent away, a chase card still out there | Department progress lines, 25/50/75 % milestones, chase card as long-tail goal, guaranteed ≥1 holo per pack keeping the next haul promising |
 | **Daily Return** | Not time-gated — event-gated: the curator's accession is the "new material" moment | "{n} neue Schmuckstücke sind da!", unseen-first guarantee making the first expedition after an upload fully fresh, 2. Auflage stamps rewarding returns even with nothing new |
 | **Long-Term** | Completion as a keepsake, then the second lap as seniority | Department frame variants (permanent), catalogue outfits, Elsas Ehrenmensch + Das Gesamtverzeichnis, 2. Auflage stamps, the Ehrenmensch's earned date |
