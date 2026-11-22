@@ -1,0 +1,5 @@
+# Elsa the Explorer — no crawler surface. Implements docs/adr/ADR-0007-release-deploy.md §1
+# (versioned deploy file) and PRD.md §7 (noindex, M8), matching the X-Robots-Tag noindex the
+# root .htaccess sets. The photos are a private collection, not an indexed result.
+User-agent: *
+Disallow: /

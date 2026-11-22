@@ -8,8 +8,9 @@
  * fails CI.
  */
 import { spawnSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,19 @@ function run(argv) {
 
 function fixture(name, extra = []) {
   return run(["--root", join(here, "fixtures", name), ...extra]);
+}
+
+/** Every `.svelte` file under `src/`, as sorted POSIX repo-relative paths. */
+function svelteTemplatesOnDisk(dir = join(repoRoot, "src")) {
+  const found = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...svelteTemplatesOnDisk(full));
+    else if (entry.name.endsWith(".svelte")) {
+      found.push(relative(repoRoot, full).split(sep).join("/"));
+    }
+  }
+  return found.sort();
 }
 
 describe("canon-check: seeded failure", () => {
@@ -326,15 +340,26 @@ describe("canon-check: Svelte template surface (D12b)", () => {
 
 describe("canon-check: the real tree (D12b)", () => {
   it("names every Svelte template whose text it read", () => {
-    // `scanned` already listed the file before #49; this is the assertion that the
-    // *template* was read, so a regression to markup-only is a red test.
+    // `scanned` is the surface the gate walked; `templates` is what it read as a
+    // template. Deriving the expectation from both means a new component grows the
+    // two lists together (green), while a regression to markup-only drops entries
+    // from `templates` only (red) — a literal list rotted on #80 instead (#90).
     const { report } = run([]);
-    expect(report.templates).toEqual([
-      "src/App.svelte",
-      "src/lib/components/CardDialog.svelte",
-      "src/lib/components/CardFace.svelte",
-      "src/lib/components/CardTile.svelte",
-    ]);
+    expect(report.templates).toEqual(
+      report.scanned.filter((file) => file.endsWith(".svelte")).sort(),
+    );
+  });
+
+  it("reads every Svelte template on disk under src/", () => {
+    // Independent second opinion: if the gate stopped scanning `src/` altogether,
+    // both reported lists would shrink together and the assertion above would pass
+    // vacuously. The on-disk walk cannot shrink.
+    const { report } = run([]);
+    const onDisk = svelteTemplatesOnDisk();
+    expect(onDisk.length).toBeGreaterThan(0);
+    expect(
+      report.templates.filter((file) => file.startsWith("src/")),
+    ).toEqual(onDisk);
   });
 
   it("keeps the real tree clean and the baseline empty", () => {
