@@ -10,6 +10,8 @@
   to `design/art/art-bible.md` §8 or to a recorded build measurement — none is a preference.
 - **Deciders**: owner (final, delegated), technical-director (author), art-director (visual
   budget — review gate)
+- **Amended**: 2026-11-22 — **D12a (#47)** supersedes the §1 bay table (see the note under it).
+  The byte budgets in §5–§7 are unchanged by that ruling.
 - **Amends**: `docs/architecture.md` — "Performance Budget" (a metric column: which figure is
   gzip, which is minified, which is only a target), "Component Breakdown — `CardTile.svelte`"
   (its four-zone prose and `budgets.ts` path), ADR Audit and Required ADRs (the 0011 row).
@@ -28,7 +30,8 @@ the full refactor ("Zone proportions — the overflow law"). Three things are st
 each has already produced drift:
 
 1. **No record ratifies the grid as a component contract.** The bible's §8 table
-   (seven bays: 15 / 31 / 4.5 / 22 / 13 / 4.5 / 10 %) and the shipped component disagree in
+   (seven bays: 15 / 31 / 4.5 / 22 / 13 / 4.5 / 10 % — the pre-D12a values) and the shipped
+   component disagree in
    both count and values — `design/tokens/tokens.ts` carries six values (17 / 46 / 7 / 15 / 10 /
    5 %, `sizes.zone-*`) which `CardFace.svelte` consumes as six `grid-template-rows`. Two
    "sources of truth" that differ is the exact pre-condition of the v1 defect class, and #30
@@ -65,8 +68,16 @@ rather than editing it (a percentage is not the technical director's to move).
 | Foot (serial / credit) | **4.5 %** (min 22 px) | 5 % | 5 % | serial 1; credit is first to be hidden | art-bible §8 |
 | Gutters (distributed 4–8 px steps) | **10 %** | 7 % | 5 % | never collapses; the foil edge keeps its margin | art-bible §8 |
 
-Each column sums to exactly 100 % (15+31+4.5+22+13+4.5+10 = 100; 17+36+5+18+12+5+7 = 100;
-16+42+5+16+11+5+5 = 100). The **reference card** used for every pixel figure in this record is
+> **Superseded 2026-11-22 (D12a, #47):** the table above is the pre-ruling state. The art
+> director's pass sets plate 15.5 / photo 41.5 / strip 5.5 / story 19.5 / stats 8.5 / foot 5 /
+> gutters 4.5 (sum 100; tile 15.5 / 44 / 5.5 / 16 / 9 / 5.5 / 4.5). The photo window fills its
+> band with no block padding, giving 155.94 px = 45.87 % of card width at the 340 px reference.
+> The plate is two rows; the name clamps to one line with ellipsis. `design/art/art-bible.md` §8
+> is the authority.
+
+Pre-ruling, each column sums to exactly 100 % (15+31+4.5+22+13+4.5+10 = 100;
+17+36+5+18+12+5+7 = 100; 16+42+5+16+11+5+5 = 100). The **reference card** used for every pixel
+figure in this record is
 340 × 485.7 px — the token maximum `sizes.card-max`, measured at B1
 (`docs/build/b0-b1-verification.md` §2: "card 340 × 485.7 px (aspect `0.70`), root font
 13.6 px (`4cqw` of 340)"; the same section records the "photo window 160.05 × 200.06 px
@@ -94,7 +105,8 @@ the **gutters** bay first — the only content-free bay — down to a 4 px minim
 then from the copy clamp, per the height-pressure order. No bay may fall below its floor and no
 text may be clipped to satisfy the arithmetic. Cost: at the reference card the gutters give up
 3.7 px (10 % → 9.2 %), i.e. six gaps of ≈ 7.2 px instead of 8 px — inside the 4–8 px step the
-bible already allows.
+bible already allows. Under D12a the rule is **dormant**: the new bands carry the floors with no
+payer (strip 5.5 %, foot 5 %), so no gutters-as-payer case arises.
 
 ### 2. What may overflow: nothing
 
@@ -231,10 +243,10 @@ gate ("Bundle + byte budget", `scripts/budget-check.mjs`), gate 10 the PWA byte 
 | Font, per woff2 | > 30 KB | none — #35's AC adds it to gate 9 | **no** |
 | Bay overflow, CLS, strings over budget | any failure | 7 (`E-OVF-06`, `E-OVF-12`), 5 (`U-CV-01/03`) | **no** — Playwright suite is #24 |
 
-That table is the honest state, not a wish: `.github/gates.json` enforces twelve steps today
-(canon, its self-test, typecheck, svelte-check, stylelint, selector-diff, unused-css, eslint,
-knip, jscpd, unit, build) and lists `e2e`, `axe`, `budget`, `pwa` as `pending` against issues
-#24, #24, #25, #19.
+That table is the honest state, not a wish: `.github/gates.json` enforces thirteen steps today
+(canon, its self-test, table-integrity, typecheck, svelte-check, stylelint, selector-diff,
+unused-css, eslint, knip, jscpd, unit, build) and lists `e2e`, `axe`, `budget`, `pwa` as `pending`
+against issues #24, #24, #25, #19.
 **No enforced step measures bytes**, which is why the Chivo breach is visible only in a report.
 Until #25 lands, review is the gate; after it lands, this table is the gate.
 
@@ -287,23 +299,24 @@ The two missing rows are the reason this record exists: without the parity check
 token table can silently outlive the seven-bay contract; without the rim check, "nothing crosses
 the foil edge" is an opinion.
 
-### 9. Findings from the arithmetic (for the art-director review)
+### 9. Findings from the arithmetic (for the art-director review — findings 1 and 4 closed by D12a)
 
-These are derived from the ratified numbers at the reference card (bays × 469.7 px, line-height
+These are derived from the pre-ruling numbers at the reference card (bays × 469.7 px, line-height
 1.35 from `lineHeights.card`). They are not art-direction changes — they are places where §8's
-own columns disagree with each other, surfaced rather than resolved silently.
+own columns disagreed with each other, surfaced rather than resolved silently.
 
 | Finding | Arithmetic | Effect | Owner of the fix |
 | --- | --- | --- | --- |
-| The 15 % plate cannot hold its own clamp column | band 70.5 px − 16 px padding − 8 px gaps = **46.5 px** available; number + name (1 line) + mood = **55.4 px**; number + name (2 lines) + mood = **81 px** | At the reference card the plate renders **number + one name line** (40.5 px); `mood` is dropped by the declared pressure order, and a second name line never appears on a full card. Number + name + mood needs a **79.4 px** band = **16.9 %**; a second name line needs **105 px** = **22.4 %**. The shipped 17 % (79.9 px) is where the 16.9 % case fits with ≈ 0.5 px to spare — and the shipped name is `white-space: nowrap` (one line) | art-director: restore ≈ 17 % at the next AD-ART-BIBLE pass, or accept the loss explicitly |
-| The strip and foot px floors overrun 100 % | 4.5 % = 21.1 px vs floors 24 / 22 px → **+3.73 px** on a 469.7 px plate | Resolved by R3 (gutters absorb 3.73 px); without R3 the plate would clip the foot by 3.7 px | technical-director (R3, ruled above) |
-| The 22 % copy bay holds 2 story lines, not 3 | 103.3 − 24 = **79.3 px**; keyword + 3 lines + print = **82.4 px** → 3 lines need **22.6 %** | The third line only exists on larger cards; the pressure order's last step covers it | art-director (informational — the clamp is already "≤ 3") |
-| The 31 % photo band shrinks the lit object by a third | 145.6 px band − 16 px padding = 129.6 px tall → **103.7 px wide** vs the **160.05 px** measured today in the 46 % band | The photograph — "all light, sheen and motion belong to the card under study — and within the card, to Elsa's photograph" (art-bible §1), "the only lit object in the room" (`card-detail.md` §5.3 item C) — loses 35 % of its width at the reference card | art-director: the §1 rule and the §8 number are in tension; one of them must move, with a sign-off |
+| The 15 % plate could not hold its own clamp column — **resolved (D12a, #47)** | band 70.5 px − 16 px padding − 8 px gaps = **46.5 px** available; number + name (1 line) + mood = **55.4 px**; number + name (2 lines) + mood = **81 px** | At the reference card the plate rendered **number + one name line** (40.5 px), `mood` dropped by the pressure order. D12a answers it: plate **15.5 %** in **two rows** holds number + name + mood with **2.16 px slack**, and the name clamps to one line with ellipsis | closed by #47 (art-director) |
+| The strip and foot px floors overrun 100 % | 4.5 % = 21.1 px vs floors 24 / 22 px → **+3.73 px** on a 469.7 px plate | Resolved by R3 (gutters absorb 3.73 px); without R3 the plate would clip the foot by 3.7 px. Moot under D12a — the new bands (strip 5.5 %, foot 5 %) carry the floors with no payer | technical-director (R3, ruled above) |
+| The 22 % copy bay holds 2 story lines, not 3 | 103.3 − 24 = **79.3 px**; keyword + 3 lines + print = **82.4 px** → 3 lines need **22.6 %** | The third line only exists on larger cards; the pressure order's last step covers it. D12a's 19.5 % story bay is re-derived in #47, not here | art-director (informational — the clamp is already "≤ 3") |
+| The 31 % photo band shrank the lit object by a third — **resolved (D12a, #47)** | 145.6 px band − 16 px padding = 129.6 px tall → **103.7 px wide** vs the **160.05 px** measured in the 46 % band | The photograph — "all light, sheen and motion belong to the card under study — and within the card, to Elsa's photograph" (art-bible §1), "the only lit object in the room" (`card-detail.md` §5.3 item C) — would have lost 35 % of its width. D12a answers it: photo **41.5 %** with no block padding gives **155.94 px = 45.87 %** of card width, a **2.6 %** reduction from 160.05 px, not 35 % | closed by #47 (art-director) |
 
-The last row is the one to read twice. ADR-0011 ratifies §8 because the bay table is the art
-director's instrument, and this ADR is not the place to overrule it — but a 104 px photograph on
-a 340 px card is a different product from today's 160 px one, and that decision belongs in the
-bible with an AD-ART-BIBLE sign-off, not in a component refactor by default.
+The last row was the one to read twice, and it is the reason this record exists in the form it
+does. ADR-0011 ratifies §8 because the bay table is the art director's instrument; the tension
+between §1's "the photograph is the lit object" and the pre-ruling 31 % was surfaced rather than
+silently resolved, and the visual owner then resolved it — **D12a / #47** moves the band to 41.5 %
+and keeps a 155.94 px window. The ADR records that ruling; it did not derive it.
 
 ## Consequences
 
@@ -323,13 +336,12 @@ bible with an AD-ART-BIBLE sign-off, not in a component refactor by default.
 
 **Negative / accepted costs**
 
-- **The full card loses its mood line** at the reference size (finding 1). That is a visible
-  content loss on the product's most-examined surface, accepted only because the alternative is a
-  band that clips. If it is unacceptable, the fix is a §8 plate of ~17 % — an art-bible edit with
-  a sign-off, which is a real schedule cost and is named here rather than discovered in B2.
-- **The photograph shrinks by 35 %** at the reference card under the 31 % band (finding 4),
-  unless the art director rules otherwise. This is the largest single visual consequence in the
-  record and the reason the art-director review is a gate on this ADR, not a formality.
+- **Both pre-ruling losses are withdrawn (D12a, #47).** The plate holds number + name + mood in two
+  rows with 2.16 px slack, and the photograph shrinks **2.6 %** (160.05 → 155.94 px) rather than the
+  35 % the pre-ruling table implied; findings 1 and 4 in §9 are closed.
+- **The ruling is the visual owner's**; the ADR ratifies it rather than deriving it.
+- **#13 (B2) must not implement the card geometry until #47 merges**; after that the bands in §1 are
+  the contract.
 - **Two ratchets bite immediately**: JS may not grow before B2 pays for growth by deletion or
   lazy-loading, and Chivo may not grow at all. Both are deliberate — the alternative is discovering
   the ceiling at release.
@@ -337,8 +349,9 @@ bible with an AD-ART-BIBLE sign-off, not in a component refactor by default.
   baseline table. That is a weaker guarantee than the record claims for itself, and it is stated
   rather than implied.
 - **Six values in `tokens.ts` remain wrong** until #13 lands: the component still carries
-  17 / 46 / 7 / 15 / 10 / 5 % and no gutters bay. ADR-0011 does not fix code; it makes the gap a
-  named task with a parity test waiting for it (#30).
+  17 / 46 / 7 / 15 / 10 / 5 % and no gutters bay. #47 lands the token mirror
+  (`zone-header … zone-gutters`); #13 then consumes it. ADR-0011 does not fix code; it makes the
+  gap a named task with a parity test waiting for it (#30).
 
 ## Performance Implications
 
