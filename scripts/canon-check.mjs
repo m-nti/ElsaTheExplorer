@@ -605,7 +605,9 @@ function applyAllowlist(violations, sources, entries, root) {
       }
       used.add(entry);
       for (const violation of violations) {
-        if (relative(root, violation.file) !== file || violation.line !== matches[0]) continue;
+        if (toPosix(relative(root, violation.file)) !== file || violation.line !== matches[0]) {
+          continue;
+        }
         if (entry.rule && violation.rule !== entry.rule) continue;
         covered.add(`${violation.file}:${violation.line}:${violation.rule}`);
       }
@@ -619,8 +621,18 @@ function applyAllowlist(violations, sources, entries, root) {
   return { active, errors, used };
 }
 
+/**
+ * Allowlist `file` values are repo-relative POSIX paths (`design/copy/copy-deck.md`)
+ * because that is how the corpus is written down. `relative()` is host-shaped: on
+ * Windows it returns `design\copy\copy-deck.md`, so comparing the two directly
+ * silently uncovered every entry and turned a clean run into 128 violations.
+ */
+function toPosix(value) {
+  return value.split(sep).join("/");
+}
+
 function describe(violation, root) {
-  const file = relative(root, violation.file);
+  const file = toPosix(relative(root, violation.file));
   return `  ${violation.rule.padEnd(10)} ${file}:${violation.line}:${violation.column}  ${violation.term}`;
 }
 
@@ -705,7 +717,7 @@ function main() {
   const baselineHits = violations.filter((violation) =>
     baseline.some(
       (entry) =>
-        relative(options.root, violation.file) === entry.file &&
+        toPosix(relative(options.root, violation.file)) === entry.file &&
         sources.get(resolve(options.root, entry.file))?.[violation.line - 1]?.includes(entry.match),
     ),
   );
@@ -728,7 +740,7 @@ function main() {
           files: files.length,
           // The gated surface, by path: "index.html is scanned" is an assertion
           // a test can make, not a claim in a comment.
-          scanned: files.map((file) => relative(options.root, file)),
+          scanned: files.map((file) => toPosix(relative(options.root, file))),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
           allowlist: {
@@ -738,7 +750,7 @@ function main() {
             baselineHits: baselineHits.length,
           },
           violations: active.map((violation) => ({
-            file: relative(options.root, violation.file),
+            file: toPosix(relative(options.root, violation.file)),
             line: violation.line,
             column: violation.column,
             rule: violation.rule,
