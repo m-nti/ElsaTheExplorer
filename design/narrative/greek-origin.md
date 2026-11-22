@@ -20,7 +20,7 @@
 3. **One myth line per screen.** Plaque, provenance line, epithet, capstone: one, never two. If a myth line competes with a catalogue line for space, the collection wins.
 4. **The myth mints nothing.** No card, no number, no room, no progress, no state. It is written in the register's own hand and accessioned like anything else — which is the joke, and the reason it stays small.
 
-`myth:frame:lede` — **core concept, no surface allocated** (copy bank, never rendered as filler) — DE *"Ein Haushalt, eine Göttin, ein Sammlung."* / EN *"One household, one goddess, one catalogue."* · ▸SC(46)
+`myth:frame:lede` — **core concept, no surface allocated** (copy bank, never rendered as filler) — DE *"Ein Haushalt, eine Göttin, eine Sammlung."* / EN *"One household, one goddess, one collection."* · ▸SC(46)
 
 ---
 
