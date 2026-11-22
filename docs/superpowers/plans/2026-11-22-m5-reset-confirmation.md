@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- Canon: Die Sammlung / The Collection; verb gesammelt / collected; **no** Katalog/Catalogue naming the collection, no "Heft", no water vocabulary; at most one `!` per surface and **never** in a destructive, error or announced string.
+- Canon: Die Sammlung / The Collection; verb gesammelt / collected; **no** Katalog/Catalogue naming the collection, no retired booklet naming, no water vocabulary; at most one `!` per surface and **never** in a destructive, error or announced string.
 - Copy is SSoT in `design/copy/copy-deck.md`; `reset.body` is byte-identical to the deck row (DE 137 / EN 124 chars, cap 140) and is read in full by a screen reader.
 - Accessibility tier **Standard**: 4.5:1 text, 3:1 focus ring, 44 px targets, visible focus, focus return after every close, announcements in the current language, `prefers-reduced-motion` honoured.
 - `src/App.svelte` is the only `role="status"` / `role="alert"` site (ADR-0010 §1). Components call `announcer.say`, never a region.
