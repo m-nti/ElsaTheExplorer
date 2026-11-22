@@ -110,6 +110,15 @@ describe("canon-check: scanned surfaces (D12)", () => {
 });
 
 describe("canon-check: masked HTML regions (D12)", () => {
+  it("treats an uppercase closing tag as a close", () => {
+    const { report } = fixture("masked-regions");
+    const hits = report.violations.filter((violation) =>
+      violation.file.endsWith("c-uppercase.html"),
+    );
+    // </SCRIPT> must close the masked region; the live copy on line 4 must be read.
+    expect(hits.map((violation) => violation.line)).toEqual([4]);
+  });
+
   it("never reads a <style>, <script> or comment body as copy", () => {
     const { code, report } = fixture("masked-regions");
     expect(code).toBe(1);

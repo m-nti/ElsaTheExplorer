@@ -349,7 +349,9 @@ function maskHtmlRegions(line, state) {
   while (i < line.length) {
     if (state === "script" || state === "style" || state === "comment") {
       const close = state === "comment" ? "-->" : `</${state}`;
-      const end = line.indexOf(close, i);
+      // The open tag matches case-insensitively, so the close must too: `</SCRIPT>`
+      // would otherwise leave the rest of the file masked (a silent false negative).
+      const end = line.toLowerCase().indexOf(close, i);
       if (end === -1) return { masked: out + " ".repeat(line.length - i), state };
       out += " ".repeat(end + close.length - i);
       i = end + close.length;
