@@ -53,6 +53,9 @@ interface ParsedRegistry {
 
 const KEY = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
 
+/** The only registry-level scalars the layout has: everything else is a section. */
+const META_KEYS = new Set(["version", "last_updated"]);
+
 /**
  * Parse the registry layout. Deliberately narrow: it accepts what the registry
  * uses and reports everything else by line, which is the whole contract.
@@ -209,6 +212,9 @@ function parseRegistry(source: string): ParsedRegistry {
         return;
       }
       if (meta.has(key)) throw new RegistryLayoutError(line, `a duplicate ${key}:`, "one registry-level value per key");
+      if (!META_KEYS.has(key)) {
+        throw new RegistryLayoutError(line, `a registry-level value ${key}:`, "version: or last_updated: at column 0");
+      }
       meta.set(key, scalar(value, line));
       section = null;
       sectionEmpty = false;
@@ -317,23 +323,63 @@ function deckCopyKeys(source: string): Map<string, string> {
   return keys;
 }
 
-/** ADR-0003 §2 — the closed register, with the storage each row names. */
-function adrKeyRegister(source: string): Map<string, { version: number; storage: string }> {
+/** ADR-0003 §2 — the closed register: version, data cell, owner, storage. */
+interface AdrKeyRow {
+  readonly version: number;
+  readonly data: string;
+  readonly owner: string;
+  readonly storage: string;
+}
+
+/** Markdown emphasis and table escapes around a cell are formatting, not content. */
+function plainCell(text: string): string {
+  return text
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/\\\|/g, "|")
+    .trim();
+}
+
+function adrKeyRegister(source: string): Map<string, AdrKeyRow> {
   const lines = source.split("\n");
   const start = lines.findIndex((line) => line.startsWith("### 2. Ratified key register"));
   if (start === -1) throw new Error("ADR-0003 §2 not found");
-  const rows = new Map<string, { version: number; storage: string }>();
+  const rows = new Map<string, AdrKeyRow>();
   for (let index = start + 1; index < lines.length; index += 1) {
     const line = lines[index] ?? "";
     if (line.startsWith("### 3.")) break;
-    const match = /^\|\s*`([a-z]+\.v\d+)`\s*\|\s*(\d+)\s*\|(.*)$/.exec(line);
+    const match = /^\|\s*`([a-z]+\.v\d+)`\s*\|\s*(\d+)\s*\|/.exec(line);
     if (match === null) continue;
+    // A data cell may hold a pipe (`'de' | 'en'`), so split and take the owner
+    // from the last non-empty cell; everything between is the data cell.
+    const cells = line.split("|");
+    const lastIndex = cells.reduce((last, cell, cellIndex) => (cell.trim() === "" ? last : cellIndex), 0);
+    const data = plainCell(cells.slice(3, lastIndex).join("|"));
     rows.set(capture(match, 1, "an ADR key"), {
       version: Number(capture(match, 2, "an ADR key version")),
-      storage: (match[3] ?? "").includes("sessionStorage") ? "sessionStorage" : "localStorage",
+      data,
+      owner: plainCell(cells[lastIndex] ?? ""),
+      storage: data.includes("sessionStorage") ? "sessionStorage" : "localStorage",
     });
   }
   return rows;
+}
+
+/** GDD R-A — `| slug | DE | EN | frame |`, with the parenthetical stripped. */
+function gddFrames(source: string): Map<string, string> {
+  const lines = source.split("\n");
+  const start = lines.findIndex((line) => line.startsWith("| Slug | DE | EN | Frame colour role |"));
+  if (start === -1) throw new Error("GDD R-A set table not found");
+  const frames = new Map<string, string>();
+  for (let index = start + 1; index < lines.length; index += 1) {
+    const line = lines[index] ?? "";
+    if (!line.startsWith("|")) break;
+    const match = /^\|\s*`([a-z-]+)`\s*\|/.exec(line);
+    if (match === null) continue;
+    const cells = line.split("|").map((cell) => cell.trim());
+    frames.set(capture(match, 1, "a GDD set slug"), (cells[4] ?? "").replace(/\s*\(.*\)$/, ""));
+  }
+  return frames;
 }
 
 /** ADR-0003 §4 — the v1 keys that were bare, so their v2 form is enveloped (§1). */
@@ -398,6 +444,10 @@ describe("the layout reader", () => {
 
   it("rejects an entry under an empty section", () => {
     expect(() => parseRegistry("entities: []\n  - name: x\n")).toThrow(/when it has entries/);
+  });
+
+  it("rejects a stray registry-level scalar", () => {
+    expect(() => parseRegistry('entities:\n  - name: x\nrevised: ""\n')).toThrow(/registry-level value/);
   });
 });
 
@@ -500,11 +550,24 @@ describe("design/registry/entities.yaml", () => {
   });
 
   it("earns frames on the six rooms and none on the shelf, while the shelf counts", () => {
+    const frames = gddFrames(GDD);
+    expect([...frames.keys()]).toEqual([...CANONICAL_SLUGS]);
     for (const entity of section(registry, "entities")) {
       const isRoom = field(entity, "kind") === "room";
       expect(field(entity, "earns_frame"), entity.name).toBe(isRoom ? "true" : "false");
       expect(field(entity, "counts_toward_diploma"), entity.name).toBe("true");
-      expect(field(entity, "frame").length).toBeGreaterThan(0);
+      expect(field(entity, "frame"), `${entity.name}: GDD R-A frame colour role`).toBe(frames.get(entity.name));
+    }
+  });
+
+  it("only names a document that actually names the entry", () => {
+    // Constants are referenced by value, not by name (pack_size is "four cards"
+    // in prose), so they are checked for path existence only.
+    const named = [...section(registry, "entities"), ...section(registry, "storage_keys")];
+    for (const entry of named) {
+      for (const path of list(entry, "referenced_by")) {
+        expect(read(path).includes(entry.name), `${path} does not name ${entry.name}`).toBe(true);
+      }
     }
   });
 
@@ -544,7 +607,7 @@ describe("storage keys", () => {
     expect(stored.map((entry) => entry.name).sort()).toEqual([...register.keys()].sort());
   });
 
-  it("agrees with the ADR on version, storage and envelope shape", () => {
+  it("agrees with the ADR on version, storage, payload, owner and envelope shape", () => {
     const register = adrKeyRegister(ADR);
     const bareV1 = adrBareV1Concerns(ADR);
     expect([...bareV1].sort()).toEqual(["lang", "seen", "sound"]);
@@ -559,7 +622,13 @@ describe("storage keys", () => {
       expect(field(entry, "envelope"), `${entry.name}: enveloped only if it once existed bare`).toBe(
         bareV1.includes(entry.name.slice(0, entry.name.indexOf("."))) ? "true" : "false",
       );
-      expect(field(entry, "payload").length, entry.name).toBeGreaterThan(0);
+      // The ADR writes session.v1's storage inside its data cell; the registry
+      // keeps it in `storage` instead, which the line above already gates.
+      const payload = row.data.endsWith(" in sessionStorage")
+        ? row.data.slice(0, -" in sessionStorage".length)
+        : row.data;
+      expect(field(entry, "payload"), `${entry.name}: ADR-0003 §2 data`).toBe(payload);
+      expect(field(entry, "owner"), `${entry.name}: ADR-0003 §2 owner`).toBe(row.owner);
     }
   });
 });

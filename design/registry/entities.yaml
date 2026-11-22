@@ -33,11 +33,14 @@
 #     `pack_size` is the 4-card canon (copy deck §0.3, stage-landing §"4-card
 #     canon 2026-11-22").
 #   - COPY KEYS. `copy_keys` is a routing index over the deck, not a copy of it:
-#     it lists key names and never a DE or EN value. The deck is SSOT for both
-#     the string and the one-exclamation rule (§0.4.4); this index exists so a
-#     generator or a reviewer can name a surface's keys without grepping prose.
-#     Room lore keys (`room:<slug>:<surface>`) are spec-owned and live on each
-#     entity, because the deck does not carry them.
+#     it lists key names and carries no copy value. The one exception is a set
+#     entry's `display_de`/`display_en`/`chip_de`/`chip_en`: a set's name is
+#     itself the cross-document fact, so it is registered here and mirrored
+#     against deck §6.2 by the gate. The deck remains SSOT for the string, the
+#     character budget and the one-exclamation rule (§0.4.4); this index exists
+#     so a generator or a reviewer can name a surface's keys without grepping
+#     prose. Room lore keys (`room:<slug>:<surface>`) are spec-owned and live on
+#     each entity, because the deck does not carry them.
 #
 # SSOT (who owns a value; this file never outranks it):
 #   - set membership + completion rules → design/gdd/collection-meta.md R-A..R-I
@@ -339,7 +342,7 @@ storage_keys:
     storage: localStorage
     version: 2
     envelope: true
-    payload: "string[] photo ids, order-insensitive"
+    payload: "string[] photo ids (order-insensitive)"
     owner: collection.svelte.ts
     added: 2026-11-22
     revised: ""
