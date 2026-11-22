@@ -275,7 +275,7 @@
   }
 
   .star-empty {
-    color: var(--elsa-colors-line-strong);
+    color: var(--elsa-colors-star-empty);
   }
 
   .story {

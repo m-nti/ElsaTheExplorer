@@ -47,6 +47,8 @@ export const palette = {
   // Hairlines / chrome.
   line: "rgb(245 240 234 / 14%)",
   lineStrong: "rgb(245 240 234 / 28%)",
+  // Empty star slot: meaningful (the row is a 5-slot scale), so it must clear 3:1 on the plate.
+  starEmpty: "rgb(245 240 234 / 38%)",
   mask: "#000000",
   chipText: "#211d27",
   focusCard: "#fff0d9",
@@ -261,6 +263,7 @@ export const tokens = defineTokens({
 
     line: value(palette.line),
     "line-strong": value(palette.lineStrong),
+    "star-empty": value(palette.starEmpty),
     mask: value(palette.mask),
     "chip-text": value(palette.chipText),
     "focus-card": value(palette.focusCard),
@@ -426,6 +429,16 @@ const buildingSurfaces = [
 ] as const;
 
 export const contrastPairs: readonly ContrastPair[] = [
+  // The empty star slot is a meaningful UI element (the strip is a five-slot scale),
+  // so it is held to 3:1 rather than the decorative line token's 28 %.
+  {
+    id: "star-empty-on-plate",
+    fg: palette.starEmpty,
+    bg: palette.surface,
+    minimum: 3,
+    role: "ui" as const,
+    note: "--star-empty on the card plate",
+  },
   // Building text on every structural surface it can sit on.
   ...buildingSurfaces.flatMap(({ name, value: bg }) => [
     {
