@@ -1,0 +1,714 @@
+# Entity Registry — Elsa the Explorer
+#
+# PURPOSE: the one machine-readable register of every named fact that crosses a
+# document boundary — the seven collection sets (slugs, room codes, display
+# names, frames), the closed storage-key register, the pack size, and the
+# copy-key index. A check or a generator reads this file; the canonical prose
+# stays in the document named in `source`.
+#
+# LAYOUT: the shape `.claude/scripts/registry.sh` reads — one shape, no
+# variants, because a checker that guesses is worse than no checker.
+#   - a section is a key at column 0 holding a block list, or [] while empty
+#   - an entry starts "- name: <value>", the dash at column 2 (column 0 is the
+#     other allowed column; one column per section)
+#   - an entry's fields sit two columns past the dash; a deeper line belongs to
+#     the field above it; a block list under a field may sit at the field's
+#     column
+#   - a value holding ": " is quoted; a flow list stays on one line; no tabs
+#   - `status` is active | deprecated; entries are never deleted, they are
+#     deprecated, so a consumer sees the retirement
+#   - `source` and every `referenced_by` path must exist on disk
+#   An unsupported line is a defect in this file, not in the reader:
+#   `tests/unit/registry.test.ts` rejects it with the line number before any
+#   assertion runs.
+#
+# SCOPE — what belongs here, and what does not:
+#   - SETS. `entities` holds the closed set of `photos/captions.json` `set`
+#     values: the six rooms plus the automatic shelf (GDD R-A). There is no
+#     second list of sets anywhere; a photo's `set` is one of these slugs or it
+#     lands on the shelf (R-A fallback, `default_for_unassigned`).
+#   - STORAGE. `storage_keys` mirrors ADR-0003 §2 exactly. That register is a
+#     closed set: a new key needs a line in the ADR first, then a line here.
+#   - NUMBERS. `constants` holds only values another document must agree with;
+#     `pack_size` is the 4-card canon (copy deck §0.3, stage-landing §"4-card
+#     canon 2026-11-22").
+#   - COPY KEYS. `copy_keys` is a routing index over the deck, not a copy of it:
+#     it lists key names and never a DE or EN value. The deck is SSOT for both
+#     the string and the one-exclamation rule (§0.4.4); this index exists so a
+#     generator or a reviewer can name a surface's keys without grepping prose.
+#     Room lore keys (`room:<slug>:<surface>`) are spec-owned and live on each
+#     entity, because the deck does not carry them.
+#
+# SSOT (who owns a value; this file never outranks it):
+#   - set membership + completion rules → design/gdd/collection-meta.md R-A..R-I
+#   - room codes and room lore keys     → design/features/archive-fiction.md §2
+#   - display names, chips, copy keys   → design/copy/copy-deck.md (§6.2, §1–§10)
+#   - storage keys and envelope shape   → docs/adr/ADR-0003-state-persistence.md
+#   - pack size                         → copy deck §0.3 + stage-landing canon
+#
+# PROVISIONAL: every display name carries `name_status: provisional`. The GDD's
+# Open Question 2 (wing names final check against the real photos) is open; the
+# slugs and codes are stable, the names are cheap to change before launch.
+
+version: 1
+last_updated: "2026-11-22"
+
+# ─── ENTITIES: the seven collection sets ────────────────────────────────────
+# One entry per `set` value (slug). `kind: room` is a wing that earns a frame;
+# `kind: shelf` is the automatic Neuzugänge shelf, which counts toward the
+# diploma and earns no frame (R-D). `order` is the canonical collection order
+# (copy deck §6.2 — never reorder). `code` is the three-letter room code the
+# archive fiction prints next to the slug; it is not a storage id.
+
+entities:
+  - name: nap-wing
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/mechanics.md
+      - design/features/specs/karte-des-tages.md
+      - docs/test-plan.md
+    code: RUH
+    kind: room
+    order: 1
+    display_de: "Der Ruhesaal"
+    display_en: "The Nap Wing"
+    name_status: provisional
+    chip_de: "Ruhesaal"
+    chip_en: "Nap Wing"
+    frame: "warm amber rim"
+    earns_frame: true
+    counts_toward_diploma: true
+    chase_wing: false
+    default_for_unassigned: false
+    copy_keys:
+      - room:nap-wing:plaque
+      - room:nap-wing:door
+      - room:nap-wing:closed
+    added: 2026-11-22
+    revised: ""
+
+  - name: garden-annex
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/specs/karte-des-tages.md
+    code: GAR
+    kind: room
+    order: 2
+    display_de: "Außenstelle Garten"
+    display_en: "The Garden Annex"
+    name_status: provisional
+    chip_de: "Außenstelle Garten"
+    chip_en: "Garden Annex"
+    frame: "leaf-green rim"
+    earns_frame: true
+    counts_toward_diploma: true
+    chase_wing: false
+    default_for_unassigned: false
+    copy_keys:
+      - room:garden-annex:plaque
+      - room:garden-annex:door
+      - room:garden-annex:closed
+    added: 2026-11-22
+    revised: ""
+
+  - name: departure-hall
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/specs/karte-des-tages.md
+      - design/ux/binder.md
+      - design/ux/interaction-patterns.md
+    code: ABF
+    kind: room
+    order: 3
+    display_de: "Der Abfahrtsaal"
+    display_en: "The Departure Hall"
+    name_status: provisional
+    chip_de: "Abfahrtsaal"
+    chip_en: "Departure Hall"
+    frame: "asphalt-silver rim"
+    earns_frame: true
+    counts_toward_diploma: true
+    chase_wing: false
+    default_for_unassigned: false
+    copy_keys:
+      - room:departure-hall:plaque
+      - room:departure-hall:door
+      - room:departure-hall:closed
+    added: 2026-11-22
+    revised: ""
+
+  - name: ball-room
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/specs/karte-des-tages.md
+    code: BAL
+    kind: room
+    order: 4
+    display_de: "Der Ballsaal"
+    display_en: "The Ball Room"
+    name_status: provisional
+    chip_de: "Ballsaal"
+    chip_en: "Ball Room"
+    frame: "court-blue rim"
+    earns_frame: true
+    counts_toward_diploma: true
+    chase_wing: false
+    default_for_unassigned: false
+    copy_keys:
+      - room:ball-room:plaque
+      - room:ball-room:door
+      - room:ball-room:closed
+    added: 2026-11-22
+    revised: ""
+
+  - name: portrait-room
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/specs/karte-des-tages.md
+      - docs/test-plan.md
+    code: POR
+    kind: room
+    order: 5
+    display_de: "Der Porträtsaal"
+    display_en: "The Portrait Room"
+    name_status: provisional
+    chip_de: "Porträtsaal"
+    chip_en: "Portrait Room"
+    frame: "gold glint"
+    earns_frame: true
+    counts_toward_diploma: true
+    chase_wing: true
+    default_for_unassigned: false
+    copy_keys:
+      - room:portrait-room:plaque
+      - room:portrait-room:door
+      - room:portrait-room:closed
+    added: 2026-11-22
+    revised: ""
+
+  - name: guard-room
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/specs/karte-des-tages.md
+    code: WAC
+    kind: room
+    order: 6
+    display_de: "Der Wachsaal"
+    display_en: "The Guard Room"
+    name_status: provisional
+    chip_de: "Wachsaal"
+    chip_en: "Guard Room"
+    frame: "slate rim"
+    earns_frame: true
+    counts_toward_diploma: true
+    chase_wing: false
+    default_for_unassigned: false
+    copy_keys:
+      - room:guard-room:plaque
+      - room:guard-room:door
+      - room:guard-room:closed
+    added: 2026-11-22
+    revised: ""
+
+  - name: new-acquisitions
+    status: active
+    source: design/gdd/collection-meta.md
+    referenced_by:
+      - design/copy/copy-deck.md
+      - design/features/archive-fiction.md
+      - design/features/mechanics.md
+      - design/features/specs/karte-des-tages.md
+      - design/ux/card-detail.md
+      - design/ux/pack-opening.md
+    code: NEU
+    kind: shelf
+    order: 7
+    display_de: "Neuzugänge"
+    display_en: "New Acquisitions"
+    name_status: provisional
+    chip_de: ""
+    chip_en: ""
+    frame: "neutral"
+    earns_frame: false
+    counts_toward_diploma: true
+    chase_wing: false
+    default_for_unassigned: true
+    copy_keys:
+      - room:new-acquisitions:plaque
+      - room:new-acquisitions:door
+      - room:new-acquisitions:closed
+    added: 2026-11-22
+    revised: ""
+
+# ─── ITEMS: none, deliberately ──────────────────────────────────────────────
+# Cards are per-photo manifest records, not registered items: no card has a
+# gold value, a weight or a stack size, and no document names a collectable
+# that another document must agree with. An empty list is the check that says
+# "looked, none" — a missing section would only say "nobody looked".
+
+items: []
+
+# ─── FORMULAS: none, deliberately ───────────────────────────────────────────
+# Every derived number in this product is computed at render time and stored
+# nowhere (R-C): wing progress, overall progress, the milestone thresholds.
+# They are one-line ratios over the seen-set, defined in the GDD's Formulas
+# section, and no second document restates them as a formula with variables.
+
+formulas: []
+
+# ─── CONSTANTS: numbers two documents must agree on ─────────────────────────
+
+constants:
+  - name: pack_size
+    status: active
+    source: design/copy/copy-deck.md
+    referenced_by:
+      - PRD.md
+      - design/gdd/collection-meta.md
+      - design/ux/interaction-patterns.md
+      - design/ux/stage-landing.md
+      - docs/architecture.md
+      - docs/test-plan.md
+    value: 4
+    unit: cards
+    added: 2026-11-22
+    revised: ""
+
+# ─── STORAGE KEYS: ADR-0003 §2, the closed set ──────────────────────────────
+# Every key is `lucky-elsa.<name>`. `envelope: true` marks a key whose payload
+# is wrapped as `{ "v": n, "data": … }` — the keys that once existed in a bare
+# v1 form and are migrated at boot (ADR-0003 §1, §4). Keys introduced after
+# that migration (`envelope: false`) store a self-describing bare payload. A
+# shape change bumps the suffix and adds a migration step; it never
+# reinterprets bytes in place. `session.v1` is the one sessionStorage key.
+
+storage_keys:
+  - name: lang.v2
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - design/gdd/collection-meta.md
+      - design/ux/stage-landing.md
+    storage: localStorage
+    version: 2
+    envelope: true
+    payload: "'de' | 'en'"
+    owner: i18n.svelte.ts
+    added: 2026-11-22
+    revised: ""
+
+  - name: sound.v2
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - design/gdd/collection-meta.md
+      - design/ux/stage-landing.md
+    storage: localStorage
+    version: 2
+    envelope: true
+    payload: "boolean"
+    owner: audio.svelte.ts
+    added: 2026-11-22
+    revised: ""
+
+  - name: seen.v2
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - design/gdd/collection-meta.md
+      - design/ux/binder.md
+      - design/ux/interaction-patterns.md
+    storage: localStorage
+    version: 2
+    envelope: true
+    payload: "string[] photo ids, order-insensitive"
+    owner: collection.svelte.ts
+    added: 2026-11-22
+    revised: ""
+
+  - name: sets.v1
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - design/gdd/collection-meta.md
+      - design/ux/binder.md
+      - design/ux/stage-landing.md
+    storage: localStorage
+    version: 1
+    envelope: false
+    payload: "{ [setId]: { completedAt, memberCount, manifestStamp } }"
+    owner: collection-meta
+    added: 2026-11-22
+    revised: ""
+
+  - name: flags.v1
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - design/gdd/collection-meta.md
+      - design/ux/binder.md
+      - design/ux/interaction-patterns.md
+      - design/ux/stage-landing.md
+    storage: localStorage
+    version: 1
+    envelope: false
+    payload: "{ milestones, lastManifestStamp, diploma, masterIndex }"
+    owner: collection-meta
+    added: 2026-11-22
+    revised: ""
+
+  - name: visits.v1
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - docs/adr/ADR-0009-pwa.md
+    storage: localStorage
+    version: 1
+    envelope: false
+    payload: "number"
+    owner: pwa/install.ts
+    added: 2026-11-22
+    revised: ""
+
+  - name: install.v1
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - docs/adr/ADR-0009-pwa.md
+    storage: localStorage
+    version: 1
+    envelope: false
+    payload: "{ dismissed, iosShown }"
+    owner: pwa/install.ts
+    added: 2026-11-22
+    revised: ""
+
+  - name: update.v1
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - docs/adr/ADR-0009-pwa.md
+    storage: localStorage
+    version: 1
+    envelope: false
+    payload: "string (dismissed build hash)"
+    owner: pwa/register.ts
+    added: 2026-11-22
+    revised: ""
+
+  - name: session.v1
+    status: active
+    source: docs/adr/ADR-0003-state-persistence.md
+    referenced_by:
+      - docs/adr/ADR-0009-pwa.md
+    storage: sessionStorage
+    version: 1
+    envelope: false
+    payload: "boolean"
+    owner: pwa/install.ts
+    added: 2026-11-22
+    revised: ""
+
+# ─── COPY KEYS: a routing index over the deck, not a copy of it ─────────────
+# Groups follow the copy deck's own sections (1–10). `deck_section` is the
+# deck heading each group mirrors, so a reader lands on the table. The deck
+# is SSOT for every DE and EN value, for which key carries the surface's one
+# `!` (§0.4.4), and for the character budgets; this index only names keys.
+# Room lore keys are not here: they are spec-owned and sit on each entity.
+
+copy_keys:
+  - name: brand_meta
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "1"
+    keys:
+      - brand.name
+      - brand.tagline
+      - meta.title
+      - meta.description
+      - meta.og.site_name
+      - meta.og.locale
+      - meta.html.lang
+      - stage.eyebrow
+    added: 2026-11-22
+    revised: ""
+
+  - name: nav
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "2"
+    keys:
+      - nav.wordmark
+      - nav.wordmark.aria
+      - nav.skip
+      - nav.catalogue
+      - nav.lang.group
+      - nav.lang.de
+      - nav.lang.de.aria
+      - nav.lang.en
+      - nav.lang.en.aria
+      - nav.sound.on
+      - nav.sound.off
+      - nav.sound.aria
+      - nav.view.group
+      - nav.view.all
+      - nav.view.rooms
+      - nav.close.pack
+      - nav.close.card
+      - nav.card.prev
+      - nav.card.next
+    added: 2026-11-22
+    revised: ""
+
+  - name: stage
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "3"
+    keys:
+      - stage.h1
+      - stage.h1.line1
+      - stage.h1.line2
+      - stage.tagline
+      - stage.lede
+      - stage.cta
+      - stage.cta.busy
+      - stage.cta.empty
+      - stage.seal.aria
+      - stage.seal.edition
+      - stage.hint
+      - progress.overall
+      - progress.masthead
+      - progress.note
+      - zuwachs.line
+      - zuwachs.line.one
+      - demo.note
+      - demo.mixed
+    added: 2026-11-22
+    revised: ""
+
+  - name: pack
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "4"
+    keys:
+      - pack.dialog.title
+      - pack.eyebrow
+      - pack.hint
+      - pack.btn.another
+      - pack.btn.catalogue
+      - pack.list.aria
+      - pack.card.aria
+      - pack.summary
+      - pack.summary.one
+      - pack.stamp.label
+      - pack.lap.line
+      - pack.btn.another.busy
+    added: 2026-11-22
+    revised: ""
+
+  - name: card
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "5"
+    keys:
+      - card.mood
+      - card.set.chip
+      - card.rarity.common
+      - card.rarity.rare
+      - card.rarity.holo
+      - card.stars.aria
+      - card.moment.label
+      - card.moment.imageNote
+      - card.stats.label
+      - card.stats.chip
+      - card.credit
+      - card.serial
+      - card.flip.hint
+      - card.flip.back
+      - card.flip.front
+      - card.btn.another
+      - card.btn.save
+      - card.btn.share
+      - card.share.title
+      - card.share.text
+      - card.share.shared
+      - card.share.copied
+      - card.share.error
+      - card.aria.open
+      - card.aria.position
+      - card.image.alt
+      - card.stamp.line
+    added: 2026-11-22
+    revised: ""
+
+  - name: collection_title
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "6.1"
+    keys:
+      - catalogue.title
+      - catalogue.lede
+      - catalogue.lede.rooms
+      - catalogue.count
+    added: 2026-11-22
+    revised: ""
+
+  - name: collection_set_names
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "6.2"
+    keys:
+      - nap-wing
+      - garden-annex
+      - departure-hall
+      - ball-room
+      - portrait-room
+      - guard-room
+      - new-acquisitions
+    added: 2026-11-22
+    revised: ""
+
+  - name: collection_progress
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "6.3"
+    keys:
+      - set.progress.line
+      - set.row.aria
+      - set.complete.announce
+      - set.complete.note
+      - milestone.25.label
+      - milestone.50.label
+      - milestone.75.label
+      - catalogue.milestone
+      - outfit.25
+      - outfit.50
+      - outfit.75
+    added: 2026-11-22
+    revised: ""
+
+  - name: collection_capstones
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "6.4"
+    keys:
+      - capstone.title
+      - capstone.subtitle
+      - capstone.announce
+      - capstone.date
+      - capstone.myth
+      - capstone.lap
+      - capstone.waiting
+      - plaque.title
+      - plaque.caption
+    added: 2026-11-22
+    revised: ""
+
+  - name: collection_tiles
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "6.5"
+    keys:
+      - tile.badge.location
+      - tile.badge.new
+      - tile.state.collected
+      - tile.state.unseen
+      - tile.aria.open
+      - tile.aria.open.unseen
+      - grid.aria
+      - grid.aria.rooms
+      - view.announce.rooms
+      - view.announce.all
+    added: 2026-11-22
+    revised: ""
+
+  - name: collection_lexikon
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "6.6"
+    keys:
+      - lex:reiselust:term
+      - lex:reiselust:def
+    added: 2026-11-22
+    revised: ""
+
+  - name: states
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "7"
+    keys:
+      - state.loading.stage
+      - state.loading.grid
+      - state.empty.owner
+      - state.empty.count
+      - state.error.catalogue
+      - state.error.retry
+      - state.storage.refused
+      - state.image.failed
+      - state.noscript
+      - state.paging
+    added: 2026-11-22
+    revised: ""
+
+  - name: announcements
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "8"
+    keys:
+      - live.pack.open
+      - live.reveal.done
+      - live.lap.restart
+      - live.lang.switch
+      - live.reset.done
+      - live.flip.back
+      - live.flip.front
+      - live.set.complete
+      - live.milestone
+      - live.capstone
+      - live.zuwachs
+      - live.share
+      - live.view
+    added: 2026-11-22
+    revised: ""
+
+  - name: reset
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "9"
+    keys:
+      - reset.trigger
+      - reset.title
+      - reset.body
+      - reset.confirm
+      - reset.cancel
+    added: 2026-11-22
+    revised: ""
+
+  - name: footer
+    status: active
+    source: design/copy/copy-deck.md
+    deck_section: "10"
+    keys:
+      - footer.mark
+      - footer.line
+      - footer.top
+    added: 2026-11-22
+    revised: ""
