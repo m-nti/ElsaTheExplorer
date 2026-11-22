@@ -58,6 +58,12 @@ jobs:
       - name: Canon gate self-tests
         run: npm run test:canon
 
+      # Documents are read, not compiled: a table row whose field count drifts
+      # from its header renders as a phantom column with no other symptom
+      # (issue #29, eleven rows). Rectangularity is asserted, not reviewed.
+      - name: Markdown table integrity
+        run: npm run gate:tables
+
       - name: Typecheck (tsc)
         run: npm run check:ts
 
