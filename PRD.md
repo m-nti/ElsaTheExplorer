@@ -254,7 +254,7 @@ All of v1 was built in one session. Remaining work is content, not code: put rea
 | R1 | Photos become publicly findable (search, image search, directory listing) | High | `noindex` meta, `robots.txt` disallow, `Options -Indexes`, no scripts in `photos/`; re-check after each upload |
 | R2 | Adding photos gets annoying and the site goes stale | High | File drop plus either PHP live listing or one `npm run photos` command; nothing else to remember |
 | R3 | A pack repeats a card too soon and the visitor thinks it is broken | Medium | Unseen-first draw, no repeat inside a pack, automatic new round with an announcement, progress display, manual "Von vorn" |
-| R4 | Very large originals make the binder slow on mobile | Medium | 720 px display copies on cards and tiles; the original only in the dialog and in "Foto speichern" |
+| R4 | Very large originals make the binder slow on mobile | Medium | Fixed derivative ladder only: tile 360 / pack 720 / detail 1200 / download 1600 px. No UI surface serves the original; "Foto speichern" downloads the 1600 px compressed derivative. `photos.php` generates the renditions at runtime (FTP drop, no redeploy) and never falls back to source bytes. |
 | R5 | German and English drift apart after an edit | Medium | One copy deck and one card bank with both languages next to each other; index-aligned arrays; `npm run qa` checks key strings in both |
 | R6 | A new photo gets inaccurate or generic copy | Medium | Add bilingual per-photo name, mood, description and alt text in `photos/captions.json`; unknown real photos use neutral copy until then |
 | R7 | HEIC cannot be converted anywhere (no Imagick on the host, decoder fails in the browser) | Medium | Owner converts to JPEG locally; the site still lists the file, and the card frame stays readable without the picture |
@@ -285,8 +285,9 @@ Use the sessions to find usability problems, not to make a statistical claim fro
 6. **Rarity mix:** about one in eight cards is rare and one in eight holographic today, decided by
    the photo's own id. Should the owner be able to hand-pick the holographic ones instead?
 7. **Share text:** should a shared link include the card's sentence, or only its printed name?
-8. **Download vs. keep:** "Foto speichern" downloads the original. Is a smaller version better for
-   sharing over messaging apps — and should the site keep every card forever, or retire old ones?
+8. **Download vs. keep:** "Foto speichern" downloads a 1600 px compressed derivative, never the
+   original. If a full-resolution copy is ever wanted, it needs its own explicit action and is
+   out of scope for v2. Resolved 2026-11-22 with ADR-0008.
 
 ---
 

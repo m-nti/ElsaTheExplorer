@@ -1,6 +1,6 @@
 # ADR-0008: Image Derivatives — fixed rendition ladder, no-original rule, `ver`-keyed cache
 
-- **Status**: Proposed (awaiting owner confirmation; only the owner moves this to Accepted)
+- **Status**: **Accepted (owner decision, 2026-11-22)** — ratified with the owner's two derivations confirmed: 1 KB = 1,000 B, and the 4× safety discard guard is a non-delivery safety valve.
 - **Deciders**: owner (final), technical-director (author)
 - **Amends**: `docs/architecture.md` v1.1 — "`photos.php` runtime endpoints — derivative
   contract", "Manifest shape", Performance Budget, Error-State Taxonomy, Known-Defect
@@ -20,9 +20,13 @@ Measured on 2026-11-22, from the real photo store:
 
 - one original is **3.98 MB** (5712×4284, 24.47 MP);
 - the PHP thumbnail path produced a **540×720, 61.9 KB** image — **1.6 %** of the source;
-- `?view=` served the **full 3.98 MB**, and that endpoint is what the card grid and the
-  detail dialog were using. That is a **~64× overdraw** on the single most frequent image
-  request in the app, on mobile data, against a PRD that demands "feels instant on mobile";
+- `?view=` served the **full 3.98 MB** on a UI request, and that endpoint is what the detail
+  dialog was using. Against the ratified `detail` ceilings that is **3.98 MB → ≤ 210 KB JPEG
+  (≈ 19×) / ≤ 150 KB WebP (≈ 27×)**, on mobile data, against a PRD that demands "feels
+  instant on mobile". (An earlier draft of this ADR claimed a ~64× overdraw; that figure
+  divided the original by a 61.9 KB *tile* — a different, already-bounded request. The card
+  grid's measured improvement is 61.9 KB → ≤ 55 KB JPEG tile, ≈ 1.1×, or ≈ 1.4× against the
+  retired 45 KB tile target. Both corrected figures are used throughout.)
 - the manifest emitted `src: "photos/<file>"` for non-HEIC photos and
   `view: "photos.php?view=NAME"` for all of them, so **originals were reachable from the UI
   by design**, and also directly at `/photos/` (bypassing PHP entirely);
@@ -47,41 +51,57 @@ original. Six parts, all binding:
 
 ### 1. Fixed rendition ladder (no arbitrary parameters)
 
-| Rendition | Longest edge | Formats | Byte ceiling |
-| --- | --- | --- | --- |
-| `tile` | 360 | jpeg 78 / webp 72 | ≤ 45 KB |
-| `pack` | 720 | jpeg 80 / webp 74 | ≤ 120 KB |
-| `detail` | 1200 | jpeg 82 / webp 76 | 150 KB target / **210 KB cap** |
-| `download` | 1600 | jpeg 85 / webp 80 | 350 KB target / **500 KB cap** |
+**Byte ceilings are delivery budgets, hard per file** — not safety caps. KB means 1,000 bytes
+throughout. Aim ~20 % under every ceiling; a rung at 95–100 % of its ceiling is a flag, not a
+pass. Safety caps (acceptance/render limits) are a separate set in §4 and are never used as a
+delivery budget.
 
-`?image=NAME&size=tile|pack|detail&format=jpeg|webp` — nothing else is accepted; an unknown
-size or format is `415`. WebP is the default where the client advertises it or asks
-explicitly; JPEG is the fallback and the default elsewhere. Ceilings come from the art-bible
-§8 amendment (ratified 2026-11-22), so art direction and architecture name the same numbers.
+| Rendition | Longest edge | Formats | WebP ceiling | JPEG ceiling |
+| --- | --- | --- | --- | --- |
+| `tile` | 360 | jpeg 78 / webp 72 | **≤ 36 KB** | **≤ 55 KB** |
+| `pack` | 720 | jpeg 80 / webp 74 | **≤ 80 KB** | **≤ 110 KB** |
+| `detail` | 1200 | jpeg 82 / webp 76 | **≤ 150 KB** | **≤ 210 KB** |
+| `download` | 1600 | jpeg 85 / webp 80 | **≤ 350 KB** | **≤ 500 KB** |
+
+Quality numbers are the **starting** quality; the encoder may lower quality (never raise it
+above the start) until the ceiling is met, and no rung ships above its ceiling.
+
+`?image=NAME&size=tile|pack|detail&format=jpeg|webp` — nothing else is accepted; an unknown or
+non-ladder `size`/`format` or a numeric `size=` (e.g. `size=800`) is a **bad parameter → `400`**.
+WebP is the default where the client advertises it or asks explicitly; JPEG is the fallback and
+the default elsewhere. Ceilings come from the art-bible §8 amendment (ratified 2026-11-22), so
+art direction and architecture name the same numbers.
 
 ### 2. Endpoint set
 
 - `?list=1` — manifest (unchanged contract, `no-store`).
 - `?image=NAME&size=…&format=…` — fixed rendition, `public, max-age=31536000, immutable`.
 - `?thumb=NAME` — compatibility alias for `size=pack&format=jpeg` (720 px); deprecated.
-- `?download=NAME` — explicit 1600 px JPEG, `Content-Disposition: attachment`.
+- `?download=NAME[&format=jpeg|webp]` — explicit 1600 px derivative (JPEG default for the
+  attachment, WebP on explicit `format=webp`), `Content-Disposition: attachment`.
 - `?view=NAME` — **retired**: `302` → `?download=NAME`, never source bytes.
 
 ### 3. No-original rule
 
 Every error path returns an error body or a neutral placeholder, never the source. No
-manifest field addresses `photos/<file>`. Error taxonomy: `404` missing, `415`
-unsupported/corrupt, `413` over configured byte/pixel limits, `503` encoder/cache failure
-with `Retry-After`, `405` for anything but `GET`/`HEAD`; `no-store` on all errors; no server
-paths, exception text or source dimensions in any body. Direct `/photos/<file>` access is
-denied via `.htaccess` and/or a store above the webroot (HOST-VERIFIED-PENDING).
+manifest field addresses `photos/<file>`. Error taxonomy: **`400` bad parameters** (unknown or
+non-ladder `size`/`format`, numeric `size=`, ambiguous alias, unknown action), `404` missing,
+`415` unsupported/corrupt source (HEIC with no delegate, undecodable bytes), `413` over
+configured byte/pixel limits, `503` temporary (encoder/cache/lock/pool) with `Retry-After`,
+`405` for anything but `GET`/`HEAD`; `no-store` on all errors; no server paths, exception text
+or source dimensions in any body. Direct `/photos/<file>` access is denied via `.htaccess`
+and/or a store above the webroot (HOST-VERIFIED-PENDING).
 
-### 4. Pre-decode safety limits
+### 4. Pre-decode safety limits (caps — not delivery budgets)
 
-Compressed ≤ 20 MiB; ≤ 24 MP and either edge ≤ 8000 px; decode-memory guard
-(`w × h × 4 × 1.5` against the PHP limit minus headroom) → `413` before any bitmap exists;
-`GET`/`HEAD` only; EXIF orientation normalized; EXIF/GPS stripped by re-encode; extension
-**and** signature allowlist; `basename` + `realpath` inside the store only.
+Compressed ≤ 20 MiB; **≤ 32 MP acceptance** and either edge ≤ 8000 px; decode-memory guard
+(`w × h × 4 × (3.2 oriented worst case | 2.2 unrotated)`, against a **512 MiB** host
+`memory_limit` at a 70 % fraction) → `413` before any bitmap exists, and above the computed
+**28.5 MP GD rendering ceiling** the request takes the Imagick path or `503 memory_ceiling`. `GET`/`HEAD` only; EXIF
+orientation normalized; EXIF/GPS stripped by re-encode; extension **and** signature allowlist;
+`basename` + `realpath` inside the store only. A 60 MP fixture (above the 32 MP acceptance cap)
+is `413` without decoding. These are input/render caps; the byte ceilings in §1 are the
+delivery budgets and are enforced separately on the output.
 
 ### 5. Cache contract
 
@@ -93,18 +113,22 @@ pruning (age + total-size cap) on a small random fraction of misses — no cron.
 
 ### 6. Manifest: `ver` + `images`
 
-Each photo gains `ver` (short hash of `mtime` + `size`) and an `images` block with per-rendition
-URLs and per-rendition `w`/`h`; `src`/`thumb`/`view` remain emitted as deprecated bounded
-renditions. `ver` travels in every URL (`&v=`) so a replacement photo produces new URLs and
-invalidates browser/CDN caches without a redeploy — which is what makes a one-year immutable
-`max-age` safe on a mutable FTP drop folder.
+Each photo gains `ver` (short hash of `mtime` + `size`, or a source hash prefix) and an
+`images` block with per-rendition URLs and oriented per-rendition `w`/`h`. The field is named
+`ver`; it travels in every derivative URL as the query parameter `&v=<ver>`. `src`/`thumb`/
+`view` remain emitted as deprecated bounded aliases of renditions — `thumb` → the 720 `pack`
+rung, `src` → the 1200 `detail` rung, `view` → the `download` rung — and never address a file.
+`ver` in every URL means a replacement photo produces new URLs and invalidates browser/CDN
+caches without a redeploy — which is what makes a one-year immutable `max-age` safe on a
+mutable FTP drop folder.
 
 ## Consequences
 
 **Positive**
 
-- The card grid and dialog request bounded bytes: measured pack rendition is 61.9 KB against
-  a 3.98 MB original, so the dominant image request drops by ~64×.
+- The card grid and dialog request bounded bytes: the reading-room detail drops from a 3.98 MB
+  original to ≤ 210 KB JPEG (≈ 19×) / ≤ 150 KB WebP (≈ 27×); the grid tile, already a 61.9 KB
+  thumbnail, is held to ≤ 55 KB JPEG / ≤ 36 KB WebP.
 - Byte budgets become testable: a closed ladder is the precondition for the CI assertion.
 - Failure modes are exempt from the original by construction, not by branch discipline.
 - Replacements invalidate caches correctly on the first reload after the FTP drop.
@@ -136,8 +160,10 @@ invalidates browser/CDN caches without a redeploy — which is what makes a one-
 
 ## Performance Implications
 
-- Dominant image request: 3.98 MB → 61.9 KB measured (pack). Tile and detail are bounded by
-  table; the download path is user-initiated only.
+- Reading-room detail: 3.98 MB → ≤ 210 KB JPEG / ≤ 150 KB WebP (≈ 19× / ≈ 27×), replacing the
+  `?view=` original that the dialog previously requested. The grid tile was already bounded at
+  61.9 KB and is now held to ≤ 55 KB JPEG / ≤ 36 KB WebP. Tile and detail are bounded by the
+  §1 table; the download path is user-initiated only.
 - No change to CLS: renditions preserve the source aspect ratio and `CardTile` keeps its
   fixed window; `width`/`height` still describe the source ratio.
 - Server: one render per photo+rendition, then disk reads; concurrent cold hits collapse to
@@ -146,9 +172,9 @@ invalidates browser/CDN caches without a redeploy — which is what makes a one-
 
 ## Alternatives Considered
 
-1. **Keep serving originals (`?view=` as-is).** Rejected on measurement: ~64× overdraw on the
-   app's most frequent image request, contradicts PRD §5 performance and R4's spirit, and the
-   dialog does not need 5712 px on a phone.
+1. **Keep serving originals (`?view=` as-is).** Rejected on measurement: the detail dialog was
+   pulling 3.98 MB where ≤ 150–210 KB is the ratified budget (≈ 19–27×), which contradicts PRD
+   §5 performance and R4's spirit, and the dialog does not need 5712 px on a phone.
 2. **Build-time-only derivatives (sharp into the repo).** Rejected: it breaks the owner's FTP
    drop → reload workflow (PRD §7). It survives only as the static fallback for a PHP-less
    deployment.
@@ -168,12 +194,15 @@ invalidates browser/CDN caches without a redeploy — which is what makes a one-
 
 Before this ADR moves to Accepted:
 
-- [ ] Each rendition measured ≤ its ceiling **and** `≠ filesize(source)` (CI: `php -S` + real
+- [ ] Each rendition measured ≤ **its own format's** ceiling (tile 36/55, pack 80/110, detail
+      150/210, download 350/500 KB) **and** `≠ filesize(source)` (CI: `php -S` + real
       `photos.php`; release checklist: live IONOS).
-- [ ] `?image=…&size=orig` / `size=huge` / `format=gif` → `415`, `no-store`, no image bytes.
+- [ ] `?image=…&size=orig` / `size=huge` / `size=800` / `format=gif` → **`400`** (bad parameter),
+      `no-store`, no image bytes. A corrupt/undecodable source → **`415`**.
 - [ ] Missing name → `404`; a 60 MP fixture → `413`; both `no-store`, neither leaks a path.
 - [ ] Forced encoder/cache failure → `503` + `Retry-After`, **never** the source.
-- [ ] `?view=` → `302` to `?download=`, response body byte-identical to the download rendition.
+- [ ] `?view=` → `302` to `?download=`, and the followed response is byte-identical to the
+      `?download=` rendition — never source bytes.
 - [ ] N concurrent cold requests produce **one** render (lock observed), no torn files.
 - [ ] Replacing a photo changes `ver` and therefore every rendition URL.
 - [ ] EXIF-rotated fixture renders upright; GPS tags absent from output.
