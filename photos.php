@@ -149,13 +149,17 @@ final class PhotoError extends RuntimeException
 // Request dispatch (§3.1, §3.2)
 // ---------------------------------------------------------------------------
 
-try {
-    dispatch();
-} catch (PhotoError $error) {
-    errorResponse($error->status, $error->reason, $error->headers);
-} catch (Throwable $error) {
-    error_log('photo: code=internal');
-    errorResponse(500, 'internal');
+// `PHOTO_NO_DISPATCH` is the no-dispatch mode §13.5 names: a test harness includes
+// this file for its functions and answers no request. Production never defines it.
+if (!defined('PHOTO_NO_DISPATCH')) {
+    try {
+        dispatch();
+    } catch (PhotoError $error) {
+        errorResponse($error->status, $error->reason, $error->headers);
+    } catch (Throwable $error) {
+        error_log('photo: code=internal');
+        errorResponse(500, 'internal');
+    }
 }
 
 function dispatch(): never
@@ -538,18 +542,143 @@ function listPhotoNames(): array
 
 function exifOrientation(string $path): int
 {
-    if (!function_exists('exif_read_data')) {
+    if (function_exists('exif_read_data')) {
+        $exif = @exif_read_data($path, 'IFD0');
+        if (is_array($exif) && isset($exif['Orientation'])) {
+            $orientation = (int) $exif['Orientation'];
+            if ($orientation >= 1 && $orientation <= 8) {
+                return $orientation;
+            }
+        }
+    }
+
+    // `exif` is a shared extension on Windows PHP builds and absent from a default
+    // ini: answering 1 there would publish swapped dims and render sideways (D7).
+    // The header parse is the fallback, not a second opinion (#113).
+    return jpegExifOrientation($path);
+}
+
+/**
+ * Orientation from the JPEG APP1/Exif header, read by hand (§7.2, §7.1 step 3).
+ *
+ * Bounded on purpose: at most 64 segments, one APP1 payload of at most 64 KiB read
+ * into memory, no decode, no allocation proportional to the file. Every malformed
+ * shape answers 1 — "unknown" is the only safe value, and this file turns warnings
+ * into exceptions, so nothing here may warn.
+ */
+function jpegExifOrientation(string $path): int
+{
+    $handle = @fopen($path, 'rb');
+    if ($handle === false) {
         return 1;
     }
 
-    $exif = @exif_read_data($path, 'IFD0');
-    if (!is_array($exif) || !isset($exif['Orientation'])) {
+    try {
+        if (@fread($handle, 2) !== "\xFF\xD8") {
+            return 1;
+        }
+
+        // APP1 precedes the scan data in every camera file; 64 segments is far past that.
+        for ($segment = 0; $segment < 64; $segment++) {
+            $marker = @fread($handle, 2);
+            if (!is_string($marker) || strlen($marker) !== 2 || $marker[0] !== "\xFF") {
+                return 1;
+            }
+
+            $code = ord($marker[1]);
+            if ($code === 0xFF) {
+                // A fill byte, not a marker: step back one byte and read again.
+                fseek($handle, -1, SEEK_CUR);
+                continue;
+            }
+            if ($code === 0xD8 || $code === 0xD9 || $code === 0xDA) {
+                return 1; // scan data reached with no Exif APP1
+            }
+            if ($code === 0x01 || ($code >= 0xD0 && $code <= 0xD7)) {
+                continue; // standalone markers carry no length
+            }
+
+            $lengthBytes = @fread($handle, 2);
+            if (!is_string($lengthBytes) || strlen($lengthBytes) !== 2) {
+                return 1;
+            }
+            $length = unpack('n', $lengthBytes)[1];
+            if ($length < 2) {
+                return 1;
+            }
+            $payload = $length - 2;
+
+            if ($code !== 0xE1) {
+                fseek($handle, $payload, SEEK_CUR);
+                continue;
+            }
+
+            $segmentBytes = @fread($handle, $payload);
+            if (!is_string($segmentBytes) || strlen($segmentBytes) !== $payload) {
+                return 1;
+            }
+            if (strncmp($segmentBytes, "Exif\0\0", 6) === 0) {
+                return tiffOrientation(substr($segmentBytes, 6));
+            }
+            // APP1 is also XMP: keep walking to the Exif segment.
+        }
+    } finally {
+        fclose($handle);
+    }
+
+    return 1;
+}
+
+/**
+ * Orientation tag (0x0112) inside an Exif TIFF block: byte order, magic, IFD0.
+ * The block is already in memory (≤ 64 KiB); every read is bounds-checked.
+ */
+function tiffOrientation(string $tiff): int
+{
+    $size = strlen($tiff);
+    if ($size < 8) {
         return 1;
     }
 
-    $orientation = (int) $exif['Orientation'];
+    $order = substr($tiff, 0, 2);
+    if ($order === 'II') {
+        $short = 'v';
+        $long = 'V';
+    } elseif ($order === 'MM') {
+        $short = 'n';
+        $long = 'N';
+    } else {
+        return 1;
+    }
 
-    return ($orientation >= 1 && $orientation <= 8) ? $orientation : 1;
+    if (unpack($short, substr($tiff, 2, 2))[1] !== 42) {
+        return 1;
+    }
+
+    $ifd = unpack($long, substr($tiff, 4, 4))[1];
+    if ($ifd < 8 || $ifd + 2 > $size) {
+        return 1;
+    }
+
+    $count = unpack($short, substr($tiff, $ifd, 2))[1];
+    $entry = $ifd + 2;
+
+    for ($index = 0; $index < $count; $index++) {
+        if ($entry + 12 > $size) {
+            return 1;
+        }
+
+        $tag = unpack("{$short}tag/{$short}type/{$long}count", substr($tiff, $entry, 8));
+        if ($tag['tag'] === 0x0112 && $tag['type'] === 3 && $tag['count'] >= 1) {
+            $value = unpack($short, substr($tiff, $entry + 8, 2))[1];
+
+            return ($value >= 1 && $value <= 8) ? $value : 1;
+        }
+
+        $entry += 12;
+    }
+
+    return 1;
 }
 
 /**

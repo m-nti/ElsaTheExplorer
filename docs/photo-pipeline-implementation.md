@@ -415,9 +415,14 @@ exactly once, then the output is upright with orientation tag 1:
 | 7 | rotate 90° + flip horizontal |
 | 8 | rotate 90° |
 
-GD path: read `exif_read_data($path, ['Orientation'])` guarded by
-`function_exists('exif_read_data')`; **check every `imagerotate()`/`imageflip()`
-return** (`GdImage|false`); on `false` ⇒ `415 source_undecodable`.
+GD path: read `exif_read_data($path, ['Orientation'])` when the extension is
+loaded. It is optional — a shared DLL on Windows PHP builds, absent from a default
+ini — so when it is missing or returns no tag, orientation comes from the JPEG
+APP1/TIFF header directly (`jpegExifOrientation()`: at most 64 segments, one ≤ 64 KiB
+segment, no decode). The manifest dims and the pixels must be oriented on every host,
+not only where `php-exif` happens to be installed (#113). **Check every
+`imagerotate()`/`imageflip()` return** (`GdImage|false`); on `false` ⇒ `415
+source_undecodable`.
 Imagick path: `$im->autoOrientImage()` (or `setImageOrientation(TOPLEFT)` after
 `rotateImage`), then `$im->setImageOrientation(Imagick::ORIENTATION_TOPLEFT)`.
 

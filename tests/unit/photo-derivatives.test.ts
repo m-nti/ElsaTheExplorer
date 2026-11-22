@@ -357,9 +357,16 @@ describe("manifest v2", () => {
     expect(readFileSync(dirs.manifest, "utf8")).not.toContain("srcset");
   }, RENDER_TIMEOUT);
 
-  it("keeps width/height as the oriented source ratio and each rung's own w/h on that ratio", () => {
+  it("keeps width/height as the oriented source ratio and each rung's own w/h on that ratio", async () => {
     const dirs = runDir("orientation");
     expect(generate(dirs).status).toBe(0);
+
+    // The fixture must really be stored 900×1200 with orientation 6, or every
+    // assertion below tests nothing. Named explicitly, not left to a comment.
+    const stored = await sharp(fixtures.rotated).metadata();
+    expect(stored.orientation).toBe(6);
+    expect([stored.width, stored.height]).toEqual([900, 1200]);
+    expect(stored.autoOrient).toMatchObject({ width: 1200, height: 900 });
 
     const manifest = manifestOf(dirs.manifest);
     const rotated = photo(manifest, "rotated.jpg");
@@ -460,6 +467,17 @@ describe("manifest URL prefix", () => {
     expect(isRepoRelativePrefix("photos/derived")).toBe(true);
     expect(isRepoRelativePrefix("photos\\derived")).toBe(true);
   });
+
+  it("lets an explicit --url-prefix win, unchanged", () => {
+    const dirs = runDir("url-prefix", { fixtures: ["landscape"], captions: null });
+    const result = generate(dirs, ["--url-prefix", "https://cdn.example/photos"]);
+
+    expect(result.status, result.stderr).toBe(0);
+
+    const entry = photo(manifestOf(dirs.manifest), "landscape.jpg");
+    expect(entry.images?.tile.jpeg).toBe("https://cdn.example/photos/tile/landscape.jpg");
+    expect(entry.src).toBe("https://cdn.example/photos/detail/landscape.jpg");
+  }, RENDER_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
@@ -844,6 +862,36 @@ describe("input rejection", () => {
 
 const phpAvailable = spawnSync("php", ["-v"], { encoding: "utf8" }).status === 0;
 
+const PHOTOS_PHP = join(ROOT, "photos.php");
+
+/**
+ * `?list=1` from a throwaway copy. `phpArgs` is how the suite reproduces a host
+ * whose PHP build lacks an extension: `-n` ignores every ini, so the optional
+ * `exif` module — a shared DLL on Windows — is not loaded (#113).
+ */
+function runtimeManifest(harness: string, phpArgs: readonly string[] = []): Manifest {
+  const php = spawnSync(
+    "php",
+    [...phpArgs, "-r", '$_GET=["list"=>"1"]; include $argv[1];', join(harness, "photos.php")],
+    { encoding: "utf8", timeout: 60_000 },
+  );
+  expect(php.status, php.stderr).toBe(0);
+  return JSON.parse(php.stdout) as Manifest;
+}
+
+/** Insert an APP1/XMP segment after SOI: Exif is not always the first APP1 a file carries. */
+function withXmpFirst(jpeg: Buffer): Buffer {
+  const payload = Buffer.concat([
+    Buffer.from("http://ns.adobe.com/xap/1.0/\0", "latin1"),
+    Buffer.from('<x:xmpmeta xmlns:x="adobe:ns:meta/"/>', "latin1"),
+  ]);
+  const header = Buffer.alloc(4);
+  header[0] = 0xff;
+  header[1] = 0xe1;
+  header.writeUInt16BE(payload.length + 2, 2);
+  return Buffer.concat([jpeg.subarray(0, 2), header, payload, jpeg.subarray(2)]);
+}
+
 describe.runIf(phpAvailable)("parity with photos.php", () => {
   it("emits the same per-photo field set, ids, source dims and rung dims as ?list=1", () => {
     const dirs = runDir("parity", { fixtures: ["rotated", "landscape", "alpha"], captions: CAPTIONS_PLAIN });
@@ -854,7 +902,7 @@ describe.runIf(phpAvailable)("parity with photos.php", () => {
     const harness = join(tempRoot(), "php");
     mkdirSync(join(harness, "photos"), { recursive: true });
     mkdirSync(join(harness, "scripts"), { recursive: true });
-    writeFileSync(join(harness, "photos.php"), readFileSync(join(ROOT, "photos.php")));
+    writeFileSync(join(harness, "photos.php"), readFileSync(PHOTOS_PHP));
     writeFileSync(join(harness, "scripts", "photo-ladder.json"), readFileSync(LADDER_FILE));
 
     const staticManifest = manifestOf(dirs.manifest);
@@ -863,36 +911,94 @@ describe.runIf(phpAvailable)("parity with photos.php", () => {
     }
     writeFileSync(join(harness, "photos", "captions.json"), readFileSync(join(dirs.source, "captions.json")));
 
-    const php = spawnSync("php", ["-r", '$_GET=["list"=>"1"]; include $argv[1];', join(harness, "photos.php")], {
-      encoding: "utf8",
-      timeout: 60_000,
-    });
+    // Orientation must not depend on which extensions the host's PHP loads. The
+    // windows-latest runner ships the official build with no `exif` ini entry, so the
+    // bare run is the case that failed (#113): 900×1200 (stored) against sharp's 1200×900.
+    for (const [label, phpArgs] of [
+      ["host ini", []],
+      ["no ini (-n)", ["-n"]],
+    ] as const) {
+      const runtime = runtimeManifest(harness, phpArgs);
 
-    expect(php.status, php.stderr).toBe(0);
+      expect(runtime.pipeline, label).toBe(staticManifest.pipeline);
+      expect(runtime.ladder, label).toEqual(staticManifest.ladder);
+      expect(
+        runtime.photos.map((entry) => entry.id).sort(),
+        label,
+      ).toEqual(staticManifest.photos.map((entry) => entry.id).sort());
 
-    const runtime = JSON.parse(php.stdout) as Manifest;
+      // The fixture's real orientation, named rather than inferred from "both agree".
+      const runtimeRotated = photo(runtime, "rotated.jpg");
+      expect([runtimeRotated.width, runtimeRotated.height], `${label}: rotated source dims`).toEqual([1200, 900]);
+      expect(runtimeRotated.aspect, `${label}: rotated aspect`).toBe(1.3333);
 
-    expect(runtime.pipeline).toBe(staticManifest.pipeline);
-    expect(runtime.ladder).toEqual(staticManifest.ladder);
-    expect(runtime.photos.map((entry) => entry.id).sort()).toEqual(staticManifest.photos.map((entry) => entry.id).sort());
+      for (const runtimeEntry of runtime.photos) {
+        const staticEntry = photo(staticManifest, runtimeEntry.filename);
 
-    for (const runtimeEntry of runtime.photos) {
-      const staticEntry = photo(staticManifest, runtimeEntry.filename);
+        // Same field set. `ver` differs by design (§13.4: runtime `mtime-size`, static sha256).
+        expect(Object.keys(staticEntry).sort(), label).toEqual(Object.keys(runtimeEntry).sort());
+        expect(typeof staticEntry.ver).toBe("string");
+        expect(staticEntry.ver.length).toBeLessThanOrEqual(32);
 
-      // Same field set. `ver` differs by design (§13.4: runtime `mtime-size`, static sha256).
-      expect(Object.keys(staticEntry).sort()).toEqual(Object.keys(runtimeEntry).sort());
-      expect(typeof staticEntry.ver).toBe("string");
-      expect(staticEntry.ver.length).toBeLessThanOrEqual(32);
+        expect([staticEntry.width, staticEntry.height], `${label}: ${runtimeEntry.filename}`).toEqual([
+          runtimeEntry.width,
+          runtimeEntry.height,
+        ]);
+        expect(staticEntry.aspect, `${label}: ${runtimeEntry.filename}`).toBe(runtimeEntry.aspect);
 
-      expect([staticEntry.width, staticEntry.height]).toEqual([runtimeEntry.width, runtimeEntry.height]);
-      expect(staticEntry.aspect).toBe(runtimeEntry.aspect);
-
-      for (const rung of RUNGS) {
-        expect(staticEntry.images?.[rung]).toMatchObject({
-          w: runtimeEntry.images?.[rung]?.w,
-          h: runtimeEntry.images?.[rung]?.h,
-        });
+        for (const rung of RUNGS) {
+          expect(staticEntry.images?.[rung], `${label}: ${runtimeEntry.filename} ${rung}`).toMatchObject({
+            w: runtimeEntry.images?.[rung]?.w,
+            h: runtimeEntry.images?.[rung]?.h,
+          });
+        }
       }
     }
   }, RENDER_TIMEOUT);
 });
+
+/**
+ * The orientation read itself, with no PHP extension available at all (#113).
+ * `exif_read_data()` is optional; the manifest dims and the rendered pixels are not.
+ */
+describe.runIf(phpAvailable)("EXIF orientation header parser", () => {
+  const orientationOf = (file: string): number => {
+    const php = spawnSync(
+      "php",
+      [
+        "-n",
+        "-r",
+        "define('PHOTO_NO_DISPATCH', true); require $argv[1]; fwrite(STDOUT, (string) exifOrientation($argv[2]));",
+        PHOTOS_PHP,
+        file,
+      ],
+      { encoding: "utf8", timeout: 30_000 },
+    );
+    expect(php.status, php.stderr).toBe(0);
+    return Number(php.stdout.trim());
+  };
+
+  it("reads the tag with no shared extension loaded", async () => {
+    const dir = join(tempRoot(), "orientation-parser");
+    mkdirSync(dir, { recursive: true });
+    const write = (name: string, bytes: Buffer): string => {
+      const file = join(dir, name);
+      writeFileSync(file, bytes);
+      return file;
+    };
+
+    // Orientation 6 (stored 900×1200) and 8 (stored 1200×900): both are rotations.
+    expect(orientationOf(write("orientation-6.jpg", fixtures.rotated))).toBe(6);
+    const turned = await gradient(1200, 900).jpeg({ quality: 85 }).withMetadata({ orientation: 8 }).toBuffer();
+    expect(orientationOf(write("orientation-8.jpg", turned))).toBe(8);
+
+    // An XMP APP1 may precede the Exif APP1 — keep walking instead of giving up.
+    expect(orientationOf(write("xmp-first.jpg", withXmpFirst(fixtures.rotated)))).toBe(6);
+
+    // Unreadable or absent orientation is 1, never a warning (warnings are exceptions here).
+    expect(orientationOf(write("truncated.jpg", Buffer.from([0xff, 0xd8, 0xff, 0xe1, 0xff, 0xff, 0x45, 0x78])))).toBe(1);
+    expect(orientationOf(write("no-exif.jpg", fixtures.landscape))).toBe(1);
+    expect(orientationOf(write("alpha.png", fixtures.alpha))).toBe(1);
+  }, 60_000);
+});
+
