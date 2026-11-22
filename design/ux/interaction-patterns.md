@@ -27,7 +27,7 @@
 > part of the flow may be redesigned; only what earns its place survives:
 > the photo→card pipeline, the unseen-first walk, holo-as-material,
 > DE/EN parity, no-tracking localStorage persistence, static hosting. The
-> last "Open-card fit and pack theatre" block in `assets/css/style.css` is
+> last "Open-card fit and pack theatre" block in `legacy/assets/css/style.css` is
 > the active layout precedent; the earlier `.lightbox` rules are dead and the
 > refactor removes them.
 >

@@ -263,9 +263,10 @@ gate ("Bundle + byte budget", `scripts/budget-check.mjs`), gate 10 the PWA byte 
 | Font, per woff2 | > 30 KB | 9 — `font-budget` (`npm run gate:fonts`), #99 | **yes** |
 | Bay overflow, CLS, strings over budget | any failure | 7 (`E-OVF-06`, `E-OVF-12`), 5 (`U-CV-01/03`) | **no** — Playwright suite is #24 |
 
-That table is the honest state, not a wish: `.github/gates.json` enforces sixteen steps today
-(gate-manifest, canon, its self-test, table-integrity, art bible token parity, typecheck,
-svelte-check, stylelint, selector-diff, unused-css, eslint, knip, jscpd, unit, build, font-budget)
+That table is the honest state, not a wish: `.github/gates.json` enforces eighteen steps today
+(gate-manifest, canon, its self-test, table-integrity, art bible token parity, internal paths,
+plan status, typecheck, svelte-check, stylelint, selector-diff, unused-css, eslint, knip, jscpd,
+unit, build, font-budget)
 and lists `e2e`, `axe`, `budget`, `pwa` as `pending` against issues #24, #24, #25, #19.
 **The font ceiling is the only enforced byte measure** (#99, a named step since #105); every other
 byte row above is still visible only in a report. Until #25 lands, review is the gate; after it

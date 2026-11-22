@@ -5,6 +5,8 @@
     { "id": "canon-self-test", "script": "test:canon" },
     { "id": "table-integrity", "script": "gate:tables" },
     { "id": "bible-tokens-parity", "script": "gate:parity" },
+    { "id": "internal-paths", "script": "check:paths" },
+    { "id": "plan-status", "script": "gate:plan-status" },
     { "id": "typecheck", "script": "check:ts" },
     { "id": "svelte-check", "script": "check" },
     { "id": "stylelint", "script": "stylelint" },

@@ -1,13 +1,18 @@
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
-const script = fileURLToPath(new URL("../../scripts/font-budget.mjs", import.meta.url));
-const repo = fileURLToPath(new URL("../..", import.meta.url));
-const manifest = JSON.parse(readFileSync(join(repo, "scripts/fonts.json"), "utf8"));
+// One source of path truth: this file's own location, resolved with `node:path`.
+// `new URL("../..", …)` yields a root with a trailing separator (a URL's spelling,
+// not a filesystem path) and a POSIX literal is unresolvable on Windows; both are
+// #104. Every path below is built by `join`/`resolve` from `here`.
+const here = dirname(fileURLToPath(import.meta.url));
+const root = resolve(here, "..", "..");
+const script = join(root, "scripts", "font-budget.mjs");
+const manifest = JSON.parse(readFileSync(join(root, "scripts", "fonts.json"), "utf8"));
 
 const dirs: string[] = [];
 
@@ -34,12 +39,58 @@ function fixture({
   return dir;
 }
 
-function run(root: string) {
-  return spawnSync(process.execPath, [script, root], { encoding: "utf8" });
+function run(target: string, gate = script) {
+  const result = spawnSync(process.execPath, [gate, target], { cwd: root, encoding: "utf8" });
+  expect(result.error).toBeUndefined();
+
+  // A child that never loaded the gate also exits 1, so `expect(status).toBe(1)`
+  // would read a crash as "the budget failed". That is how #104 was diagnosed as
+  // a fixture-path bug when the real message was `ERR_MODULE_NOT_FOUND`. Name it.
+  const verdict = gateVerdict(result.stderr);
+  expect(verdict.started, verdict.started ? "" : `${verdict.detail}\n\n${result.stderr}`).toBe(true);
+  return result;
+}
+
+type Verdict = { started: boolean; detail: string };
+
+/**
+ * Classify a gate run by its stderr: did the gate execute, or did the child die
+ * before any budget verdict (unresolvable dependency, wrong script path)?
+ */
+function gateVerdict(stderr: string): Verdict {
+  const crash = /ERR_MODULE_NOT_FOUND|ERR_PACKAGE_PATH_NOT_EXPORTED|Cannot find (?:package|module)/.exec(
+    stderr,
+  );
+  if (crash) {
+    return {
+      started: false,
+      detail: `the font gate could not start (${crash[0]}) — run \`npm ci\` so fontverter and harfbuzzjs are installed`,
+    };
+  }
+  return { started: true, detail: "" };
 }
 
 afterEach(() => {
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+});
+
+describe("gate harness", () => {
+  it("reads a module-resolution crash as 'did not start', not as a budget verdict", () => {
+    const crash = [
+      "Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'fontverter' imported",
+      "  from C:\\work\\scripts\\font-budget.mjs",
+      "    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:343:9)",
+    ].join("\n");
+
+    expect(gateVerdict(crash)).toEqual({
+      started: false,
+      detail: expect.stringContaining("npm ci"),
+    });
+    expect(gateVerdict("font-budget: public/fonts/chivo-latin.woff2 is 33,252 B over the ceiling")).toEqual({
+      started: true,
+      detail: "",
+    });
+  });
 });
 
 describe("font byte budget", () => {
@@ -83,12 +134,12 @@ describe("font byte budget", () => {
 
 describe("shipped fonts", () => {
   it("keeps every font in public/fonts at or under the 30,000 B ceiling", () => {
-    const result = run(repo);
+    const result = run(root);
     expect(result.stderr).toBe("");
     expect(result.status).toBe(0);
 
     for (const font of manifest.fonts) {
-      expect(statSync(join(repo, font.file)).size).toBeLessThanOrEqual(manifest.budgetBytes);
+      expect(statSync(join(root, font.file)).size).toBeLessThanOrEqual(manifest.budgetBytes);
     }
   });
 

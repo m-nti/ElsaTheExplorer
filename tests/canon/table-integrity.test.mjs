@@ -6,6 +6,8 @@
  * `file:line` plus both field counts; `tables-orphaned` must fail on rows that
  * prose has detached from their header (#75); `tables-clean` must not be fooled
  * by escaped pipes, a missing trailing pipe, or a broken example inside a fence.
+ * The quoted cases (#102) prove a table behind a blockquote marker is judged by
+ * the same header contract, while a quoted fence or a depth change is not.
  * The last case runs the gate against this repo, so a new misaligned or
  * orphaned row in `docs/` or `design/` fails CI on the commit that introduces it
  * (issue #29, lesson L-003).
@@ -89,13 +91,63 @@ describe("table-integrity: what it must not flag", () => {
     expect(code).toBe(0);
     expect(report.status).toBe("clean");
     expect(report.violations).toEqual([]);
-    expect(report.tables).toBe(4);
+    // Four unquoted tables plus the clean blockquote table added for #102.
+    expect(report.tables).toBe(5);
   });
 
   it("exits 2 on a root that does not exist instead of reporting clean", () => {
     const { code, stderr } = run(["--root", join(here, "fixtures", "no-such-root")]);
     expect(code).toBe(2);
     expect(stderr).toContain("root does not exist");
+  });
+});
+
+describe("table-integrity: tables inside blockquotes (issue #102)", () => {
+  it("reports a misaligned row inside a blockquote table", () => {
+    const { code, report } = fixture("tables-quoted-bad");
+    expect(code).toBe(1);
+    expect(report.status).toBe("violations");
+    expect(report.violations).toEqual([
+      expect.objectContaining({
+        file: "tests/canon/fixtures/tables-quoted-bad/bad.md",
+        line: 9,
+        kind: "misaligned",
+        expected: 2,
+        actual: 3,
+      }),
+    ]);
+  });
+
+  it("prints the quoted row's file:line and both field counts to stderr", () => {
+    const { code, stderr } = run(["--root", join(here, "fixtures", "tables-quoted-bad")]);
+    expect(code).toBe(1);
+    expect(stderr).toContain("bad.md:9: expected 2 field(s), found 3");
+  });
+
+  it("fails on a quoted row detached from its quoted header", () => {
+    const { code, report } = fixture("tables-quoted-orphaned");
+    expect(code).toBe(1);
+    expect(report.status).toBe("violations");
+    expect(report.violations[0]).toEqual(
+      expect.objectContaining({
+        file: "tests/canon/fixtures/tables-quoted-orphaned/bad.md",
+        line: 9,
+        kind: "orphan",
+      }),
+    );
+  });
+
+  it("names the first quoted orphan row's file:line on stderr", () => {
+    const { code, stderr } = run(["--root", join(here, "fixtures", "tables-quoted-orphaned")]);
+    expect(code).toBe(1);
+    expect(stderr).toContain("bad.md:9: orphaned table row");
+  });
+
+  it("counts a clean blockquote table and ignores a quoted fence", () => {
+    const { code, report } = fixture("tables-clean");
+    expect(code).toBe(0);
+    expect(report.violations).toEqual([]);
+    expect(report.tables).toBe(5);
   });
 });
 

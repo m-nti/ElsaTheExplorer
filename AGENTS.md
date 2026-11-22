@@ -244,5 +244,5 @@ the fallback ladder spelled out.
 - Framework source, templates and skills:
   `~/.config/opencode/game-studios/source/.claude/`
 - CSS note: the LAST "Open-card fit and pack theatre" block in
-  `assets/css/style.css` is the active layout; earlier `.lightbox` rules are
+  `legacy/assets/css/style.css` is the active layout; earlier `.lightbox` rules are
   dead (full refactor will remove them).

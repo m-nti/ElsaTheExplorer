@@ -8,7 +8,7 @@
 `font-budget` step). **Branch:** `ci/named-steps` · **Base:** `origin/main` (`2a04a2a`).
 
 **Goal:** Every gate `.github/gates.json` declares is a named step that `ci:gates` enforces, so a
-gate can be neither deleted nor left unnamed — 16 enforced instead of 14.
+gate can be neither deleted nor left unnamed — 16 enforced on this branch's base, **18** on the merged tree after #98's two scanners.
 
 **Architecture:** No new machinery. `scripts/ci-gates.mjs` already fails when an enforced gate has
 no `npm run <script>` in `package.json` or no bare `run: npm run <script>` step in `ci.yml`; the two
@@ -104,7 +104,9 @@ entries themselves cannot be dropped silently.
       `Build`.
 
 - [x] **Step 3: Run `npm run ci:gates` — expected GREEN** —
-      `ci-gates: 16 enforced (gate-manifest, canon, canon-self-test, table-integrity,
+      `ci-gates: 18 enforced (gate-manifest, canon, canon-self-test, table-integrity,
+bible-tokens-parity, internal-paths, plan-status, typecheck, svelte-check, stylelint,
+selector-diff, unused-css, eslint, knip, jscpd, unit, build, font-budget)`
       bible-tokens-parity, typecheck, svelte-check, stylelint, selector-diff, unused-css, eslint,
       knip, jscpd, unit, build, font-budget) · pending: e2e (#24), axe (#24), budget (#25),
       pwa (#19)`.

@@ -74,6 +74,18 @@ jobs:
       - name: Art bible <-> token parity
         run: npm run gate:parity
 
+      # An internal link or a backticked path that no longer resolves is invisible
+      # to every other gate: `canon` reads the words, `gate:tables` reads the rows.
+      # Issue #61: a moved file left three README links pointing at nothing.
+      - name: Internal paths (links and backticked repo paths)
+        run: npm run check:paths
+
+      # A plan that calls a merged PR "in review" tells the reader to wait for
+      # work that is done. Degrades to a warning without `gh` or a token, so this
+      # step can never be the reason a tokenless CI run is red.
+      - name: Plan status vs. merged PRs
+        run: npm run gate:plan-status
+
       - name: Typecheck (tsc)
         run: npm run check:ts
 
