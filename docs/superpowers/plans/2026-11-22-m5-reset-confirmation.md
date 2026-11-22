@@ -164,7 +164,9 @@ it("is a no-op without a region", () => { expect(() => new AnnouncerStore(() => 
 - Test: `tests/unit/reset.test.ts` (create)
 
 **Interfaces:**
-- Produces: `interface ResetPorts { wipe(): number; resetCollection(): void; resetPreferences(): void; translate(key: "live.reset.done"): string; announce(message: string): void }`; `performReset(ports?: ResetPorts): { clearedKeys: number; announcement: string }`; `defaultResetPorts`.
+- Produces: `interface ResetPorts { wipe(): number; resetCollection(): void; resetPreferences(): void; translate(key: "live.reset.done"): string; announce(message: string): void }`; `performReset(ports: ResetPorts): { clearedKeys: number; announcement: string }`.
+
+> **Execution amendment (recorded in the ledger):** the singleton wiring lives in the dialog's confirm handler, not in a `reset.svelte.ts`. A wiring module of six closures with no unit-testable surface lowered the Vitest function-coverage floor below 50 % on CI (47.61 %); `performReset` keeps its 100 %-covered pure seam and the component supplies the ports. Same order, same ports, one fewer module.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -177,7 +179,7 @@ it("announces the German line after preferences return to default", () => { expe
 
 - [ ] **Step 2: Run and watch it fail.**
 
-- [ ] **Step 3: Implement** `performReset` in that order; `defaultResetPorts` wires `persistence.wipe`, `collection.reset`, `audio.setMuted(true)` + `i18n.setLocale("de")`, `i18n.t` and `announcer.say`. No Reactivity here — this file is a plain module.
+- [ ] **Step 3: Implement** `performReset` in that order; the dialog's confirm handler builds the ports from `persistence.wipe`, `collection.reset`, `audio.setMuted(true)` + `i18n.setLocale("de")`, `i18n.t` and `announcer.say`. No reactivity in `reset.ts` — it is a plain module.
 
 - [ ] **Step 4: Verify green.**
 
