@@ -1,0 +1,12 @@
+{
+  "maxBaseline": 1,
+  "entries": [
+    {
+      "file": "design\\spec.md",
+      "match": "\"Das Sammelheft hat Zuwachs.\" is retained",
+      "status": "baseline",
+      "issue": 85,
+      "reason": "fixture: baselined row reached through a key written with the Windows separator"
+    }
+  ]
+}
