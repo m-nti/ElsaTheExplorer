@@ -38,3 +38,6 @@ tests/fixtures/image-sources.json
 
 # duplicate-code reports
 reports/
+
+# svelte-check artifacts
+.svelte-check/
