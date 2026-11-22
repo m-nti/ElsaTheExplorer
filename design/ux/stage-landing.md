@@ -108,7 +108,7 @@ The stage remains scrollable behind them; the dialogs themselves do not scroll
 | Trigger | Source Screen / State | Transition Type | Data Passed In | Notes |
 |---------|----------------------|-----------------|----------------|-------|
 | Page load | — (browser) | Instant, no transition | URL params (`lang`, `photo`) | Language resolved before app init |
-| Dialog close (pack or card) | PackOpening / CardDetail | Modal returns focus | Focus lands on the accession CTA (or the originating pack card) | Specified in child specs |
+| Dialog close (pack or card) | PackOpening / CardDetail | Modal returns focus | Focus lands on the accession CTA when the dialog was opened from the stage; child specs own the in-dialog return (the pack card / the lightbox trigger) | Specified in child specs |
 | "Nach oben" footer link | Footer | Smooth scroll (instant under reduced motion) | — | Anchors to `#stage` |
 
 **Exit table**:
@@ -136,11 +136,11 @@ Desktop (≥1120px wide viewport):
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ ┌── stage (#stage, entrance hall) ───────────────────────────────┐   │
 │ │  ┌── stage__copy ─────────────┐   ┌── stage__crate ─────────┐  │   │
-│ │  │ KATALOG I  (eyebrow)       │   │  ╔═══════════════════╗  │  │   │
+│ │  │ SAMMLUNG I  (eyebrow)      │   │  ╔═══════════════════╗  │  │   │
 │ │  │                            │   │  ║ ╭─ foil frame ─╮  ║  │  │   │
 │ │  │                            │   │  ║ │ photo teaser  │  ║  │   │
 │ │  │ WAS STECKT                 │   │  ║ │   (cover)     │  ║  │   │
-│ │  │ IM KATALOG?     (h1, 2 ln) │   │  ║ ╰───────────────╯  ║  │  │   │
+│ │  │ IN DER SAMMLUNG? (h1, 2 ln)│   │  ║ ╰───────────────╯  ║  │  │   │
 │ │  │                            │   │  ║  🐾  ELSA THE      ║  │  │   │
 │ │  │ Vier Karten pro Pack, min- │   │  ║      EXPLORER      ║  │  │   │
 │ │  │ destens eine glänzt. Jede  │   │  ║  1. Auflage        ║  │  │   │
@@ -196,7 +196,7 @@ scroll at 320px.
 | `.lang-switch` DE/EN | Button group (`aria-pressed`) | Masthead | Switch all copy instantly | Yes | Yes |
 | `.sound-toggle` | Toggle button (`aria-pressed`) | Masthead | Sound on/off, persists | Yes | Yes |
 | `.stage__eyebrow` | Text | Hall copy | "Sammlung I" / "Collection I" (D1) | Yes | Yes (copy updated) |
-| `.display` H1 | Heading | Hall copy | "Was steckt im Sammlung?" — the exploration invitation, two lines | Yes | Yes (copy updated) |
+| `.display` H1 | Heading | Hall copy | "Was steckt in der Sammlung?" — the exploration invitation, two lines | Yes | Yes (copy updated) |
 | `.stage__lede` | Text | Hall copy | Loop rules in one sentence, library register | Yes | Yes (copy updated) |
 | `#open-pack` | Primary button | Hall copy | Text CTA, same action as the seal | Yes | Yes |
 | "Zur Sammlung" | Text link | Hall copy | Browse-first path for the reader persona | Yes | Yes (relabelled) |
@@ -323,7 +323,7 @@ depends on — with its empty label, and the seal is disabled with it.
 | Language switch | `lang:change-request` | `{ lang }` | Persistence system | Persists + re-renders; UI re-renders on the system's confirmation |
 | Sound toggle | `sound:toggle-request` | `{ on }` | Persistence system + audio system | |
 | Anchor to the collection | `nav:katalog` | — | UI only (scroll) | No state change |
-| (Vertical Slice) Zuwachs line dismissed once any new card is collected | `flags:zuwachs-ack` | `{ ackedIds }` | Persistence system | Clears the line via a flags update — dismissal key is cataloguing, not pack opening (R8) |
+| (Vertical Slice) Zuwachs line dismissed once any new card is collected | `flags:zuwachs-ack` | `{ ackedIds }` | Persistence system | Clears the line via a flags update — dismissal key is the first new card collected, not pack opening (R8) |
 | (none) | — | — | — | No analytics exist on this project by explicit PRD decision; no event may add telemetry |
 
 ---
@@ -406,10 +406,11 @@ column is filled by the accessibility audit before Approved):
 6. Sound toggle
 7. "Pack öffnen" CTA
 8. "Zur Sammlung" text link
-9. Catalogue track (`role="progressbar"` — status only, **not** focusable, skipped)
-10. Pack seal (last interactive element of the stage; Tab continues into the collection section per `binder.md` §12)
+9. Pack seal (last interactive element of the stage; Tab continues into the collection section per `binder.md` §12)
 
-Cycle: natural page Tab order, no trap (no modal here).
+Cycle: natural page Tab order, no trap (no modal here). The catalogue track
+(`role="progressbar"`) is status-only and **not** in the Tab order — it is not
+a stop, so it is not numbered above.
 
 **Screen reader announcements for key state changes**:
 
@@ -447,7 +448,7 @@ the museum register lives in the words, not in new required reading.
   screen reads four, and the holo/rare still lands late (3rd or 4th). The H1 is
   untouched — it never stated a count.
 - Copy mapping is now fixed in the deck: eyebrow → "Sammlung I" / "Collection I"
-  (D1 — "Das Kartenwerk" survives only inside `meta.title`); H1 → "Was steckt im
+  (D1 — "Das Kartenwerk" survives only inside `meta.title`); H1 → "Was steckt in der
   Sammlung?" / "What's in the collection?" (D2); the collection is **Die Sammlung /
   The Collection** (owner canon 2026-11-22); the lede keeps the loop rules and gains
   the wink ("… bevor eine wiederkommt — Ordnung muss sein." / "… before any repeats —
@@ -458,7 +459,7 @@ the museum register lives in the words, not in new required reading.
   `meta.description` → "Ein Kartenarchiv für eine sehr wichtige Hündin: Pack öffnen,
   vier Karten lesen, die Sammlung füllen. Sechs Säle, ein Hauptporträt. Ohne Konto,
   ohne Tracking." / "A card archive for a very important dog: open a pack, read four
-  cards, fill the catalogue. Six rooms, one Portrait of Record. No account, no
+  cards, fill the collection. Six rooms, one Portrait of Record. No account, no
   tracking." (copy-deck sync 2026-11-22).
 
 > *Copy-deck sync 2026-11-22 (D1, D2, D5):* the page eyebrow is "Sammlung I" /

@@ -228,6 +228,27 @@ describe("canon-check: allowlist discipline", () => {
     expect(report.allowlist.baseline).toBe(0);
   });
 
+  it("applies an entry whose `file` key uses the Windows separator", () => {
+    // The key is data, not host output: an author on a Windows checkout writes
+    // `design\spec.md`, a Linux author writes `design/spec.md`, and both must
+    // cover the same line. Before the fix the comparison normalised only the
+    // scanned path, so this entry covered nothing and the row read as a defect.
+    const { code, report } = fixture("backslash-allowlist");
+    expect(code).toBe(0);
+    expect(report.status).toBe("clean");
+    expect(report.allowlist.allowed).toBe(1);
+  });
+
+  it("counts a Windows-keyed baseline row instead of painting it green", () => {
+    // `--strict`, `baselineHits` and the cap all read `entry.file`; a key in the
+    // other host's shape must still resolve to its row, or a known defect stops
+    // being counted and the ratchet reports a pass it did not earn.
+    const { code, report } = fixture("backslash-baseline");
+    expect(code).toBe(0);
+    expect(report.allowlist.baseline).toBe(1);
+    expect(report.allowlist.baselineHits).toBe(1);
+  });
+
   it("fails a stale entry — the allowlist must not outlive the text", () => {
     const { code, report } = fixture("stale");
     expect(code).toBe(2);
@@ -266,5 +287,82 @@ describe("canon-check: baseline ratchet", () => {
     const { code, report } = fixture("overcap");
     expect(code).toBe(1);
     expect(report.violations.some((violation) => violation.rule === "baseline")).toBe(true);
+  });
+});
+
+describe("canon-check: report paths", () => {
+  it("reports POSIX paths on every host", () => {
+    // The allowlist is written `design/art/art-bible.md`; a host that reported
+    // `design\art\art-bible.md` would match no entry and a clean tree would read
+    // as 128 violations. The report is the gate's contract, so it is host-neutral.
+    const { report } = run([]);
+    expect(report.scanned.filter((path) => path.includes("\\"))).toEqual([]);
+  });
+});
+
+describe("canon-check: Svelte template surface (D12b)", () => {
+  const svelteHits = () => {
+    const { report } = fixture("svelte-template");
+    return report.violations.filter((violation) => violation.file === "src/App.svelte");
+  };
+
+  it("flags template text for the German and the English entity rule", () => {
+    const { code } = fixture("svelte-template");
+    expect(code).toBe(1);
+    const rules = svelteHits()
+      .filter((violation) => violation.line === 7 || violation.line === 8)
+      .map((violation) => `${violation.line}:${violation.rule}`);
+    expect(rules).toEqual(["7:entity-de", "8:entity-en"]);
+  });
+
+  it("flags copy-bearing attributes: alt, aria-label, title, placeholder", () => {
+    const lines = svelteHits()
+      .filter((violation) => violation.line > 8 && violation.line < 16)
+      .map((violation) => violation.line);
+    expect(lines).toEqual([11, 13, 14, 15]);
+  });
+
+  it("never reads a <script>, <style> or comment body as copy", () => {
+    // Line 3 (script literal) and line 20 (stylesheet content) are the ones a
+    // string-literal reader would flag; a hit on them is the false positive this
+    // masks. Line 25 proves the state closes.
+    expect(svelteHits().map((violation) => violation.line)).toEqual([
+      7, 8, 11, 13, 14, 15, 25,
+    ]);
+  });
+
+  it("leaves class/id hooks alone", () => {
+    const terms = svelteHits().map((violation) => violation.term);
+    expect(terms).not.toContain("katalog-grid");
+    expect(terms).not.toContain("katalog-liste");
+    expect(svelteHits().some((violation) => violation.line === 6)).toBe(false);
+  });
+
+  it("keeps the archival concept legal in Svelte markup", () => {
+    const { code, report } = fixture("clean");
+    expect(code).toBe(0);
+    expect(report.scanned).toContain("src/Clean.svelte");
+  });
+});
+
+describe("canon-check: the real tree (D12b)", () => {
+  it("names every Svelte template whose text it read", () => {
+    // `scanned` already listed the file before #49; this is the assertion that the
+    // *template* was read, so a regression to markup-only is a red test.
+    const { report } = run([]);
+    expect(report.templates).toEqual([
+      "src/App.svelte",
+      "src/lib/components/CardDialog.svelte",
+      "src/lib/components/CardFace.svelte",
+      "src/lib/components/CardTile.svelte",
+    ]);
+  });
+
+  it("keeps the real tree clean and the baseline empty", () => {
+    const { code, report } = run([]);
+    expect(code).toBe(0);
+    // main after #72: the #31 baseline burned down to zero; this ticket adds no entry.
+    expect(report.allowlist.maxBaseline).toBe(0);
+    expect(report.allowlist.baseline).toBe(0);
   });
 });
