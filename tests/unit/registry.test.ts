@@ -175,7 +175,9 @@ function parseRegistry(source: string): ParsedRegistry {
     pendingList = null;
   };
 
-  source.split("\n").forEach((raw, index) => {
+  // `\r?\n`, not "\n": a Windows checkout is CRLF by design (`core.autocrlf=true`, no
+  // .gitattributes), and a trailing "\r" turns `entities:` into an unreadable key (#68).
+  source.split(/\r?\n/).forEach((raw, index) => {
     const line = index + 1;
     if (raw.includes("\t")) throw new RegistryLayoutError(line, "a tab", "spaces only");
     const trimmed = raw.trim();
@@ -422,6 +424,16 @@ beforeAll(() => {
 describe("the layout reader", () => {
   it("accepts the shape the registry uses", () => {
     expect(() => parseRegistry("entities:\n  - name: x\n    status: active\n")).not.toThrow();
+  });
+
+  it("accepts a CRLF checkout, as core.autocrlf=true produces", () => {
+    // Windows checks this repo out with CRLF and no .gitattributes, so every line ends
+    // in "\r\n" (#68). A reader that splits on "\n" only sees `entities:\r` and reports
+    // a valid section key as a keyless scalar.
+    const parsed = parseRegistry("entities:\r\n  - name: x\r\n    status: active\r\n");
+    const entities = section(parsed, "entities");
+    expect(entities.map((entry) => entry.name)).toEqual(["x"]);
+    expect(field(entities[0]!, "status")).toBe("active");
   });
 
   it("rejects a tab in the indent", () => {
