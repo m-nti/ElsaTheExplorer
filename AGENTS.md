@@ -85,6 +85,22 @@ Work is committed in coherent checkpoints and pushed regularly; features land as
 PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
 resolution status in a comment.
 
+## Standing rule — inventory skills AND agents before every task
+
+Before any task, the conductor and every dispatched agent survey both catalogues, then load
+the right crew and the right skill suite.
+
+- **Skills, global:** `~/.config/opencode/skills/`, `~/.claude/skills/`, `~/.agents/skills/`,
+  plugin-provided (Superpowers, Game Studios).
+- **Skills, project:** `.opencode/skills/`, `.claude/skills/`, `.agents/skills/`.
+- **Agents:** `~/.config/opencode/agents/` (49 studio agents + cs-* crew), project
+  `.opencode/agents/`, built-in `general`/`explore`.
+
+Then: match task domains → load all relevant skills together; pick the best-fitting
+subagent crew per workstream (specialist over generalist); name both in the plan; and the
+**conductor loads skills for its own work too** — it is not exempt because it delegates.
+State what was considered, chosen, and why the rest were not. No inventory, no task.
+
 ## Standing rule — watch CI on every push; red is not allowed to sit
 
 After every push: `gh pr checks <n>`; on failure read `gh run view <run-id> --log-failed`.
