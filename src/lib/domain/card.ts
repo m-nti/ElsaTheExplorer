@@ -10,7 +10,7 @@ export interface CardFaceModel {
   /** Visible chip text: the non-colour rarity backup (Häufig / Selten / Holo-Pracht). */
   readonly rarityLabel: string;
   /** Star count in the strip: the second non-colour rarity backup. */
-  readonly stars: number;
+  readonly stars: 0 | 1 | 2 | 3;
   readonly edition: string;
   readonly keyword: string;
   readonly story: string;

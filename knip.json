@@ -17,8 +17,10 @@
   "ignore": [
     "tests/canon/fixtures/**"
   ],
+  "ignoreBinaries": [
+    "php"
+  ],
   "ignoreDependencies": [
-    "sharp",
     "heic2any"
   ],
   "ignoreExportsUsedInFile": true
