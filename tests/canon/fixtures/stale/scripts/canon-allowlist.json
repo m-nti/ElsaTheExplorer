@@ -1,0 +1,11 @@
+{
+  "maxBaseline": 0,
+  "entries": [
+    {
+      "file": "design/spec.md",
+      "match": "Das Heft hat Zuwachs.",
+      "status": "allowed",
+      "reason": "fixture: text was rewritten but the entry stayed"
+    }
+  ]
+}

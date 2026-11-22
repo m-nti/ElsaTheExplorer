@@ -1,0 +1,11 @@
+{
+  "maxBaseline": 1,
+  "entries": [
+    {
+      "file": "design/spec.md",
+      "match": "\"Das Heft hat Zuwachs.\" is live",
+      "status": "baseline",
+      "reason": "fixture: baseline entry with no issue reference must be rejected"
+    }
+  ]
+}

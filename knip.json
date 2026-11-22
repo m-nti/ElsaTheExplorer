@@ -4,16 +4,19 @@
     "index.html",
     "src/lib/stores/*.svelte.ts",
     "tests/unit/**/*.test.ts",
+    "tests/canon/**/*.test.mjs",
     "scripts/*.mjs"
   ],
   "project": [
     "src/**/*.{ts,svelte}",
     "design/**/*.ts",
-    "tests/**/*.ts",
+    "tests/**/*.{ts,mjs}",
     "scripts/**/*.mjs",
     "*.config.{ts,js}"
   ],
-  "ignore": [],
+  "ignore": [
+    "tests/canon/fixtures/**"
+  ],
   "ignoreDependencies": [
     "sharp",
     "heic2any"

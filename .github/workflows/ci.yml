@@ -44,6 +44,9 @@ jobs:
       - name: Canon / vocabulary gate
         run: npm run --if-present canon
 
+      - name: Canon gate self-tests
+        run: npm run --if-present test:canon
+
       - name: Typecheck (tsc)
         run: npm run --if-present check:ts
 
