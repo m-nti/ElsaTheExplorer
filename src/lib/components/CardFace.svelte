@@ -47,7 +47,7 @@
           style:object-position={focusToObjectPosition(model.photo.focus)}
           decoding="async"
         />
-        <span class="photo-foil" aria-hidden="true"></span>
+        <span class="foil-photo" aria-hidden="true"></span>
       </figure>
     </div>
 
@@ -80,9 +80,13 @@
       <span class="credit">{model.credit}</span>
     </footer>
 
-      <span class="foil" aria-hidden="true"></span>
-      <span class="glitter" aria-hidden="true"></span>
-      <span class="glint" aria-hidden="true"></span>
+      <span class="foil-rim" aria-hidden="true"></span>
+      <span class="foil-chip" aria-hidden="true"></span>
+      <span class="foil-etch" aria-hidden="true"></span>
+      <span class="foil-glitter" aria-hidden="true">
+        <span class="rays" aria-hidden="true"></span>
+        <span class="glint" aria-hidden="true"></span>
+      </span>
     </div>
   </article>
 </div>
@@ -240,7 +244,7 @@
     object-fit: cover;
   }
 
-  .photo-foil {
+  .foil-photo {
     position: absolute;
     inset: 0;
     border-radius: inherit;
@@ -378,16 +382,19 @@
     white-space: nowrap;
   }
 
-  .foil,
-  .glitter,
-  .glint {
+  .foil-rim,
+  .foil-chip,
+  .foil-etch,
+  .foil-glitter,
+  .glint,
+  .rays {
     position: absolute;
     inset: 0;
     border-radius: inherit;
     pointer-events: none;
   }
 
-  .foil {
+  .foil-rim {
     z-index: 2;
     padding: var(--elsa-spacing-1);
     background: var(--elsa-gradients-foil-pearl);
@@ -399,7 +406,7 @@
     opacity: var(--tier-ring-opacity);
   }
 
-  .glitter {
+  .foil-glitter {
     z-index: 3;
     background-image: var(--elsa-gradients-foil-pastel);
     background-size: var(--elsa-sizes-glitter-size);
@@ -410,6 +417,29 @@
     );
     mix-blend-mode: soft-light;
     opacity: var(--tier-glitter-opacity);
+  }
+
+  /* Chip foil: the rarity chip is the second non-colour backup, so it gets
+     its own sheen rather than riding the rim. */
+  .foil-chip {
+    z-index: 3;
+    background: var(--elsa-gradients-foil-pearl);
+    mix-blend-mode: screen;
+    opacity: var(--tier-glow-opacity);
+  }
+
+  /* Etch: the fine line work over the photo and copy, never over the plate
+     text — the mask starts below the plate band (15.5 %). */
+  .foil-etch {
+    z-index: 5;
+    background-image: var(--elsa-gradients-foil-pastel);
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0 15.5%,
+      var(--elsa-colors-mask) 15.5%
+    );
+    mix-blend-mode: soft-light;
+    opacity: var(--tier-etch-opacity);
   }
 
   .glint {
@@ -447,8 +477,14 @@
       opacity: 0;
     }
 
+    .foil-etch,
+    .foil-glitter {
+      animation: none;
+      opacity: 0;
+    }
+
     .glitter,
-    .photo-foil {
+    .foil-photo {
       opacity: 0;
     }
   }
