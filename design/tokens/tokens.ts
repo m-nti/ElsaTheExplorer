@@ -434,7 +434,9 @@ export const contrastPairs: readonly ContrastPair[] = [
   {
     id: "star-empty-on-plate",
     fg: palette.starEmpty,
-    bg: palette.surface,
+    // The strip sits on the plate gradient's lightest stop, not the flat surface;
+    // measuring against the darker surface would over-report by ~0.04.
+    bg: palette.plateBodyFrom,
     minimum: 3,
     role: "ui" as const,
     note: "--star-empty on the card plate",
