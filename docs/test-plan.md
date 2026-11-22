@@ -615,7 +615,7 @@ No pointer events are issued in this file. Mouse helpers are banned by lint with
 
 | ID | Assertion |
 | --- | --- |
-| E-KBD-01 | Skip link is first in tab order and moves focus to the stage |
+| E-KBD-01 | Skip link ("Direkt zum Pack") is first in tab order and focuses `#open-pack`, the stage's pack trigger |
 | E-KBD-02 | `P` opens a pack; `P` with a modifier or while typing in a field does nothing |
 | E-KBD-03 | Tab order: stage trigger → pack row → catalogue tiles → toggles → reset; DOM order = visual order |
 | E-KBD-04 | Every interactive element shows a visible focus ring: computed outline width ≥ 2 px, offset ≥ 2 px, ratio ≥ 3:1 against adjacent colors |
@@ -663,7 +663,7 @@ net for the refactor, because v1 passed focus checks only by accident.
 | E-FOC-10 | Reset dialog | `Esc` / Cancel / backdrop | Reset trigger |
 | E-FOC-11 | Reset dialog | Confirm | Reset trigger (still in the document) |
 | E-FOC-12 | Diplom | `Esc` | Its opener (pack trigger or progress area) — per implementation contract |
-| E-FOC-13 | Any dialog | Language switch while open | Focus re-anchored to the replacement node, never dropped |
+| E-FOC-13 | Any surface | Language switch, or the view toggle with a tile focused | Focus re-anchored to the node carrying the same `data-focus-id` (the photo id) — never dropped |
 | E-FOC-14 | Detail | Step to next card | Focus stays on the dialog element, never chases content |
 | E-FOC-15 | Any dialog | Close | Focus restoration happens after the native `close` reset (assert in the same microtask window; no 1-frame flash to body) |
 
