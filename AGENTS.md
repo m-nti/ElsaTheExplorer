@@ -85,6 +85,20 @@ Work is committed in coherent checkpoints and pushed regularly; features land as
 PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
 resolution status in a comment.
 
+## Standing rule — parallelize independent work (no artificial serialization)
+
+Before starting, build the dependency graph of the open tickets. Then:
+
+- **Every unblocked ticket starts now, in parallel, one agent per ticket.** If four tickets
+  have no unmet dependency, four agents run.
+- **`Ready` means "start it", not "queue it".** Only genuinely blocked tickets sit in
+  `Backlog`; a long `Ready` column is a smell.
+- **Serializing independent work is a defect**, the same as skipping a skill. If only one
+  ticket is `In Progress` while others are unblocked, the plan is wrong — state why each
+  remaining ticket is blocked, or start it.
+- Dependencies are declared on the issue (`Dependencies` field). "Nobody assigned it" is
+  not a dependency.
+
 ## Standing rule — ticket lifecycle is agent-owned
 
 The owner does not create, move or close tickets. Agents do, autonomously.

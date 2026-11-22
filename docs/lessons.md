@@ -75,3 +75,21 @@ forced an item-by-item check.
 **How to apply.** The PR steward owns this. Rounding up is the failure mode: a finding is
 FIXED only when the evidence is attached, and "deferred" is always named with a reason.
 The merge gate is: every finding accounted for + fresh review + gates green.
+
+---
+
+## L-005 — Independent work runs in parallel; "Ready" is not a queue
+
+**Rule.** Build the dependency graph before starting. Every unblocked ticket starts now,
+one agent per ticket. Serializing independent work is a defect.
+
+**Evidence.** 27 tickets were filed; the first board sync set six P0s to *Ready* and
+**nothing** to *In Progress*. The owner caught it: "why is there no issue in progress?"
+and "are you sure there is only 1 thing that can be currently worked on?" In fact D3
+(art gate), D5 (canon CI), D7 (ADRs) and I1 (photos.php) had no dependency on the
+scaffold and could have started immediately. The queue was invented, not imposed by the
+work.
+
+**How to apply.** At planning time, list each ticket's unmet dependencies. Start
+everything with none. Only blocked tickets wait, and the issue says what blocks them.
+If the board shows one In Progress while others are unblocked, that is the bug.
