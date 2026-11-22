@@ -323,3 +323,22 @@ describe("canon-check: Svelte template surface (D12b)", () => {
     expect(report.scanned).toContain("src/Clean.svelte");
   });
 });
+
+describe("canon-check: the real tree (D12b)", () => {
+  it("names every Svelte template whose text it read", () => {
+    // `scanned` already listed the file before #49; this is the assertion that the
+    // *template* was read, so a regression to markup-only is a red test.
+    const { report } = run([]);
+    expect(report.templates).toEqual([
+      "src/App.svelte",
+      "src/lib/components/CardFace.svelte",
+    ]);
+  });
+
+  it("keeps the real tree clean and the baseline cap at 7", () => {
+    const { code, report } = run([]);
+    expect(code).toBe(0);
+    expect(report.allowlist.maxBaseline).toBe(7);
+    expect(report.allowlist.baseline).toBeLessThanOrEqual(7);
+  });
+});

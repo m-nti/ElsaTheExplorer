@@ -672,6 +672,7 @@ function main() {
   const files = readScanFiles(options.root, DEFAULT_ROOTS);
   const sources = new Map();
   const violations = [];
+  const templates = new Set();
   let lineCount = 0;
 
   for (const file of files) {
@@ -693,6 +694,9 @@ function main() {
         const masked = maskHtmlRegions(line, markupState);
         line = masked.masked;
         markupState = masked.state;
+        // The surfaces read as templates, by path — "App.svelte is scanned" is an
+        // assertion a test can make (#49), not a claim in a comment.
+        if (isSvelteFile(file)) templates.add(posixPath(relativeFile));
       }
       const lineNumber = index + 1;
       const hits = scanLine(line, file, firstSegment, lineNumber);
@@ -758,6 +762,7 @@ function main() {
           // The gated surface, by path: "index.html is scanned" is an assertion
           // a test can make, not a claim in a comment.
           scanned: files.map((file) => posixPath(relative(options.root, file))),
+          templates: [...templates].sort(),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
           allowlist: {
