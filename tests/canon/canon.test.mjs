@@ -361,6 +361,10 @@ describe("canon-check: Svelte template surface (D12b)", () => {
 
 describe("canon-check: the real tree (D12b)", () => {
   it("names every Svelte template whose text it read", () => {
+    // `scanned` is the surface the gate walked; `templates` is what it read as a
+    // template. Deriving the expectation from both means a new component grows the
+    // two lists together (green), while a regression to markup-only drops entries
+    // from `templates` only (red) — a literal list rotted on #80 instead (#90).
     const { report } = run([]);
     expect(report.templates).toEqual(
       report.scanned.filter((file) => file.endsWith(".svelte")).sort(),
