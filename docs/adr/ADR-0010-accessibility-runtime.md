@@ -3,7 +3,7 @@
 - **Status**: **Accepted (owner decision, 2026-11-22 — the owner delegated the remaining decisions: `docs/decisions.md` intro and D-08)**
 - **Deciders**: owner (final), technical-director (author), accessibility-specialist (owner: assistive behaviour, screen-reader support matrix), ux-designer (owner: interaction patterns)
 - **Review**: accessibility-specialist (domain review), `cs-accessibility-engineer` (cross-check), `cs-architecture-reviewer` (cross-document consistency)
-- **Amends**: `docs/architecture.md` — the "Accessibility Architecture" table and the `a11y/announcer.svelte.ts` / `a11y/motion.svelte.ts` sketch under "Stores"; `design/accessibility-requirements.md` — the "Keyboard completeness" skip-link target (superseded by `design/copy/copy-deck.md` §11 D17) and the share-status row's carrier; `design/copy/copy-deck.md` §8 — the region count and the share-status owner; `design/ux/interaction-patterns.md` — the tilt module reads the motion store, not `matchMedia`; `docs/test-plan.md` — E-KBD-01's skip-link wording
+- **Amends**: `docs/architecture.md` — the "Accessibility Architecture" table and the `a11y/announcer.svelte.ts` / `a11y/motion.svelte.ts` sketch under "Stores"; `design/accessibility-requirements.md` — the "Keyboard completeness" skip-link target (superseded by `design/copy/copy-deck.md` §11 D17) and the share-status row's carrier; `design/copy/copy-deck.md` §8 — the region count and the share-status owner; `design/ux/interaction-patterns.md` — the share-status carrier (Share Button, "Live Region Announcement") and the tilt module's motion source; `design/ux/card-detail.md` — the status line is plain text; `design/ux/stage-landing.md` — `#stage` gains `tabindex="-1"` and the empty CTA becomes genuinely `disabled`; `docs/test-plan.md` — E-KBD-01's skip-link wording and E-FOC-13's re-render paths
 - **Related**: `ADR-0006` (gates, coverage floor, document precedence), `ADR-0001` (pinned stack), `ADR-0003` (closed key register), `ADR-0002` (typed tokens, `:focus-visible` ring, enforcement belt), `ADR-0009` (offline/update announcements), `ADR-0005` (typed dictionary)
 
 ## Context
@@ -57,14 +57,15 @@ relocates them into an open dialog). Rules, each of which has a failure behind i
   `Nach Räumen` view toggle, and `showModal()` on `<dialog>` elements that are always in the DOM.
   A region that is destroyed and rebuilt loses the announcement it holds and can miss the next
   one; `{#key}` on the app root is therefore forbidden.
-- **While a modal is open, the same two nodes are relocated into that dialog.** A modal `<dialog>`
-  makes everything outside it inert to assistive technology, so a document-level region is *not*
-  reliably announced while one is up — the document home is the resting place, not the delivery
-  place. On open the announcer `append`s both region nodes to the topmost open `<dialog>`, and on
-  `close` appends them home again: **node identity never changes**, only its parent. Re-parenting
-  is one `append`, not a re-creation, so the region is never empty-and-new. (Nested case: the
-  lightbox over the pack dialog — the regions follow the **topmost** dialog and come back to the
-  pack dialog when it closes, because that dialog is then the topmost.)
+- **While a modal is open, the same two nodes are relocated into that dialog** by
+  `announcer.follow(dialog)` (§2), and `announcer.release()` returns them home on `close` — a modal
+  `<dialog>` makes everything outside it inert to assistive technology, so a document-level region is
+  *not* reliably announced while one is up. The document home is the resting place, not the delivery
+  place. **Node identity never changes**: `follow` is one `append`, not a re-creation, so the region
+  is never empty-and-new, and a marker set on the node before the dialog opens is still there after
+  it closes (E-LIVE-11). (Nested case: the lightbox over the pack dialog — the regions follow the
+  **topmost** dialog and come back to the pack dialog when it closes, because that dialog is then the
+  topmost.)
 - **Write before `showModal()`, always.** Every announcement that reports a modal *opening* (the
   pack-open line, the card-open line) is written while the region is still document-level and live;
   the dialog is shown after the write, in the same task. This is the primary rule because it needs
@@ -101,12 +102,17 @@ export type AnnounceMode = "polite" | "assertive";
 export class AnnouncerStore {
   say(message: string, opts?: { mode?: AnnounceMode; key?: string }): void;
   clear(opts?: { mode?: AnnounceMode }): void;
+  follow(dialog: HTMLDialogElement): void; // move both nodes into the topmost open dialog
+  release(): void;                         // move them back to their home in App
 }
 ```
 
 `architecture.md` sketched `say(message, mode)`. The second parameter becomes an options object —
 a third positional argument for the dedupe key would be unreadable at the call site — and `mode`
-defaults to `polite`, the only mode with call sites.
+defaults to `polite`, the only mode with call sites. `follow` / `release` are the *only* way a
+region's parent changes: the dialog component calls them on open and close, no component appends a
+region itself, and `release` is idempotent so a double `close` event cannot strand a node inside a
+detached dialog.
 
 | Rule | Behaviour | Why |
 | --- | --- | --- |
@@ -137,8 +143,23 @@ region after 20 announced events is what breaks the events, and an empty region 
 | Card lightbox via deep link `?photo=` | nothing — no opener exists | the `<dialog>` element | `#open-pack` |
 | Reset confirmation | the "Von vorn" button | the **Cancel** button (safer default) | "Von vorn" |
 | Diplom | its opener (pack trigger or the progress area) | the `<dialog>` element | the captured opener, `#open-pack` as fallback |
-| Any open dialog, content re-rendered (`←`/`→` card step, view toggle, error entry, reset) | — | focus **stays on the dialog element**; it never chases the new content | — |
-| Any open dialog, the focused node itself replaced (language switch, a re-rendered control) | — | re-anchor to the replacement node, keyed by identity — never dropped | — |
+| Any open dialog, content re-rendered (`←`/`→` card step) | — | focus **stays on the `<dialog>` element**; it never chases the new content (E-FOC-14) | — |
+
+**Re-render with no dialog open or closed** — one behaviour per path, so each one can fail:
+
+| Path | What is replaced | Focus outcome | Row |
+| --- | --- | --- | --- |
+| Language switch (page, dialog or grid) | the focused node itself | re-anchor to the node with the same `data-focus-id` | E-FOC-13 |
+| View toggle (`Alle Karten` ↔ `Nach Räumen`) | the grid; the toggle button is **not** replaced | focus stays on the toggle; if a **tile** held focus, re-anchor to the tile with the same `data-focus-id` | E-FOC-13 |
+| Error entry (manifest failure) | the collection region | focus is **not moved**; if the focused node was inside the replaced region, it takes ladder rung 3 (`#stage`) | E-FOC-17 |
+| Reset confirmed | the dialog closes, the collection re-renders behind it | focus returns to the "Von vorn" trigger and stays there; nothing inside the re-rendered grid is focused | E-FOC-11 |
+
+**The identity key is `data-focus-id`.** Its value is the photo id for tiles and cards,
+`state.<key>` for state messages, and the control's stable id otherwise. "Re-anchor" means query
+`[data-focus-id="<same value>"]` once and focus it; if the node is gone, focus is **not** moved —
+except on the error path, which falls through the ladder. No other attribute, class or index is an
+identity: a positional index re-anchors to the wrong card after a language switch re-orders nothing
+today and a manifest refresh re-orders everything tomorrow.
 
 - **Capture at intent, not at open.** The pack flow disables the trigger and then reveals over
   ~4 s; reading `document.activeElement` when the dialog finally opens returns the dialog.
@@ -162,6 +183,14 @@ region after 20 announced events is what breaks the events, and an empty region 
   Rung 3 is exactly the `#stage` target the old accessibility matrix mentioned; it is the *focus
   fallback*, not the skip link's destination (§5). Depth is capped at three: a chain longer than
   this is a surface that never had a place.
+  **Rung 2 is genuinely unreachable in exactly one state and must stay that way:** the empty
+  collection (`stage-landing` §5.3, "the CTA is genuinely `disabled`"), where closing the reset
+  confirmation lands on `#stage` (E-FOC-16). `aria-disabled` would leave the trigger focusable and
+  make rung 3 dead code — that is why the empty CTA is `disabled`, not styled as such. The other
+  case that disables the trigger is the opening lock, and there the **ordering is a requirement**:
+  a mid-reveal close clears `opening` before the microtask restore, so the trigger is enabled again
+  and rung 2 succeeds (E-FOC-05). A close that restores before releasing the lock would send the
+  visitor to `#stage` from a pack they can immediately reopen.
 - **The trap is native.** `<dialog>` + `showModal()` only — no library, no polyfill, no
   `div` overlay (`interaction-patterns` §"Dialog Open / Close"). Documented fallback: if the
   Safari ≤ 15 verification in `interaction-patterns` "Open Questions" fails, the minimal trap
@@ -185,8 +214,10 @@ export class MotionStore {
   listener, so a preference toggled mid-session is picked up without a reload (E-RM-09). Guarded
   for absence (`typeof matchMedia !== "function"` → `false`) so the Vitest node project can
   import the module.
-- **Exactly one `matchMedia('(prefers-reduced-motion…)` call in the codebase**, in that file.
-  Gate: an ESLint `no-restricted-properties`/`no-restricted-syntax` rule outside it.
+- **Exactly one `matchMedia('(prefers-reduced-motion…)` call in the source tree**, in that file.
+  Gate: an ESLint `no-restricted-properties`/`no-restricted-syntax` rule scoped to **`src/`** —
+  `legacy/` is the frozen v1 tree (`legacy/assets/js/app.js`, `legacy/scripts/qa.mjs`) and is
+  excluded so the gate does not fail on code nobody ships.
 - **Every JS reader consumes the store — including the tilt spring.** `use:tilt` and `lib/tilt.ts`
   read `motion.reduce` and never `matchMedia`;
   `design/ux/interaction-patterns.md`'s Card Tilt implementation note is amended by this ADR to say
@@ -307,7 +338,7 @@ time. A runtime that re-implements activation is a runtime that can break it.
 | A queued / prioritised / scheduled announcer, or an announcement history | A queue contradicts the ratified replacing rule and would read stale beats long after the surface changed | `interaction-patterns` §"Live Region Announcement", `copy-deck` §8 |
 | Per-component live regions, `aria-live` outside `App.svelte`, or a re-created region as a "force re-announce" trick | Re-creation is exactly what loses an announcement; the store's blank-then-write handles the identical-text case | this ADR §1–§2 |
 | A second `role="status"` on a visible status line (share success/failure) | One event speaks once; the store is the voice and the line is the text carrier | this ADR §2, `copy-deck` §8 |
-| Type-ahead over the collection grid (type a name to jump) | Card names are a two-language proper-noun vocabulary with no addressable index, and a type-ahead nobody can see is undiscoverable. Arrows, `Home`/`End` and `Tab` are the whole in-grid map | this ADR §5 |
+| Type-ahead over the collection grid (type a name to jump) | Card names are a two-language proper-noun vocabulary with no addressable index, and a type-ahead nobody can see is undiscoverable. Arrows, `Home`/`End` and `Tab` are the whole in-grid map | this ADR §5; **E-KBD-11 is its regression guard** — letter keys over the grid must stay a no-op, so a future "convenience" type-ahead is a deliberate decision with a failing test, not a silent arrival |
 | A focus-trap library, a `<dialog>` polyfill, or a `div`-based modal | One modal primitive, therefore one focus contract; natives give containment, `Escape` and the backdrop for free | `interaction-patterns` §"Dialog Open / Close" |
 | Announcements for decoration — foil, frames, stamps, confetti, milestone outfits | "Decoration never becomes a second voice" | `copy-deck` §8, "Not announced, by decision" |
 | Any claim of certified conformance | axe is a regression gate, not a certificate; the audit history is the evidence | `design/accessibility-requirements.md`, "Known Intentional Limitations" final row; `ADR-0006` §3 gate 8 |
@@ -321,15 +352,24 @@ judge whether a message was *spoken*. The `Screen reader pass` row of
 "the DOM is right" to "the visitor heard it"; until it runs, no row may be reported as passed in a
 review — the honest status is `NOT ASSESSED`, not green.
 
+Not every row carries that reservation, and saying which is the difference between honesty and
+noise: the rows that assert DOM structure, attributes or pure-function output (`E-LIVE-01`,
+`E-LIVE-07`, `E-LIVE-11`, `E-LIVE-12`, `E-LIVE-13`, `E-A11Y-01`, `U-KEYS-01…03`, `U-A11Y-01`/`02`,
+both grep gates) can be reported green on their own. Every row that claims a message was *spoken*
+or an ordering an utterance depends on (`E-LIVE-02`, `E-LIVE-03`, `E-LIVE-04`, `E-LIVE-06`,
+`E-LIVE-08`, `E-LIVE-09`, `E-JRN-05`) stays `NOT ASSESSED` until the manual pass.
+
 Existing IDs are `docs/test-plan.md` rows. IDs marked **(new)** are added by the story that
 implements the module, per `ADR-0006` §7 ("each story ships its tests and evidence"); this ADR is
 their source until then.
 
 | Decision | Named behaviour | Mechanism | ID |
 | --- | --- | --- | --- |
-| §1 | Exactly two live regions at first paint, both empty, both `aria-atomic`, hidden by clipping only | `tests/e2e/a11y.live.spec.ts`: count `[aria-live], [role=status], [role=alert]`; `textContent === ""` before interaction; computed `display` ≠ `none` | E-LIVE-01 **(new)** |
+| §1 | Exactly two live regions at first paint, both empty, both `aria-atomic`, hidden by clipping only | count `[aria-live], [role=status], [role=alert]`; `textContent === ""`; computed `display` ≠ `none` | E-LIVE-01 **(new)** |
 | §1 | Their home is the app root, as siblings of `<main>` — neither starts inside a `<dialog>` | structural assertion on the initial DOM | E-LIVE-07 **(new)** |
-| §1 | While a modal is open both regions are descendants of the **topmost open dialog** (not inert); after `close` they are back at the app root | open the pack dialog → `#live-status` is inside `dialog[open]`; write → text changes; close → parent is the app root again | E-LIVE-02 **(new)** |
+| §1 | While a modal is open, `#live-status` is a descendant of `dialog[open]` — relocation happened, so it is not inert | open the pack dialog → `expect(region).toBeInside(dialog[open])` | E-LIVE-02 **(new)** |
+| §1 | The relocation preserves node identity: a marker set before opening is still on the same node after closing | `el.__probe = 1` before open; after `close`, `expect(await handle.evaluate(n => n.__probe)).toBe(1)` | E-LIVE-11 **(new)** |
+| §1 | On close the regions are released home: `#live-status`'s parent is the app root again | parent assertion after the dialog's `close` event | E-LIVE-12 **(new)** |
 | §1 | A dialog-opening announcement is written **before** `showModal()`: the region is still document-level when its text changes | `MutationObserver` on the region vs the moment the dialog gains `open` | E-LIVE-08 **(new)** |
 | §2 | Four per-card writes inside one reveal end with the summary as the region's text; no backlog is read afterwards | golden journey | E-JRN-05 |
 | §2 | A second identical message in one session is still announced (blank-then-write) | reset twice; two non-empty writes recorded | E-LIVE-03 **(new)** |
@@ -337,26 +377,30 @@ their source until then.
 | §2 | No message is cleared by time: after 30 s (fake clock) the region text is unchanged | Vitest unit | U-A11Y-02 **(new)** |
 | §2 | No `!` reaches a region | error/share announcement assertions | E-ERR-12 |
 | §2 | The visible line keeps its `!` while the region's copy loses it | i18n string test | U-I18N-17 |
-| §2 | The assertive region is never written on the golden journey | after the journey, `#live-alert` has never had a child text node | E-LIVE-04 **(new)** |
+| §2 | The assertive region is never written — not on the golden journey, not on the share path | after the journey, `#live-alert` has never had a child text node | E-LIVE-04 **(new)** |
 | §2 | The mid-reveal skip line is written **before** the close begins, so the 160 ms close cannot outrun it | pack suite: skip mid-reveal, region text sampled at the start of the close | E-LIVE-06 **(new)** |
-| §2 | Share status is spoken once: exactly one live element in the document, and the visible status line carries the text with no live semantics | count of live elements + `expect(statusLine).not.toHaveAttribute('role', 'status')` | E-LIVE-09 **(new)** |
+| §2 | After a share success, `#live-status` carries the `card.share.shared` string | text assertion on the region only | E-LIVE-09 **(new)** |
+| §2 | The visible share status line exposes no live semantics | one predicate — `role === null && aria-live === null` — asserted on the status line | E-LIVE-13 **(new)** |
 | §3 | All 15 open-path × close-mechanism rows return focus to the named target, restored after the native close reset | `tests/e2e/focus-return.spec.ts` | E-FOC-01…15 |
-| §3 | Empty state (`#open-pack` disabled): closing a dialog lands focus on `#stage`, never `<body>` | `focus-return.spec.ts`, empty-manifest fixture | E-FOC-16 **(new)** |
+| §3 | A mid-reveal close releases the opening lock **before** the microtask restore, so focus lands on `#open-pack` (rung 2), not `#stage` | `focus-return.spec.ts`, skip mid-reveal, assert `#open-pack` is enabled at the restore tick | E-FOC-05 |
+| §3 | Empty fixture: `#open-pack` is `disabled`; closing the **reset confirmation** (`#reset-lap` → `ResetConfirmDialog`) lands focus on `#stage`, never `<body>` | `focus-return.spec.ts` with the empty-manifest fixture: open reset, `Esc`, `document.activeElement` is `#stage` | E-FOC-16 **(new)** |
 | §3 | Stepping cards inside the lightbox keeps focus on the dialog element; it never chases the content | `focus-return.spec.ts` | E-FOC-14 |
-| §3 | A re-render that replaces the focused node re-anchors focus to its replacement (language switch, view toggle, error entry, reset) | `focus-return.spec.ts`, four re-render paths | E-FOC-13 |
+| §3 | A language switch, or a view-toggle re-render with a tile focused, re-anchors to the node carrying the same `data-focus-id` | `focus-return.spec.ts`, both paths | E-FOC-13 |
+| §3 | Error entry moves no focus; when the focused node was inside the replaced region it lands on `#stage` | `focus-return.spec.ts`, both sources mocked failing while a tile holds focus | E-FOC-17 **(new)** |
 | §3 | Focus never lands on `<body>` anywhere in the flow | keyboard journey | E-KBD-05 |
-| §4 | `matchMedia('(prefers-reduced-motion` occurs in exactly one source file | grep / ESLint gate inside `npm run verify` | gate **(new)**, `tests/unit/ci-gates.test.ts` |
+| §4 | `matchMedia('(prefers-reduced-motion` occurs in exactly one file under `src/` (`legacy/` excluded) | grep / ESLint gate, `src/` scope, inside `npm run verify` | gate **(new)**, `tests/unit/ci-gates.test.ts` |
 | §4 | An OS preference change mid-session is picked up live (store and CSS) | `emulateMedia` change | E-RM-09 |
 | §4 | Reduced mode is the settled frame at open — no theatre, no stagger | reduced-motion suite | E-RM-01 |
 | §4 | No rAF-driven animation survives: no sachet, no confetti, no stagger delays | `getAnimations()` on the drop row | E-RM-02 |
-| §4 | Foil and tilt are static and motion layers sit at opacity ≤ 0.3 | `E-RM-03` | E-RM-03 |
+| §4 | Every foil/motion layer sits at computed `opacity ≤ 0.3` and its transform equals the rest matrix, sampled twice 500 ms apart, with no `--px`/`--py` mutation between samples | `emulateMedia({ reducedMotion: 'reduce' })` + two `getComputedStyle` reads per layer | E-RM-03 |
 | §4 | Every announcement that fires in full motion still fires in reduced motion | reduced-motion suite | E-RM-05 |
 | §4 | Same cards, names and rarities as full motion | reduced-motion suite | E-RM-08 |
 | §5 | Every binding resolves through one table; no `on:keydown` outside `App.svelte` except the grid's `move()` registration | Vitest table test + grep gate | U-KEYS-01 **(new)** |
-| §5 | `↑`/`↓` tilt is a no-op when `reduce === true`, and still tilts when it is `false` | Vitest resolver table, both states | U-KEYS-02 **(new)** |
+| §5 | `↑`/`↓` over the open exhibit returns no tilt action when `reduce === true` | Vitest resolver table, reduced state | U-KEYS-02 **(new)** |
+| §5 | `↑`/`↓` over the open exhibit returns the tilt action (7°, clamped) when `reduce === false` | Vitest resolver table, full-motion state | U-KEYS-03 **(new)** |
 | §5 | The skip link is the first Tab stop, its label equals its destination, activating it focuses `#open-pack` | `tests/e2e/keyboard.spec.ts` §6.2 | E-KBD-01 |
 | §5 | The whole journey is completable without a pointer | keyboard suite | E-KBD-10 |
-| §5 | No type-ahead: letter keys over the grid move nothing | keyboard suite, grid focused | E-KBD-11 **(new)** |
+| §5 | No type-ahead: letter keys over the grid move nothing (regression guard for §7's non-goal) | keyboard suite, grid focused | E-KBD-11 **(new)** |
 | §6 | The load-failure state announces exactly once, in the current language, with no `!` | error suite | E-ERR-04, E-ERR-11 |
 | §6 | The failure state's text is visible, not only announced | error suite | E-LIVE-05 **(new)** |
 | §6 | A silent degradation (manifest fallback, HEIC decode) writes nothing to either region | error suite, region text unchanged across the fallback | E-LIVE-10 **(new)** |

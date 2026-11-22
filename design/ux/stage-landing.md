@@ -189,6 +189,7 @@ scroll at 320px.
 | Component Name | Type | Zone | Purpose | Required? | Reuses Existing Component? |
 |----------------|------|------|---------|-----------|---------------------------|
 | `.skip-link` | Link | overlay | Jump focus straight to `#open-pack` (label and target agree) | Yes | Yes — exists, target retargeted |
+| `#stage` | Landmark section, `tabindex="-1"` | Page | The main hall: first content region after the masthead. `tabindex="-1"` makes it a legal **programmatic** focus target for ADR-0010 §3's focus-return ladder (rung 3) while keeping it out of the tab order | Yes | Yes — exists, `tabindex` new |
 | `.masthead__wordmark` | Link | Masthead | "Elsa the Explorer", return to entrance | Yes | Yes (text updated) |
 | `.masthead__count` | Live text | Masthead | Compact catalogue count, mirrors the collection line | Yes | Yes |
 | `.nav-link` ("Zur Sammlung") | Link | Masthead | Anchor to the collection | Yes | Yes (relabelled) |
@@ -218,8 +219,10 @@ Announcement · Empty State · Loading State.
 **Primary focus element on open**: The skip link is first in Tab order (focus
 lands on it only via Tab). After page load with no interaction, no element
 holds programmatic focus. If the page loaded with `?photo=`, focus goes to the
-CardDetail dialog (child spec). In the empty state, focus stays free; the
-disabled CTA carries `aria-disabled` and an explanatory label.
+CardDetail dialog (child spec). In the empty state, focus stays free; the CTA is
+genuinely `disabled` — not `aria-disabled`, because a disabled button leaves the tab
+order and cannot take focus, which is what ADR-0010 §3's focus-return fallback ladder
+depends on — with its empty label, and the seal is disabled with it.
 
 ### 5.4 Information Hierarchy
 

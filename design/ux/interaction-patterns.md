@@ -117,7 +117,7 @@ implementation change.
 | Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Collection (flat + grouped) | Draft |
 | Keyboard Shortcut | Input | Global single-key actions (`P`, `F`, arrows) | Global (page + lightbox) | Draft |
 | Close Button | Input | Icon-only dialog dismissal | Pack Dialog, Card Lightbox | Draft |
-| Live Region Announcement | Feedback | `role="status"` line for non-focus events | Global (`#live`), share status | Draft |
+| Live Region Announcement | Feedback | The two regions of ADR-0010 §1 — `#live-status` (polite) and `#live-alert` (assertive) — for non-focus events; the share status line is plain text, the same string announced | Global, share status | Draft |
 | Empty State | Feedback | Designed "nothing here yet" that tells the curator what to do | Binder grid | Draft |
 | Loading State | Feedback | "Karten werden gesucht" while the manifest resolves | Stage, Binder | Draft |
 | Error State | Feedback | Soft failure copy; never the reader's fault | Binder, Lightbox (share) | Draft |
@@ -455,13 +455,13 @@ implementation change.
 | Hover / Focus | Standard lift + focus ring | pointer / Tab | 80 ms | — | none |
 | Active | Scale 0.98 | press | share sheet opens (mobile) or clipboard write | 60 ms | none (sheet is system UI) |
 | Busy | No visual busy state — `navigator.share` is modal on mobile; on desktop the operation is instant | — | — | — | — |
-| Success | Status line under the actions: "Unterwegs." / "On its way." (copy-deck sync 2026-11-22) | — | `role="status"` text; auto-clears | visible ~3.4 s | soft success chime |
+| Success | Status line under the actions: "Unterwegs." / "On its way." (copy-deck sync 2026-11-22) | — | Announced through `#live-status` as `live.share`; the visible line is **plain text** (no `role`, no `aria-live`) and auto-clears | visible ~3.4 s | soft success chime |
 | Fallback success (clipboard) | Status line: "Link kopiert." / "Link copied." | share API unavailable | `navigator.clipboard` → `execCommand` fallback | as above | soft success chime |
 | Error | Status line: "Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn." / "Copying did not work. The link is up in the address bar — you can get it there." (copy-deck sync 2026-11-22; deck error wording, no `!`) | both fail | Always gives the user a usable next step | as above | soft error thud |
 | Cancelled (AbortError) | Status line stays empty — a cancel is not an event | user closes the share sheet | silent | — | — |
 
 **Accessibility**:
-- Status line is `role="status" aria-live="polite"` — success and failure are announced without moving focus.
+- The status line is a plain element with **no** `role` and **no** `aria-live`; the same string is announced through `#live-status` (`live.share`, ADR-0010 §2), so success and failure are heard once and focus never moves. Two live carriers for one event would speak it twice — the defect this rule exists to prevent.
 - The button's accessible name is just "Teilen" / "Share"; what is shared is unambiguous from context (the open exhibit).
 - Shared payload: title "«name» — eine Elsa-Karte / an Elsa card", text "Aus Elsas Archiv: «{name}»." / "From Elsa's archive: «{name}»." (copy-deck sync 2026-11-22), URL `?photo=<id>&lang=<lang>` — the recipient opens the same entry in the sender's language.
 

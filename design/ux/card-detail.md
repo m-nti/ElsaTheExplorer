@@ -170,7 +170,7 @@ overlay the card's vertical midline at the dialog edges.
 | Dialog chrome | ✕ row, actions row, status, hint | ~30–34svh combined | No | Buttons wrap to 2 rows ≤380px; hint hides ≤380px height |
 | Card slot | The full card (`card--full`) | width = fit formula (§5.3 L1); height = width / 0.70 | No | **Never scrolls, never clips zones — zones are proportioned to fit (L2–L5)** |
 | Chevron zones | ‹ › over the dialog edges, vertically centred on the card | 44×44px each | No | Hidden at catalogue size 1 |
-| Status line | Share/save feedback (`role="status"`) | 1 line | No | Wraps to 2 lines; reserves min-height to avoid reflow |
+| Status line | Share/save feedback — plain text with no live semantics; the same string is announced through `#live-status` (ADR-0010 §2) | 1 line | No | Wraps to 2 lines; reserves min-height to avoid reflow |
 | Confetti/halo dressing | Halo behind card + ground shadow + glare band | around the card | No | Decorative, `aria-hidden`, static under reduced motion |
 
 The dialog never scrolls (`overflow: hidden`, current behaviour kept);

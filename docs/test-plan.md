@@ -663,7 +663,7 @@ net for the refactor, because v1 passed focus checks only by accident.
 | E-FOC-10 | Reset dialog | `Esc` / Cancel / backdrop | Reset trigger |
 | E-FOC-11 | Reset dialog | Confirm | Reset trigger (still in the document) |
 | E-FOC-12 | Diplom | `Esc` | Its opener (pack trigger or progress area) — per implementation contract |
-| E-FOC-13 | Any dialog | Language switch while open | Focus re-anchored to the replacement node, never dropped |
+| E-FOC-13 | Any surface | Language switch, or the view toggle with a tile focused | Focus re-anchored to the node carrying the same `data-focus-id` (the photo id) — never dropped |
 | E-FOC-14 | Detail | Step to next card | Focus stays on the dialog element, never chases content |
 | E-FOC-15 | Any dialog | Close | Focus restoration happens after the native `close` reset (assert in the same microtask window; no 1-frame flash to body) |
 
