@@ -13,6 +13,16 @@ export default defineConfig({
    * four, so local and CI now mean the same thing.
    */
   workers: 4,
+  /**
+   * 60 s, not the 30 s default. The *tests* run in ~3 s; the binding constraint
+   * is context teardown, which Playwright bounds by the same clock and which
+   * has to encode and ditch a video per test (`retain-on-failure` records
+   * every one). Sixteen concurrent browsers on a four-core host therefore end
+   * in "Tearing down context exceeded the test timeout" — a teardown
+   * measurement reported as a failure. The bumped clock only bounds a
+   * pathological hang; it does not slow a passing run.
+   */
+  timeout: 60_000,
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "reports/playwright-html" }],

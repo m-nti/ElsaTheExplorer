@@ -3,6 +3,7 @@
   import CardDialog from "$lib/components/CardDialog.svelte";
   import CardTile from "$lib/components/CardTile.svelte";
   import ResetConfirmDialog from "$lib/components/ResetConfirmDialog.svelte";
+  import CardFaceSlice from "$lib/components/CardFaceSlice.svelte";
   import type { CardFaceModel } from "$lib/domain/card";
   import { cardStars } from "$lib/domain/card-stars";
   import {
@@ -143,9 +144,9 @@
    * Why a query flag rather than a second entry point: the matrix must be built
    * by the same bundle the product ships (same CSS, same component, same
    * tokens), and a second HTML entry would let those drift. The import is
-   * dynamic so the ~6 kB of fixture copy is a separate chunk that the product
-   * page never downloads. B3 replaces this with the manifest loader and deletes
-   * both the flag and `CardFaceSlice.svelte`.
+   * static on purpose — an async chunk left the printed-frame assertion racing
+   * the import on WebKit, and the fixture is ~6 kB of copy that B3 deletes with
+   * the flag. B3 replaces it with the manifest loader.
    */
   const slice = new URLSearchParams(window.location.search).get("slice") === "1";
 
@@ -197,9 +198,7 @@
 <div id="live-alert" class="sr-only" role="alert" aria-atomic="true"></div>
 
 {#if slice}
-  {#await import("$lib/components/CardFaceSlice.svelte") then { default: CardFaceSlice }}
-    <CardFaceSlice />
-  {/await}
+  <CardFaceSlice />
 {:else}
   <main class="reading-room">
     <section class="stage" id="stage" tabindex="-1">
