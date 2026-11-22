@@ -42,6 +42,20 @@ skills in the final report. Skipping a relevant skill is a reportable defect.
   CSS-in-JS; utility frameworks (Tailwind v4 et al.) evaluated and rejected. Accessibility
   tier: **Standard** (committed in `design/accessibility-requirements.md`).
 
+## Standing rule — PR review before merge
+
+Every pull request is reviewed by dedicated reviewer agents/skills, never merged
+on the author's own say-so. Before merge:
+
+1. Activate `code-review` and, where the diff touches IO, paths, auth or data,
+   `security-audit`.
+2. Run at least one reviewer agent — `cs-code-auditor` for code/config, and
+   `cs-architecture-reviewer` when ADRs, contracts or cross-document
+   consistency change. Docs-only PRs still get a consistency review.
+3. Post the review on the PR (`gh pr review …`), with findings tied to files
+   and lines; blockers get `--request-changes`.
+4. No merge until blockers are cleared and the review is recorded on the PR.
+
 ## Standing rule — no small-project bias
 
 Treat this as a production product, always. When choosing tooling, architecture or
