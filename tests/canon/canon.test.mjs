@@ -328,10 +328,14 @@ describe("canon-check: the real tree (D12b)", () => {
   it("names every Svelte template whose text it read", () => {
     // `scanned` already listed the file before #49; this is the assertion that the
     // *template* was read, so a regression to markup-only is a red test.
+    // #80 added CardDialog and CardTile; the expectation follows the tree, so a new
+    // component without a row here is the red test rather than a silent gap.
     const { report } = run([]);
     expect(report.templates).toEqual([
       "src/App.svelte",
+      "src/lib/components/CardDialog.svelte",
       "src/lib/components/CardFace.svelte",
+      "src/lib/components/CardTile.svelte",
     ]);
   });
 
