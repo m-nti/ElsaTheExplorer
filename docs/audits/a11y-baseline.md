@@ -3,7 +3,7 @@
 > **Status**: Baseline audit, complete for the committed Standard tier
 > **Auditor**: `cs-accessibility-engineer`
 > **Date**: 2026-11-22
-> **Scope**: the current, pre-refactor app at project root (`index.html`, `assets/js/app.js`, `assets/js/card-bank.js`, `assets/css/style.css`, `assets/css/cards.css`, `photos.php`, `photos.json`), served at `http://127.0.0.1:4181`
+> **Scope**: the v1 app now archived in `legacy/` (`legacy/index.html`, `legacy/assets/js/app.js`, `legacy/assets/js/card-bank.js`, `legacy/assets/css/style.css`, `legacy/assets/css/cards.css`, `photos.php`, `photos.json`), served at `http://127.0.0.1:4181`
 > **Audited against**: `design/accessibility-requirements.md` — **Standard tier, WCAG 2.2 AA**, committed 2026-11-22
 > **Not audited**: the Svelte 5 refactor (does not exist yet). `design/ux/interaction-patterns.md` is referenced only where it states a commitment the current app already violates.
 > **Method**: source review + dependency-free computed-contrast measurement + headless-Chrome probes of the running app (puppeteer-core, already a devDependency — **no dependency was added**)
@@ -29,7 +29,7 @@ Two claims in the requirements document are **not true of the code** and should 
 
 | Step | Tool | Result |
 |------|------|--------|
-| Source review | Read `index.html`, `assets/js/app.js`, `assets/css/style.css`, `assets/css/cards.css` end to end, plus the card-bank data that carries rendered text (`assets/js/card-bank.js`: lines, names, moods, traits, rarity labels) | Finding IDs below cite exact lines |
+| Source review | Read `index.html`, `legacy/assets/js/app.js`, `legacy/assets/css/style.css`, `legacy/assets/css/cards.css` end to end, plus the card-bank data that carries rendered text (`legacy/assets/js/card-bank.js`: lines, names, moods, traits, rarity labels) | Finding IDs below cite exact lines |
 | Contrast | Purpose-written WCAG 2.x relative-luminance script (no library) — token pairs, alpha compositing, and **pixel sampling of the rendered backdrop** from headless screenshots | §6 |
 | Runtime structure | `puppeteer-core` + installed Chrome, viewports 320/390/414/768/1024/1280/1920 | §7, §8 |
 | Keyboard/focus | Same, tab-order capture, dialog open/close, `P`/`F`/arrows/Escape, skip link, `:focus-visible` computed outlines | §8 |
@@ -55,7 +55,7 @@ Read and applied: **`code-review`** (source-level audit discipline), **`qa-plan`
 
 ### C1 — Reset wipes the collection with one activation, no confirmation, no undo
 
-**Files**: `assets/js/app.js:1095-1102` (`resetLap`), `index.html:144` (`#reset-lap`), `assets/js/app.js:306`
+**Files**: `legacy/assets/js/app.js:1095-1102` (`resetLap`), `index.html:144` (`#reset-lap`), `legacy/assets/js/app.js:306`
 
 ```js
 function resetLap() {
@@ -80,7 +80,7 @@ function resetLap() {
 
 ### M1 — `--quiet` text fails 4.5:1 everywhere it is used (measured)
 
-**Files**: `assets/css/style.css:17` (token), `:309` (`.progress__note`, `.stage__hint`), `:513` (`.pack-dialog__hint`), `:563` (`.print__hint`), `:537` (`.colophon__line`); copy in `index.html:104,107,190,212,160`
+**Files**: `legacy/assets/css/style.css:17` (token), `:309` (`.progress__note`, `.stage__hint`), `:513` (`.pack-dialog__hint`), `:563` (`.print__hint`), `:537` (`.colophon__line`); copy in `index.html:104,107,190,212,160`
 
 **Measured** (text `#756e7d`, 11–12 px; backdrops sampled from rendered pixels immediately beside each string, 1280×900; method validated by a control sample inside the opaque `.colophon`, which returned its token `#100f15` exactly):
 
@@ -100,7 +100,7 @@ Token-only pairs for comparison: `--quiet` on `--bg` 3.86:1, on `--surface` 3.36
 
 ### M2 — The pack dialog's close button is disabled during the reveal, so mouse/touch users cannot skip it
 
-**Files**: `assets/js/app.js:971-977` (`setBusy` disables `els.closePack`), called from `:911`; `index.html:172`
+**Files**: `legacy/assets/js/app.js:971-977` (`setBusy` disables `els.closePack`), called from `:911`; `index.html:172`
 
 **Evidence**: probe — 100 ms after activating "Pack öffnen", `#close-pack-dialog.disabled === true`, and it stays true until the reveal finishes (~2.4 s: 900 ms sachet + 5 × 200 ms stagger + 520 ms settle, `app.js:921-943`). The button remains visible and labelled "Pack schließen", so it looks actionable and does nothing.
 
@@ -110,7 +110,7 @@ Token-only pairs for comparison: `--quiet` on `--bg` 3.86:1, on `--surface` 3.36
 
 ### M3 — Focus falls to `<body>` whenever the controls are disabled at close time
 
-**Files**: `assets/js/app.js:971-977`, `assets/js/app.js:314-316`
+**Files**: `legacy/assets/js/app.js:971-977`, `legacy/assets/js/app.js:314-316`
 
 ```js
 els.packDialog.addEventListener("close", () => {
@@ -126,7 +126,7 @@ els.packDialog.addEventListener("close", () => {
 
 ### M4 — Closing the card dialog does not return focus to the card that opened it
 
-**Files**: `assets/js/app.js:1021-1033`
+**Files**: `legacy/assets/js/app.js:1021-1033`
 
 ```js
 const packCard = previous && els.packDialog.open ? /* matching drop card */ : null;
@@ -141,7 +141,7 @@ const packCard = previous && els.packDialog.open ? /* matching drop card */ : nu
 
 ### M5 — The `P` shortcut fires inside the open pack dialog and destroys the modal's own state
 
-**Files**: `assets/js/app.js:1199-1223` — the dialog branch only checks `els.dialog` (the card dialog); `#pack-dialog` is never consulted before `openPack()`
+**Files**: `legacy/assets/js/app.js:1199-1223` — the dialog branch only checks `els.dialog` (the card dialog); `#pack-dialog` is never consulted before `openPack()`
 
 **Evidence**: probe — with the pack dialog open and focus on its close button, pressing `P` immediately produced `#live` = "Das Pack geht auf." and `#close-pack-dialog.disabled === true`; i.e. a second pack render replaced the first *inside* the open modal and disabled the focused control. Escape afterwards dropped focus to `<body>` (M3).
 
@@ -156,7 +156,7 @@ const packCard = previous && els.packDialog.open ? /* matching drop card */ : nu
 
 ### M6 — The photographs have no text alternative where the collection is browsed
 
-**Files**: `assets/js/app.js:807-815` (`image.alt = "";` for every card image), `:753-773` (tile accessible name), manifest `photos.json` (rich bilingual `alt` per photo), `photos.php` (same field)
+**Files**: `legacy/assets/js/app.js:807-815` (`image.alt = "";` for every card image), `:753-773` (tile accessible name), manifest `photos.json` (rich bilingual `alt` per photo), `photos.php` (same field)
 
 **Evidence**: probe counts **12 images on the page, 0 with non-empty `alt`**. The manifest supplies, e.g., `alt.de` = "Elsa schläft zusammengerollt auf einer grünen Decke." / `alt.en` = "Elsa is curled up asleep on a green duvet." That text reaches only the **full card's** `aria-label` (`app.js:762-770`, prefix "Im Bild:"). A binder tile's name is `Karte 03 öffnen: Deckenhöhlen-Späherin` — the photograph itself is never described.
 
@@ -166,7 +166,7 @@ const packCard = previous && els.packDialog.open ? /* matching drop card */ : nu
 
 ### M7 — A failed image (HEIC decode failure **or** any 404) leaves an empty frame with no text and no announcement
 
-**Files**: `assets/js/app.js:1134-1157` (`convertHeicImage`), `:346-351` (error listener handles **only** `data-heic="true"`), `:807-815` (no `onerror`, no fallback node)
+**Files**: `legacy/assets/js/app.js:1134-1157` (`convertHeicImage`), `:346-351` (error listener handles **only** `data-heic="true"`), `:807-815` (no `onerror`, no fallback node)
 
 **Evidence**: probe — repointed a full-card `<img>` to `photos/definitely-missing.jpg`: `naturalWidth: 0`, `alt: ""`, `#live` unchanged ("Nr. 01. Abgemeldet auf Grün. Häufig."), card accessible name unchanged, and **no fallback text node** exists in `.card__photo`. In the HEIC branch the catch block only sets `data-heic-done` and leaves the broken image (`:1152-1156`) — the same empty frame, silently.
 
@@ -176,7 +176,7 @@ const packCard = previous && els.packDialog.open ? /* matching drop card */ : nu
 
 ### M8 — `prefers-reduced-motion` is not honoured: motes keep animating and pointer tilt still moves the card
 
-**Files**: `assets/js/app.js:1733-1762` (mote loop; `globalAlpha` uses `Math.sin(elapsed …)` at `:1754` and `requestAnimationFrame` re-arms at `:1761` unconditionally), `:1534-1654` (`bindCardShine`; only the *idle* drift is gated at `:1585-1592`; the spring at `:1594-1627` still writes `transform` on every pointer move), `assets/css/style.css:295,330` (hover lifts), `assets/css/cards.css:306`
+**Files**: `legacy/assets/js/app.js:1733-1762` (mote loop; `globalAlpha` uses `Math.sin(elapsed …)` at `:1754` and `requestAnimationFrame` re-arms at `:1761` unconditionally), `:1534-1654` (`bindCardShine`; only the *idle* drift is gated at `:1585-1592`; the spring at `:1594-1627` still writes `transform` on every pointer move), `legacy/assets/css/style.css:295,330` (hover lifts), `legacy/assets/css/cards.css:306`
 
 **Evidence** (both measured, not inferred):
 
@@ -217,7 +217,7 @@ Also note the requirement document still says `lightbox__close` is 42 px (`:146,
 
 ### M10 — Live-region coverage has holes the requirements doc does not admit
 
-**Files**: `index.html:217` (`#live`), `:211` (`#share-status`), `assets/js/app.js:1673-1678` (`announce`), `:1104-1132` (`renderEmpty`), `:1134-1157` (HEIC), `:1095-1102` (reset)
+**Files**: `index.html:217` (`#live`), `:211` (`#share-status`), `legacy/assets/js/app.js:1673-1678` (`announce`), `:1104-1132` (`renderEmpty`), `:1134-1157` (HEIC), `:1095-1102` (reset)
 
 **Announced (verified)**: pack opening, the full pack list with names, per-card open ("Nr. 01. Name. Häufig."), flip front/back, auto-restart when the lap completes, manual reset (**after** the wipe), language switch (in the new language), share success/failure.
 
@@ -254,7 +254,7 @@ Also note the requirement document still says `lightbox__close` is 42 px (`:146,
 | m17 | Flat Tab sequence through every binder tile | `app.js:1072-1093` | 10 tiles today, "200+ photos" per PRD OQ2 tomorrow; no roving tabindex, no per-set landmark. Friction, not a trap | 2.4.1 (quality) |
 | m18 | Reduced-motion mode plays no per-card ticks/chime | `app.js:925-936` (tick only inside the timeout branch) | The requirement doc says sounds still play under reduced motion (`:111`); they do not, for the immediate-append path. Visual parity is unaffected | doc mismatch |
 
-**Adjacent finding — content canon, not an accessibility defect (not counted in §1):** `assets/js/card-bank.js:19,37,51,69` still ships wet-dog/rain lines ("Nass bis auf die Haut…", "Nach dem Regen riecht sie nach nassem Hund…" and their English twins). `AGENTS.md` (canon ruling 2026-11-22) forbids all water content and retires exactly these legacy bank jokes in the build phase. They are reachable today only through demo cards (`app.js:656` uses the bank solely when `photo.demo` is true; real photos carry their own `description`), but they must be rewritten, not re-imported, in the refactor. Flagged here so the rewrite is not lost between the a11y and content workstreams.
+**Adjacent finding — content canon, not an accessibility defect (not counted in §1):** `legacy/assets/js/card-bank.js:19,37,51,69` still ships wet-dog/rain lines ("Nass bis auf die Haut…", "Nach dem Regen riecht sie nach nassem Hund…" and their English twins). `AGENTS.md` (canon ruling 2026-11-22) forbids all water content and retires exactly these legacy bank jokes in the build phase. They are reachable today only through demo cards (`app.js:656` uses the bank solely when `photo.demo` is true; real photos carry their own `description`), but they must be rewritten, not re-imported, in the refactor. Flagged here so the rewrite is not lost between the a11y and content workstreams.
 
 ---
 
@@ -525,7 +525,7 @@ Ordered so that each item is independently shippable and testable. Every P0 is a
 18. Remove the 6 dead copy keys or wire them (m16); add the i18n check to CI so a new `aria-label` cannot ship untranslated.
 19. Binder paging or roving tabindex for 200+ tiles (m17); a per-set `<section>` with a heading keeps the landmark structure honest as the collection grows.
 20. Backdrop-dismiss parity between dialogs (m13); keep the "re-open pack from the card dialog" focus chain specified at `interaction-patterns.md:192` (the 160 ms hand-off is currently a `setTimeout`, `app.js:300-303` — verify focus lands on the new dialog).
-21. CI gates for the new stack: Playwright + axe-core as a CI job (a real dependency addition — decide it in an ADR with the fallback ladder), the Vitest contrast gate over `tokens.ts`, a keyboard walkthrough spec (Tab order, Escape returns, P inert in modals), and a reduced-motion pixel-stability spec. The current project has no automated a11y test at all (`scripts/qa.mjs` is a screenshot pass only).
+21. CI gates for the new stack: Playwright + axe-core as a CI job (a real dependency addition — decide it in an ADR with the fallback ladder), the Vitest contrast gate over `tokens.ts`, a keyboard walkthrough spec (Tab order, Escape returns, P inert in modals), and a reduced-motion pixel-stability spec. The current project has no automated a11y test at all (`legacy/scripts/qa.mjs` is a screenshot pass only).
 
 ---
 
@@ -533,5 +533,5 @@ Ordered so that each item is independently shippable and testable. Every P0 is a
 
 - Contrast: ratios in §6 were produced by a self-contained relative-luminance script (sRGB linearisation, alpha compositing, WCAG thresholds); `--quiet` rows sample the rendered pixels immediately beside each string in a 1× DPR screenshot, with the capture offset verified against the opaque colophon control (`#100f15` round-trip). Re-running the same pairs is deterministic.
 - Runtime: Chrome headless via the project's `puppeteer-core`; viewports 320–1920; `emulateMediaFeatures` for reduced motion; `page.accessibility.snapshot()` for the AX tree. Temporary probe scripts were deleted after the run; this audit created only this report and modified no code or design file.
-- Line numbers refer to the working tree at the audit date. `assets/css/style.css` contains the duplicate `.lightbox` blocks noted in `AGENTS.md`; **the later "Open-card fit and pack theatre" block is the active layout** and the line references above use it (`:652+`).
+- Line numbers refer to the working tree at the audit date. `legacy/assets/css/style.css` contains the duplicate `.lightbox` blocks noted in `AGENTS.md`; **the later "Open-card fit and pack theatre" block is the active layout** and the line references above use it (`:652+`).
 - Next audit: re-run after P0 and P1, with a real screen-reader pass and a Coblis pass, and record the results in the doc's Audit History table.

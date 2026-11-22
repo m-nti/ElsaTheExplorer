@@ -24,20 +24,27 @@ tests/
 | `npm run check` | `svelte-check --tsgo` (compiler API via `@typescript/native` 7) |
 | `npm run check:ts` | `node ./node_modules/@typescript/native/bin/tsc --noEmit` — the 7.0.2 compiler by path, not `.bin/tsc` (install order) |
 | `npm run gate:contrast` | The token contrast gate alone |
+| `npm run check:paths` | Internal links and backticked repo paths must resolve (issue #61) |
+| `npm run gate:plan-status` | A plan may not call a merged PR "in review"; warns without `gh` |
 
 ## Gate order (CI)
 
-1. `tsc --noEmit` (`npm run check:ts`)
-2. `svelte-check --tsgo` (`npm run check`)
-3. Stylelint on scoped CSS (`npm run stylelint`)
-4. Cross-file selector diff (`npm run gate:selectors`)
-5. Unused CSS via the Svelte compiler (`npm run gate:unused-css`)
-6. ESLint (`npm run lint`)
-7. knip (`npm run knip`)
-8. jscpd (duplicate code)
-9. Vitest, including the contrast gate (`npm run test:unit`); coverage attaches when the domain/store suites land
-10. Build (`npm run build`)
-11. Playwright (skipped by CI until the first spec exists)
+1. `ci:gates` — the manifest ratchet: every declared gate has a script and a step
+2. `tsc --noEmit` (`npm run check:ts`)
+3. `svelte-check --tsgo` (`npm run check`)
+4. Stylelint on scoped CSS (`npm run stylelint`)
+5. Cross-file selector diff (`npm run gate:selectors`)
+6. Unused CSS via the Svelte compiler (`npm run gate:unused-css`)
+7. ESLint (`npm run lint`)
+8. knip (`npm run knip`)
+9. jscpd (duplicate code)
+10. Vitest, including the contrast gate (`npm run test:unit`); coverage attaches when the domain/store suites land
+11. Build (`npm run build`)
+12. Playwright (skipped by CI until the first spec exists)
+
+Document gates run before the compilers: `canon` + its self-tests, `gate:tables`,
+`check:paths`, `gate:plan-status`.
+
 
 ## Data rules
 

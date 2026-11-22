@@ -3,7 +3,7 @@
 > **Status**: Draft (v2 — explorer reframe; supersedes the v1 gift-framing draft)
 > **Author**: ux-designer
 > **Last Updated**: 2026-11-22
-> **Links To**: `PRD.md` (product problem, personas, functional requirements), `design/ux/interaction-patterns.md` (every interaction named below is specified there), `design/accessibility-requirements.md` (Standard tier: keyboard-complete, visible focus, 4.5:1 contrast, reduced motion, screen-reader announcements, no color-only information), `assets/js/card-bank.js` (voice of the card copy)
+> **Links To**: `PRD.md` (product problem, personas, functional requirements), `design/ux/interaction-patterns.md` (every interaction named below is specified there), `design/accessibility-requirements.md` (Standard tier: keyboard-complete, visible focus, 4.5:1 contrast, reduced motion, screen-reader announcements, no color-only information), `legacy/assets/js/card-bank.js` (voice of the card copy)
 
 ---
 

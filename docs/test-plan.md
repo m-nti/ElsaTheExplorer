@@ -926,7 +926,7 @@ any step stops the pipeline.
 | # | Gate | Command (contract) | Fails when |
 | --- | --- | --- | --- |
 | 1a | Canon / vocabulary, then its self-tests | `node scripts/canon-check.mjs` → `vitest run --project canon` | Any live copy uses the retired collection name or the retired progress verb (canon: `docs/decisions.md` D-04b; vocabulary SSOT: `design/copy/copy-deck.md` §0); any retired binder noun; any water vocabulary from the canon list (`AGENTS.md` — water); any `!` in error, announcement, reset or aria copy; a stale, ambiguous or unreasoned entry in `scripts/canon-allowlist.json`; a baseline entry beyond the recorded `maxBaseline` |
-| 1b | Markdown table integrity | `node scripts/table-integrity.mjs` | Any table row in `docs/` or `design/` whose field count differs from its header row (GFM renders the surplus cell as a phantom column, or absorbs it into the last one); any row-looking pipe-delimited line separated from its table header by prose, in a section that already shows a table, because GFM then renders those cells as plain text (#75); a `\|` that is not escaped inside a cell counts as a boundary. No allowlist: fix the row |
+| 1b | Markdown table integrity | `node scripts/table-integrity.mjs` | Any table row in `docs/` or `design/` whose field count differs from its header row (GFM renders the surplus cell as a phantom column, or absorbs it into the last one); any row-looking pipe-delimited line separated from its table header by prose, in a section that already shows a table, because GFM then renders those cells as plain text (#75); the same two rules inside a blockquote, with the `>` marker stripped before judging a row and every row required to repeat the header's marker depth, because a quoted table is a table (#102); a `\|` that is not escaped inside a cell counts as a boundary. No allowlist: fix the row |
 | 1 | Typecheck | `tsc --noEmit` then `svelte-check --tsgo` | Any type error in `src/` or tests; TS 7 fallback per ADR-0001 is applied only by the documented alias |
 | 2 | Stylelint + selector diff + unused CSS | `stylelint "src/**/*.{css,svelte}"` → `node scripts/selector-diff.mjs` → Svelte compiler warnings escalated | Raw value where `var()` is required; duplicate selector in a file; duplicate selector **across** files; unused scoped CSS |
 | 3 | ESLint | `eslint .` | Lint error, including `no-restricted-syntax` for `page.waitForTimeout` in `tests/e2e/` |
@@ -990,9 +990,11 @@ bytes.
 
 ### 8.3 Branch protection
 
-Required checks: every gate `.github/gates.json` declares **enforced** — thirteen today
-(canon, canon self-tests, table integrity, typecheck, svelte-check, stylelint, selector
-diff, unused CSS, ESLint, knip, jscpd, Vitest, build). `npm run ci:gates` fails when that
+Required checks: every gate `.github/gates.json` declares **enforced** — eighteen today
+(canon, canon self-tests, table integrity, art bible token parity, internal paths, plan
+status, typecheck,
+svelte-check, stylelint, selector diff, unused CSS, ESLint, knip, jscpd, Vitest, build,
+font byte budget). `npm run ci:gates` fails when that
 list, the `npm run` scripts and the `ci.yml` steps disagree, so the count cannot drift
 again. No `continue-on-error`, no `|| true`, no `--passWithNoTests`. Gate 10 runs on every
 PR (the `pwa` project plus two byte checks —
@@ -1092,7 +1094,7 @@ default checklist because the project is a full refactor with a committed a11y t
       (`U-PWA-07` parity), an eviction path covered by `U-PWA-06`, and an `E-PWA-05/06`
       assertion. An unbounded cache is a NOT-done condition, not a follow-up ticket.
 - [ ] Bundle budgets unchanged, or the increase is documented and approved in the PR.
-- [ ] All thirteen CI gates green on the merged commit (the enforced list in
+- [ ] All eighteen CI gates green on the merged commit (the enforced list in
       `.github/gates.json`; `npm run verify` mirrors it locally).
 - [ ] Screenshots of every touched screen captured to
       `qa-shots/<story-slug>/<viewport>.png` (UI and Visual/Feel stories).

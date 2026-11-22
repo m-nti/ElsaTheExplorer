@@ -12,7 +12,7 @@ product, Elsa is the collection mechanism, and the visitor is an explorer and re
 small, lovingly over-catalogued archive. Where the old bible said "collector's parlour",
 this one says the same room with its true name: a **night library / archive whose only lit
 display is the card under study**. Hex values are mapped from the shipped code
-(`assets/css/style.css`, `assets/css/cards.css`); where this bible changes something, it
+(`legacy/assets/css/style.css`, `legacy/assets/css/cards.css`); where this bible changes something, it
 says so explicitly.
 
 Brand note (actionable): the shipped wordmark, pack seal and card-back mark read

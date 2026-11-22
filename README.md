@@ -78,6 +78,18 @@ failure; `npm run verify` stops at the first failing gate and names it.
 | `npm run canon:strict` | the same gate as a ratchet: the known-defect baseline fails it |
 | `npm run photos` | the sharp derivative generator — **not implemented yet**; it fails loudly until I3 (#21) |
 
+### Pre-commit hook
+
+`npm run prepare` also installs `.githooks/pre-commit`, the cheap gate: it runs ESLint on the
+staged `.js`/`.mjs`/`.cjs`/`.ts`/`.svelte` files only and blocks the commit on any error,
+reporting `file:line` and the rule. There is no build, no typecheck and no autofix in this
+hook; a stage that holds no source file exits immediately.
+
+It reads the working tree rather than the index, so a partially staged file is linted as it
+stands on disk. `pre-push` still runs `npm run verify` over the committed tree; the two hooks
+run cheapest first. `git commit --no-verify` skips it and is not a documented path: lint is
+fixed before the commit, not discovered by CI.
+
 ### Pre-push hook
 
 `npm run prepare` sets `git config core.hooksPath .githooks`, so every push runs
@@ -92,9 +104,10 @@ pull request; a red CI run on work pushed with the hook skipped is attributed, n
 
 ## Gates
 
-Twelve gates are enforced and run by `npm run verify`: `canon` · `canon-self-test` · `typecheck`
-· `svelte-check` · `stylelint` · `selector-diff` · `unused-css` · `eslint` · `knip` · `jscpd` ·
-`unit` · `build`.
+Eighteen gates are enforced and run by `npm run verify`: `gate-manifest` · `canon` ·
+`canon-self-test` · `table-integrity` · `bible-tokens-parity` · `internal-paths` ·
+`plan-status` · `typecheck` · `svelte-check` · `stylelint` · `selector-diff` ·
+`unused-css` · `eslint` · `knip` · `jscpd` · `unit` · `build` · `font-budget`.
 
 Four are **pending** in `.github/gates.json` with their ticket, and cannot report success:
 `e2e` and `axe` (#24), `budget` (#25), `pwa` (#19). Nothing in this README claims them.

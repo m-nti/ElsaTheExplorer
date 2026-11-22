@@ -38,3 +38,27 @@ No table has opened in this section, so the ticket's rule does not apply to a
 row-looking line here and it must not be flagged (issue #75 scope):
 
 | looked | like | a row |
+
+## Inside a blockquote
+
+A quoted table is a table: the marker is stripped and the header still rules.
+
+> | Quoted | Field |
+> | --- | --- |
+> | q-1 | 1 |
+
+A broken example inside a quoted fence stays invisible to the gate:
+
+> ```md
+> | not | a | table |
+> | --- | --- |
+> | broken | two |
+> ```
+
+## Mixed quote depth
+
+A delimiter outside the quote does not close a quoted header, so this pair is
+text, not a table:
+
+> | Quoted | Header |
+| --- | --- |
