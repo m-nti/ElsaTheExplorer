@@ -17,6 +17,9 @@ export default tseslint.config(
       "test-results/**",
       "qa-shots/**",
       "photos/**",
+      // canon fixtures are scanner inputs, not source: they carry the banned copy
+      // and the deliberately unreadable shapes the gate has to catch (#49).
+      "tests/canon/fixtures/**",
     ],
   },
 

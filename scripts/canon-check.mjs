@@ -20,8 +20,12 @@
  *   keeps the archival concept alive ("catalogue number", "the catalogue as an
  *   index"), and the design corpus uses that concept in prose throughout. The
  *   ban applies where a string can reach a visitor: string literals in `src/**`,
- *   quoted copy in specs, the DE/EN value cells of the copy deck, and the
- *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes).
+ *   quoted copy in specs, the DE/EN value cells of the copy deck, the
+ *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes),
+ *   and every Svelte template (`src` tree: text between tags and its
+ *   copy-bearing attributes, #49). A Svelte `<script>`/`<style>`/comment body is
+ *   code, not copy, exactly as `index.html`'s is — copy that belongs in code
+ *   lives in a `.ts` module, which the `src/**` literal reader still scans.
  *
  * Scanned roots are the whole gated corpus, not a sample: every document the
  * phase owns plus the page shell. `README.md` and `index.html` are listed for
@@ -385,9 +389,22 @@ function maskHtmlRegions(line, state) {
   return { masked: out, state };
 }
 
-/** Only the page shell is HTML; `.htm` is accepted because a host may serve it. */
+/** Only the page shell is HTML and only Svelte components are templates. */
 function isHtmlFile(file) {
   return file.endsWith(".html") || file.endsWith(".htm");
+}
+
+function isSvelteFile(file) {
+  return file.endsWith(".svelte");
+}
+
+/**
+ * Markup files get the region mask and the markup reader: `index.html` and any
+ * `.svelte` component. A `.svelte` file is a template, not a module — its copy
+ * lives between tags, which is the surface #49 added.
+ */
+function isMarkupFile(file) {
+  return isHtmlFile(file) || isSvelteFile(file);
 }
 
 /**
@@ -396,11 +413,16 @@ function isHtmlFile(file) {
  * - `src/**`: string literals only. A module named `catalogue` or a local
  *   `const catalog` is code, not copy; only the text a visitor can be shown is
  *   in scope.
+ * - `.svelte`: the template — text nodes and copy-bearing attributes. Its
+ *   `<script>` and `<style>` bodies are masked before this runs: a component body
+ *   is code, exactly as `index.html`'s is, and copy that belongs in code lives in
+ *   a `.ts` module where the literal reader above still reads it (#49).
  * - copy deck: the DE and EN value cells of a keyed row.
  * - HTML: copy-bearing attribute values and text nodes (see `htmlSegments`).
  * - other docs: quoted strings — `"…"`, `*"…"*`, and German „…“.
  */
 function liveSegments(line, file, relativeFile) {
+  if (isSvelteFile(file)) return htmlSegments(line);
   if (relativeFile === "src" || relativeFile.startsWith(`src${sep}`)) {
     const segments = [];
     const literal = /"([^"\\\n]{1,500})"|'([^'\\\n]{1,500})'|`([^`\\\n]{1,500})`/g;
@@ -605,7 +627,9 @@ function applyAllowlist(violations, sources, entries, root) {
       }
       used.add(entry);
       for (const violation of violations) {
-        if (relative(root, violation.file) !== file || violation.line !== matches[0]) continue;
+        if (toPosix(relative(root, violation.file)) !== file || violation.line !== matches[0]) {
+          continue;
+        }
         if (entry.rule && violation.rule !== entry.rule) continue;
         covered.add(`${violation.file}:${violation.line}:${violation.rule}`);
       }
@@ -619,8 +643,18 @@ function applyAllowlist(violations, sources, entries, root) {
   return { active, errors, used };
 }
 
+/**
+ * Allowlist `file` values are repo-relative POSIX paths (`design/copy/copy-deck.md`)
+ * because that is how the corpus is written down. `relative()` is host-shaped: on
+ * Windows it returns `design\copy\copy-deck.md`, so comparing the two directly
+ * silently uncovered every entry and turned a clean run into 128 violations.
+ */
+function toPosix(value) {
+  return value.split(sep).join("/");
+}
+
 function describe(violation, root) {
-  const file = relative(root, violation.file);
+  const file = toPosix(relative(root, violation.file));
   return `  ${violation.rule.padEnd(10)} ${file}:${violation.line}:${violation.column}  ${violation.term}`;
 }
 
@@ -644,6 +678,7 @@ function main() {
   const files = readScanFiles(options.root, DEFAULT_ROOTS);
   const sources = new Map();
   const violations = [];
+  const templates = new Set();
   let lineCount = 0;
 
   for (const file of files) {
@@ -655,15 +690,19 @@ function main() {
     const firstSegment = relativeFile.split(sep)[0];
     sources.set(file, lines);
     lineCount += lines.length;
-    // HTML only: script/style/comment bodies are masked before scanning, with the
-    // state carried across lines. `sources` keeps the raw text for the allowlist.
-    let htmlState = "text";
+    // HTML and Svelte: script/style/comment bodies are masked before scanning,
+    // with the state carried across lines. `sources` keeps the raw text for the
+    // allowlist.
+    let markupState = "text";
     for (let index = 0; index < lines.length; index += 1) {
       let line = lines[index];
-      if (isHtmlFile(file)) {
-        const masked = maskHtmlRegions(line, htmlState);
+      if (isMarkupFile(file)) {
+        const masked = maskHtmlRegions(line, markupState);
         line = masked.masked;
-        htmlState = masked.state;
+        markupState = masked.state;
+        // The surfaces read as templates, by path — "App.svelte is scanned" is an
+        // assertion a test can make (#49), not a claim in a comment.
+        if (isSvelteFile(file)) templates.add(toPosix(relativeFile));
       }
       const lineNumber = index + 1;
       const hits = scanLine(line, file, firstSegment, lineNumber);
@@ -705,7 +744,7 @@ function main() {
   const baselineHits = violations.filter((violation) =>
     baseline.some(
       (entry) =>
-        relative(options.root, violation.file) === entry.file &&
+        toPosix(relative(options.root, violation.file)) === entry.file &&
         sources.get(resolve(options.root, entry.file))?.[violation.line - 1]?.includes(entry.match),
     ),
   );
@@ -728,7 +767,8 @@ function main() {
           files: files.length,
           // The gated surface, by path: "index.html is scanned" is an assertion
           // a test can make, not a claim in a comment.
-          scanned: files.map((file) => relative(options.root, file)),
+          scanned: files.map((file) => toPosix(relative(options.root, file))),
+          templates: [...templates].sort(),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
           allowlist: {
@@ -738,7 +778,7 @@ function main() {
             baselineHits: baselineHits.length,
           },
           violations: active.map((violation) => ({
-            file: relative(options.root, violation.file),
+            file: toPosix(relative(options.root, violation.file)),
             line: violation.line,
             column: violation.column,
             rule: violation.rule,
