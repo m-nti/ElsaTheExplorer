@@ -965,7 +965,7 @@ photos/derived/download/<id>.jpg   photos/derived/download/<id>.webp
 - Total budget check: warn if `photos/derived` exceeds 30 MB (733 visitors per GB is
   the owner's bandwidth reality on shared hosting).
 
-### 13.4 `photos.json` contents (manifest v3)
+### 13.4 `photos.json` contents (manifest v2)
 
 Backward-compatible superset. Every existing key keeps its meaning; `thumb` and `view`
 now point at rungs of the ladder.
@@ -1028,6 +1028,10 @@ Rules:
   `<mtime>-<size>`; both are ≤ 32 chars and both travel as the `&v=` URL parameter (§3.5).
 - Ladder values are read from `scripts/photo-ladder.json`; `photos.json` carries them so
   a client one deploy ahead of the server still knows the rungs.
+- The `srcset` block above is **not part of the contract**: ADR-0004 §4 makes `srcset`/`sizes`
+  a component concern derived from `images.*` + `w`/`h`, so no emitter may transmit it
+  (§14.1). It is still emitted by `?list=1` today; dropping it there is part of the same
+  contract change, and no consumer may read it in the meantime.
 
 ### 13.5 Parity test (`npm run photos:parity`, CI)
 
@@ -1053,7 +1057,7 @@ its own run, not in the repo.
 
 ## 14. Manifest versioning and client contract
 
-### 14.1 Runtime `?list=1` (manifest v3)
+### 14.1 Runtime `?list=1` (manifest v2)
 
 Same shape as §13.4 with URLs pointing at the endpoint:
 
@@ -1064,11 +1068,22 @@ Same shape as §13.4 with URLs pointing at the endpoint:
 "download": "photos.php?download=elsa-01.jpg&v=1712-4182933",
 ```
 
-Plus `pipeline: 2`, `ladder`, `renderable`, `ver` (runtime `ver` is `<mtime>-<size>`,
-≤ 32 chars — a cache-buster, not a security token), `images` with `jpeg`/`webp` URLs and
-per-rung `w`/`h`. `?list=1` computes `renderable` from the decode matrix and the
+**Manifest level** — once per document, beside `generated` / `source` / `photos[]`:
+`pipeline: 2` (int, rendition pipeline version) and `ladder`. Both describe the catalogue's
+rendition set, not a single photo, so neither is repeated inside `photos[]` (ADR-0004 §2).
+
+**Per photo** — `renderable`, `ver` (runtime `ver` is `<mtime>-<size>`, ≤ 32 chars — a
+cache-buster, not a security token) and `images` with `jpeg`/`webp` URLs and per-rung `w`/`h`.
+`images.download` is the canonical download URL; the top-level `download` above is an
+**accepted synonym** that `normalize()` folds into `images.download` (ADR-0004 §2), so a
+consumer reads one field and the two can never disagree.
+
+`?list=1` computes `renderable` from the decode matrix and the
 size caps **without decoding** (`getimagesize` + `filesize`), so listing stays cheap; a
 photo that fails at render time still 415s, and the client's error path covers it.
+
+No `srcset` is emitted at either level — the client derives it from `images.*` and each rung's
+`w`/`h` (ADR-0004 §4).
 
 `?list=1` keeps `Cache-Control: no-store` — it is the invalidation channel for
 `immutable` image URLs.
@@ -1087,15 +1102,20 @@ photo that fails at render time still 415s, and the client's error path covers i
 
 1. Drop the `thumb → src` fallback that assumed `src` is the original; both are
    derivatives now. Use `thumb` → `detail` → placeholder.
-2. Use `srcset`/`images` + `width`/`height` from the manifest (CLS).
+2. Compose `srcset`/`sizes` in the component from `images.*` plus each rung's `w`/`h`, and
+   reserve space from `width`/`height` (CLS). No `srcset` field arrives from the manifest —
+   ADR-0004 §4 derives it precisely so data cannot choose URLs or break the typed ratio.
 3. "Foto speichern" uses `?download=NAME` (1600) — no longer "the original". Copy must not
    promise "original"/"Original" any more (interaction-copy audit).
 4. Remove the `heic.ts`/`heic2any` path for manifest photos (§6.3).
 
 ### 14.4 ADR hooks
 
-- ADR-0004 (manifest v2 contract) must be **amended** with `pipeline`, `ladder`,
-  `renderable`, `ver`, `images`, `srcset` and the changed `width`/`height` semantics.
+- **ADR-0004** (manifest v2 contract, **Accepted 2026-11-22**) ratifies `pipeline`, `ladder`,
+  `renderable`, `ver`, `images` and the `width`/`height` = oriented-**source** ratio semantics.
+  It settles `srcset` **against** this document's original ask: derived client-side from
+  `images.*` + `w`/`h`, never transmitted (ADR §4). Further field changes go through that ADR,
+  not a PHP patch (ADR §5).
 - **ADR-0008** (Accepted) records: rendition ladder, no-original rule, cache
   strategy, GD/Imagick detection order, sharp-for-parity. The fallback ladder is:
   Imagick-only → GD-only → static `photos.json` + `photos/derived` (PHP can be absent

@@ -101,7 +101,7 @@ Pfote", "nasses Hund und Stolz" — **stay retired** and are rewritten as build-
 work; they must not be re-pulled from the bank at runtime.
 
 **R-B · Seen-state is the only collection state.** A card is "gesammelt / collected"
-when its photo id is in `lucky-elsa.seen.v1`. Both paths — pulled from a pack, opened from
+when its photo id is in `lucky-elsa.seen.v2`. Both paths — pulled from a pack, opened from
 the collection — mark seen through the single existing "card seen" routine. Copy shifts from
 "gesehen/seen" to "gesammelt/collected" everywhere (progress label, tile state, dialog line);
 the unseen tile state reads "noch nicht gesammelt / not yet collected". The collection itself is
@@ -124,8 +124,8 @@ diploma but earns no frame (its membership is whatever the curator hasn't sorted
 **R-E · Storage contract (the only writes this system performs):**
 
 ```text
-lucky-elsa.seen.v1   : string[]                      // photo ids, unchanged from v1
-lucky-elsa.sets.v1   : {                             // completion snapshots only (key name kept)
+lucky-elsa.seen.v2   : string[]                      // photo ids, order-insensitive; v1 value migrated at boot
+lucky-elsa.sets.v1   : {                             // completion snapshots only
   [wingId]: { completedAt: ISO-8601, memberCount: number, manifestStamp: string }
 }
 lucky-elsa.flags.v1  : {
@@ -135,8 +135,17 @@ lucky-elsa.flags.v1  : {
                         ownerLine: string } | null, // latest 100 % completion
   masterIndex       : boolean                       // "Das Gesamtverzeichnis" unlocked
 }
-lucky-elsa.lang.v1   : "de" | "en"                   // unchanged, owned by i18n system
+lucky-elsa.lang.v2   : "de" | "en"                   // owned by i18n system
+lucky-elsa.sound.v2  : boolean                       // owned by audio system ("Ton an/aus")
 ```
+
+Key naming is ADR-0003's rule: `lucky-elsa.<concern>.v<n>`, where the suffix **is** the envelope
+version and every payload is wrapped as `{ "v": n, "data": … }`. `seen` / `lang` / `sound`
+therefore end in `.v2` (they had bare v1 values and are migrated at boot, idempotently);
+`sets` / `flags` end in `.v1` because they were introduced after that migration and never had an
+older shape. A payload shape change bumps the number and adds a migration step — never an
+in-place reinterpretation. This table is the update path for the key register in ADR-0003 §2;
+nothing outside it is ever stored.
 
 `manifestStamp` is a short hash of the sorted photo id list (+ wing assignments), recomputed
 on load; `lastManifestStamp` is the stamp as of the visitor's previous visit and powers R8.
@@ -190,8 +199,8 @@ Fantasiewerte aggregated (see Formulas), museum-plaque framed, still explicitly 
 "Fantasiewerte · nur zum Spaß" per PRD F2a.
 
 **R-J · Reset (owner canon).** "Von vorn" clears **every `lucky-elsa.*` key** — collection
-state (`seen.v1`, `sets.v1`, `flags.v1`) *and* preferences (`lang.v1`, the sound key
-`lucky-elsa.sound.v1`) — and the page returns to its first-visit state: German default,
+state (`seen.v2`, `sets.v1`, `flags.v1`) *and* preferences (`lang.v2`, the sound key
+`lucky-elsa.sound.v2`) — and the page returns to its first-visit state: German default,
 sound on, empty collection. It requires a one-line confirmation that names what is lost,
 including language and sound (UI Requirement R7), and is idempotent: clearing already-empty
 keys is a no-op, and reset never fires milestone/capstone logic as a side effect of clearing.
@@ -229,7 +238,9 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
 - **Collection (binder)** (consumes): wing grouping, progress lines, frame states, milestone
   outfit state. Collection card opens go through the shared "card seen" routine
   (systems-index circular-dep resolution).
-- **Persistence**: owns the three key contract in R-E; no other system writes those keys.
+- **Persistence**: owns the three collection keys in R-E (`seen.v2`, `sets.v1`, `flags.v1`);
+  `lang.v2` and `sound.v2` are owned by i18n and audio. No other system writes any of them
+  (ADR-0003 §3: `persistence.svelte.ts` is the only module touching `Storage`).
 - **i18n & A11y plumbing** (requires): every new string exists in `COPY.de`/`COPY.en` index-
   aligned; the brand name "Elsa the Explorer" stays identical in both languages, taglines
   localize; all announcements go through the existing live region; frames/stamps are
@@ -286,9 +297,10 @@ manifest makes it vacuously complete (then it grants nothing and blocks nothing 
   curator has not flagged any other photo, the wing completes without a keystone (R-G
   fallback).
 - **E7 · Malformed or absent meta keys.** Defensive load: any key that fails parse/type-check
-  is treated as empty and rewritten on next write. Two versions never coexist: the `.v1`
-  suffixes are final for this refactor; a future migration would introduce `.v2` keys and a
-  one-time import, not in-place mutation.
+  is treated as empty and rewritten on next write. The suffix is the envelope version, so
+  `.v1` and `.v2` of one concern never coexist after the boot migration (ADR-0003 §4): an
+  existing `.v2` beats any leftover v1 bytes, and a future shape change introduces the next
+  suffix plus a one-time import, not in-place mutation.
 - **E8 · Milestone jump across reset.** Milestones fire only on *increases* within a reset
   cycle; after reset, `p_all` starts at 0, so no stale re-fire. A card opened from the
   collection while the pack dialog is open counts identically (single "card seen" routine).
@@ -464,9 +476,9 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
    card), keeps the frame, and shows the Zuwachs line on next load; reaching 100 % again
    refreshes, not duplicates, the Ehrenmensch.
 6. Milestones fire once each per reset cycle, in threshold order even after a large jump;
-   reset clears every `lucky-elsa.*` key — `seen.v1`, `sets.v1`, `flags.v1`, `lang.v1`, the
-   sound key — the page falls back to German default and sound-on, and a second reset is a
-   no-op.
+   reset clears every `lucky-elsa.*` key — `seen.v2`, `sets.v1`, `flags.v1`, `lang.v2`, the
+   sound key (`sound.v2`) — the page falls back to German default and sound-on, and a second
+   reset is a no-op.
 7. A second-lap pull renders the "2. Auflage" stamp; first-lap pulls never do.
 8. `chase: true` implies holo rendering and blocks Porträtsaal completion until seen; no
    chase flag anywhere → the wing completes without a keystone.

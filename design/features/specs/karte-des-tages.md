@@ -2,7 +2,7 @@
 
 > **Filename**: `specs/karte-des-tages.md` is historical — kept to avoid churn; the surface is Der Aushang / The Bulletin.
 > **Status**: Draft · **Author**: systems-designer · **Last Updated**: 2026-11-22
-> **Implements / depends on**: `mechanics.md` §1 — the one surface that differs between two visits. Needs the manifest (`photos.php`), wing totals (`collection-meta.md` R-A/R-C), trait names (`archive-fiction.md` §4), copy deck. **Static, no server state, no new storage**; `lucky-elsa.seen.v1` is read-only here.
+> **Implements / depends on**: `mechanics.md` §1 — the one surface that differs between two visits. Needs the manifest (`photos.php`), wing totals (`collection-meta.md` R-A/R-C), trait names (`archive-fiction.md` §4), copy deck. **Static, no server state, no new storage**; `lucky-elsa.seen.v2` is read-only here.
 > **Build phase**: Full Vision — build-order step 4 (ships with Wings; the forecast needs per-wing totals).
 > **Canonical decision (2026-11-22, resolved)**: the surface is **Der Aushang / The Bulletin** (`feature-slate.md` canonical decision 1). The slate's kill applies **only to calendar-driven retention** — no expiring content, no daily reward, no streak, no "you missed it". The **collects-nothing invariant stands**: no flip, no lightbox, no write, no draw from the unseen pool, no gate on a card, reward or milestone. **"Karte des Tages" is banned vocabulary** (`archive-fiction.md` §6); this filename is historical only.
 
@@ -14,7 +14,7 @@ A bulletin strip in the collection header: today's card, read-only, plus **Elsa-
 
 ## 2. Data Model (derived every render, never stored)
 
-`DayBulletin = { dateKey: string; cardId: string | null; forecast: { trait: 'sofa'|'vigilance'|'travel'; value: number }[]; mode: 'empty'|'standard'|'capstone' }`, derived from `(manifest, seen.v1, clock)`; `cardId = null` hides the module.
+`DayBulletin = { dateKey: string; cardId: string | null; forecast: { trait: 'sofa'|'vigilance'|'travel'; value: number }[]; mode: 'empty'|'standard'|'capstone' }`, derived from `(manifest, seen.v2, clock)`; `cardId = null` hides the module.
 
 **Formula 1 — day selection**
 
@@ -96,7 +96,7 @@ Wing unions (slugs from R-A): `sofa = nap-wing ∪ portrait-room` · `vigilance 
 ## 7. Acceptance Criteria (binary)
 
 1. GIVEN a fixed manifest and a fixed local date, WHEN the module renders twice, THEN `cardId`, `dateKey` and every trait value are identical (DE and EN).
-2. GIVEN 30 consecutive dates, WHEN each renders, THEN `lucky-elsa.seen.v1` is byte-identical afterwards, no other key was created, and no recompute emitted a live-region message.
+2. GIVEN 30 consecutive dates, WHEN each renders, THEN `lucky-elsa.seen.v2` is byte-identical afterwards, no other key was created, and no recompute emitted a live-region message.
 3. GIVEN the tile, WHEN inspected, THEN it holds no `<button>`, `<a>`, dialog trigger or stamp, and clicking it mutates no state.
 4. GIVEN `2026-11-22`, `N = 24`, salt `elsa.tag.card`, WHEN the index is computed, THEN it is `12` (hash `0x699AAA84`); with a 25th id injected before position 12, THEN the index stays `12` and the card changes.
 5. GIVEN 0 collected, WHEN the section renders, THEN `tag:empty` shows and no trait line exists; GIVEN all collected, THEN `tag:capstone` shows and no trait line exists.

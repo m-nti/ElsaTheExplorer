@@ -76,7 +76,7 @@ Gain is linear (not dB) at the node, expressed here as both.
 | `bus.celebration` | set complete, milestone, capstone | 0.60 | −4 | Short, single-shot; never loops |
 | `bus.music` / `bus.ambient` | **none in v1** | — | — | Reserved; adding one requires a mix revision |
 
-Master default is **on** (persisted `lucky-elsa.sound.v1`, default `true`). Off means the graph is never created.
+Master default is **on** (persisted `lucky-elsa.sound.v2`, default `true`). Off means the graph is never created.
 
 ### Ducking
 
@@ -107,7 +107,7 @@ Cross-reference: `design/accessibility-requirements.md` → **Auditory Accessibi
 
 1. **Sound never carries required information.** Every row in §2 has a visual and/or `aria-live` equivalent that already ships (or ships with the feature). If a future event cannot name its visual backup, it does not ship.
 2. **Visual equivalents, per event family**: seal press → button pressed state; tear → dialog opens with sachet visible + `openingAnnounce`; card land → the card itself appears + numbered announcement; holo land → rarity chip + star count (never colour alone); set complete → progress line text + `lastOneAnnounce`; error → `role="status"` text. Catalogue tick, dialog open/close, flip: the state change is itself the visual.
-3. **Toggle semantics** (unchanged): one button in the masthead, `aria-pressed="true|false"`, label swaps "Ton an/Ton aus" · "Sound on/Sound off", both localized with `lang` attributes; state persists at `lucky-elsa.sound.v1`. Turning sound **on** plays exactly one quiet confirmation tick (`sfx.catalogue.tick`); turning it **off** plays nothing.
+3. **Toggle semantics** (unchanged): one button in the masthead, `aria-pressed="true|false"`, label swaps "Ton an/Ton aus" · "Sound on/Sound off", both localized with `lang` attributes; state persists at `lucky-elsa.sound.v2`. Turning sound **on** plays exactly one quiet confirmation tick (`sfx.catalogue.tick`); turning it **off** plays nothing.
 4. **Reduced motion audio rule**: under `prefers-reduced-motion: reduce`, `sfx.pack.rustle` and `sfx.pack.tear` are **skipped**, and `sfx.pack.card-land` fires **once at t=0** alongside the all-at-once layout (locked choreography). No per-card ticks, no holo chime. Everything else is unchanged — motion and sound are separate concerns.
 5. **No jump scares.** Peak ceiling −4 dBFS, all attacks ≥ 4 ms, no sudden high-frequency alert tones. There is no audio equivalent of a flash.
 6. **Mono-compatible by construction**: v1 output is mono at every node (matches the a11y doc's "mono synthesized WebAudio" row). Any stereo/sampled upgrade requires revising the "Mono audio option" row from N/A before shipping.

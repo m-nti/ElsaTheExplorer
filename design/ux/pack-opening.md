@@ -451,14 +451,14 @@ dialog.
 |--------------|--------------|-----------------|-------------|--------|------------------------|
 | Draw result (4 photo refs) | Pack system (draw rules: unseen-first F6, no in-pack repeat F5, ≥1 holo F4 via promotion, size = min(4, catalogue)) | Once per `pack:open-request` | Pack system | Ordered array of photo ids + reveal order | Catalogue < 4 → smaller pack; catalogue empty → dialog never opens |
 | Reveal order | Pack system (sorts the draw so the guaranteed holo lands in **slot 3 or 4 — never first**; commons/rare fill 1–2; two non-commons → the higher rarity last) | Once per draw | Pack system | Array indices | n/a — deterministic from the draw |
-| Collected set (`seen.v1`) | Persistence system | Once per completed reveal (only the cards that landed — Ruling 1b) | Persistence system | id array append | Storage refused → session-only, silent |
+| Collected set (`seen.v2`) | Persistence system | Once per completed reveal (only the cards that landed — Ruling 1b) | Persistence system | id array append | Storage refused → session-only, silent |
 | Lap number / "2. Auflage" flag | Persistence system — **not stored**; derived per GDD R-H at pull time from the collection state | Each draw on an exhausted catalogue | Persistence system (derivation) | derived integer | n/a — always derivable |
 | Card content (name, mood, caption, rarity, setId, Fantasiewerte) | Card catalogue (photo → card pipeline) | On render | Card source system | photo objects | Missing copy → neutral fallback copy (F2), never invented activities |
-| Sound preference | Persistence system (`sound.v1`) | Read on first sound | Persistence system | boolean | Missing → on |
+| Sound preference | Persistence system (`sound.v2`) | Read on first sound | Persistence system | boolean | Missing → on |
 | Photo image (thumb/view) | Card source system | On render | Card source system | URL (+ HEIC flag) | HEIC → in-browser conversion (F22b); failure → frame stays readable without the picture (R7) |
 
 > **Rule**: The dialog never writes state. It renders the pack system's draw and
-> fires intent events; `seen.v1` / `flags.v1` are written only by the
+> fires intent events; `seen.v2` / `flags.v1` are written only by the
 > persistence system, first-party, on-device. **Seen-writes happen only at
 > reveal-complete — never at draw**: a drawn-but-unrevealed accession marks
 > nothing; **with Ruling 1b, a mid-reveal skip writes only the already-revealed
@@ -477,7 +477,7 @@ dialog.
 |---------------|-------------|---------|-----------------|-------|
 | (any entry) | `pack:opened` (system event, on draw) | `{ ids: [4], revealOrder, holoSlot: 3\|4 }` | Persistence + audio + UI | Lap context derived per GDD R-H; audio schedules rip |
 | Card settles in the focus frame (×4) | `pack:card-landed` | `{ index, rarity, settledAt }` | Audio system | Fires on the **settle** frame, never on the start (motion-sheet §7.1): tick; chime for rare/holo |
-| Last card settles (t ≈ 2.98 s) | `pack:reveal-complete` | `{ ids, revealed: 4 }` | Persistence system | Writes the four ids to `seen.v1` in one write; updates the catalogue. **Before the camera** — the pull-back is presentation, not collection |
+| Last card settles (t ≈ 2.98 s) | `pack:reveal-complete` | `{ ids, revealed: 4 }` | Persistence system | Writes the four ids to `seen.v2` in one write; updates the catalogue. **Before the camera** — the pull-back is presentation, not collection |
 | Camera reaches `c = 0` and the last tile settles | `pack:pullback-complete` | `{ focus: null }` | UI only | Marks the frame where `inert` is removed and focus moves to card 1; the hook a Playwright timing assertion waits on |
 | Tap a card | `card:selected` | `{ id, source: "pack" }` | Card system → CardDetail | |
 | Escape / ✕ / backdrop | `pack:closed` | `{ revealed: 0–4, skippedMidReveal: boolean }` | UI only | Focus-return contract in §4. The count, not a boolean, is what the persistence system needs for Ruling 1b |
@@ -533,7 +533,7 @@ Every duration and curve below is a token from `design/art/motion-sheet.md` §3
 | 1840 | Camera dolly → card 4 | hold + 380 |
 | 2087 | Card 4 enters | |
 | 2220 | Camera on card 4 | |
-| 2387 | Card 4 settled → **tick 4** / **holo shine**; **`pack:reveal-complete` + the one `seen.v1` write** | settle frame |
+| 2387 | Card 4 settled → **tick 4** / **holo shine**; **`pack:reveal-complete` + the one `seen.v2` write** | settle frame |
 | 2387 | Camera pull-back begins in the *same* frame (no extra beat: the card's own settle is the beat) | `--elsa-dur-pullback` 760 |
 | 2478 | Per-card 8 px settle begins (+12 % of the pull-back) | `--elsa-dur-tile` 260, 40 ms stagger |
 | 2858 | Last tile settled — **stillness begins** (289 ms of still frame before the camera stops) | `--elsa-hold-beat` satisfied as stillness |
@@ -752,7 +752,7 @@ never by shrinking the type.
 
 **Stage, focus & skip**
 - [ ] `.pack-stage` carries `inert` through the theatre, the reveal and the whole pull-back; `inert` is removed on the **last settle frame**, focus lands on **card 1** in that same frame, and all four cards are then reachable by keyboard in reading order (1 → 2 → 3 → 4; row-major in the 2 × 2)
-- [ ] Skip (✕ / `Escape`) mid-reveal collects **only the already-revealed cards** (`seen.v1` gains exactly those ids — count verified), leaves the remainder uncollected, and the pack **reopens immediately**; a backdrop click during the reveal does **nothing** and closes only after the last settle
+- [ ] Skip (✕ / `Escape`) mid-reveal collects **only the already-revealed cards** (`seen.v2` gains exactly those ids — count verified), leaves the remainder uncollected, and the pack **reopens immediately**; a backdrop click during the reveal does **nothing** and closes only after the last settle
 
 **Degraded & narrow paths**
 - [ ] With `prefers-reduced-motion: reduce`: no camera, no theatre, **all four cards present in the final grid at first paint**, exactly **one soft tick**, no per-card ticks, **no confetti**
@@ -760,7 +760,7 @@ never by shrinking the type.
 - [ ] The compressed-stage tier (stage height < 420 px) is fully usable at **320 × 480**: the stage alone scrolls, head/hint/footer never scroll, ✕ and `Escape` stay live, and the focused card scrolls fully into view
 
 **Data & collection**
-- [ ] `seen.v1` is written at the **last card's settle**, *before* the camera moves — `pack:reveal-complete` precedes the first pull-back frame, so closing at any moment during the pull-back loses nothing (all four stay collected)
+- [ ] `seen.v2` is written at the **last card's settle**, *before* the camera moves — `pack:reveal-complete` precedes the first pull-back frame, so closing at any moment during the pull-back loses nothing (all four stay collected)
 - [ ] **No horizontal swipe is required anywhere** in the flow; no horizontal gesture is bound on this screen (nothing can collide with browser back/forward)
 
 ### 14.2 Carried over unchanged (6)
@@ -772,7 +772,7 @@ never by shrinking the type.
 **Accessibility & data**
 - [ ] All §12 contrast rows pass measured audits — including the hint line, footer labels and the "2. Auflage" stamp, which are marked *audit* not *pass*
 - [ ] VoiceOver walkthrough identifies all four cards and their rarities from speech alone, with no visual cues; the pacing half of this check is the §15 VoiceOver row
-- [ ] No direct `localStorage` writes from the dialog (code-review check); `seen.v1` is written only through the persistence system
+- [ ] No direct `localStorage` writes from the dialog (code-review check); `seen.v2` is written only through the persistence system
 
 **Localization**
 - [ ] No text element overflows in German at +40 % over the EN baseline (longest catalogue name substituted); all strings come from the copy deck, with the "2. Auflage" stamp text present in both languages

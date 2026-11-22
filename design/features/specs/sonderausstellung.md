@@ -19,7 +19,7 @@ A **Sonderausstellung** is a curated set of up to five *collected* cards the vis
 
 ```ts
 // lucky-elsa.exhibition.v1 — written by the exhibition module only, never by the five collection verbs.
-type Exhibition = string[];   // ordered photo ids, 1–5, all ∈ seen.v1 ∩ manifest — no envelope, no timestamp
+type Exhibition = string[];   // ordered photo ids, 1–5, all ∈ seen.v2 ∩ manifest — no envelope, no timestamp
 ```
 
 - **Shape**: a bare ordered array. The `.v1` in the key *is* the version — there is no `{ v: 1, ids }` envelope and no `updatedAt` (mechanics.md, new storage). Position in the array is the work's position in the exhibition.

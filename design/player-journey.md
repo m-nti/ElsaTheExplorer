@@ -411,10 +411,10 @@ was here — and how far along am I?"
 to open exactly one more pack.
 
 **Key experience the game must deliver**:
-Persistence *is* the phase. `lucky-elsa.seen.v1` restores which entries are
+Persistence *is* the phase. `lucky-elsa.seen.v2` restores which entries are
 "gesammelt", `lucky-elsa.sets.v1` restores department progress and earned frame
 variants, `lucky-elsa.flags.v1` restores milestones (25/50/75 % catalogue
-outfits, Ehrenmensch claimed); `lucky-elsa.lang.v1` restores the language so an
+outfits, Ehrenmensch claimed); `lucky-elsa.lang.v2` restores the language so an
 English-speaking reader never re-finds the toggle. The room must answer "what
 is new?" at a glance, in accession language: a new-photos line — DE: **"{n} neue Schmuckstücke sind da!"** / EN: **"{n} new treasures have arrived!"** (D5) — appears only when the curator has actually added material
 since the last visit, turning a file drop into a player-facing acquisitions

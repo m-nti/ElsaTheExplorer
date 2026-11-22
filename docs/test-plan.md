@@ -5,9 +5,9 @@
 > **Last Updated**: 2026-11-22
 > **Stack under test**: Svelte 5.59.1 · Vite 8.3.8 · TypeScript 7.0.2 (strict) ·
 > Vitest 5.1.1 · Playwright 1.65.1 · Panda CSS 2.0 · sharp 0.35.5 (dev only)
-> **Inputs**: `PRD.md` §4–§7 · `docs/architecture.md` (Testing Strategy, Error-State
-> Taxonomy, Performance Budget, Persistence Schema) · `docs/adr/ADR-0001-stack.md` ·
-> `docs/adr/ADR-0002-styling-system.md` · `design/ux/interaction-patterns.md` v2 ·
+> **Inputs**: `PRD.md` §4–§7 · `docs/architecture.md` **v1.2** (Testing Strategy, Error-State
+> Taxonomy, Performance Budget, Persistence Schema, **PWA Layer**) · `docs/adr/ADR-0001-stack.md` ·
+> `docs/adr/ADR-0002-styling-system.md` · **`docs/adr/ADR-0009-pwa.md`** · `design/ux/interaction-patterns.md` v2 ·
 > `design/accessibility-requirements.md` (Standard tier) · `AGENTS.md`
 > **Skills activated**: `qa-plan` (plan structure, story classification, DoD),
 > `test-setup` (runner/CI layout), `smoke-check` (critical-path gate + verdict vocabulary)
@@ -53,7 +53,8 @@
 1. `PRD.md` §4–§7 (owner requirements)
 2. `AGENTS.md` project facts (including the water ruling)
 3. `design/accessibility-requirements.md` (committed Standard tier)
-4. `docs/adr/ADR-0002` → `ADR-0001`
+4. `docs/adr/ADR-0002` → `ADR-0001` → `ADR-0009` (PWA layer; it supersedes any earlier
+   "no service worker" assumption — see §15, S1)
 5. `design/ux/interaction-patterns.md` v2
 6. `docs/architecture.md`
 
@@ -158,27 +159,80 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    serviceWorkers: 'block',
+    // No serviceWorkers setting at this level: it is decided per project, below.
   },
   expect: { timeout: 5_000, toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
-  webServer: {
-    command: 'npm run preview -- --port 4173 --strictPort',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: 'npm run preview -- --port 4173 --strictPort',
+      url: 'http://127.0.0.1:4173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      // Two-build fixture server for the PWA project (§6.12). Serves build A from
+      // tests/fixtures/builds/a and flips to build B on POST /__fixture/deploy-b, on
+      // the same origin and scope as A — a real SW update, never a mocked one.
+      command: 'node scripts/pwa-fixture-server.mjs --port 4180 --builds tests/fixtures/builds',
+      url: 'http://127.0.0.1:4180/__fixture/health',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-    { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
-    { name: 'mobile-safari', use: { ...devices['iPhone 13'] } },
+    // Non-PWA suites block the service worker: route mocks and request-log assertions
+    // must stay deterministic (a cached shell would answer after `page.route`).
+    { name: 'chromium', use: { ...devices['Desktop Chrome'], serviceWorkers: 'block' } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'], serviceWorkers: 'block' } },
+    { name: 'mobile-chrome', use: { ...devices['Pixel 7'], serviceWorkers: 'block' } },
+    { name: 'mobile-safari', use: { ...devices['iPhone 13'], serviceWorkers: 'block' } },
+    // PWA suite (§6.12): its own origin and port, service workers allowed, serial —
+    // every test shares one origin's Cache Storage, one IDB index and one registration.
+    {
+      name: 'pwa',
+      testDir: 'tests/e2e/pwa',
+      fullyParallel: false,
+      workers: 1,
+      retries: 0,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://127.0.0.1:4180',
+        serviceWorkers: 'allow',
+      },
+    },
   ],
 });
 ```
 
+**Why the service-worker setting is per project, not global.** `serviceWorkers: 'block'`
+was set once for the whole config, which silently made every `E-PWA-*` test impossible to
+write: with the worker blocked there is no precache, no offline shell and no update
+lifecycle. It is a **determinism default for the non-PWA suites**, not a statement about
+the product. Scoping it to the four browser projects keeps §6.1–§6.11 as they were and
+gives the PWA suite the one setting it cannot run without.
+
+The `pwa` project is deliberately separate in every dimension:
+
+- **Own origin** (`:4180`, the two-build fixture server) — cache state from other suites
+  can never leak in, and a `deploy-b` flip cannot break a journey test.
+- **Own `testDir`** (`tests/e2e/pwa`) — gate 7's explicit `--project` list omits `pwa`, so
+  only gate 10 (§8.1) runs it. A PWA failure is attributable without reading traces.
+- **`workers: 1`, `retries: 0`** — the suite is stateful by nature; parallel workers would
+  race on one Cache Storage. Zero retries is intentional: PWA flake must be visible and
+  fixed, never retried into green (§9).
+- **Fresh browser context per test** (Playwright default) — profile, Cache Storage and IDB
+  start empty, which is what "visit 1" in `E-PWA-07` means. Tests that need a warm state
+  seed it explicitly through `tests/e2e/pwa/support/sw.ts`, never by depending on order.
+- **No in-test sleeps.** The 2.5 s deadline for `E-PWA-12` is produced by the fixture
+  server (`/__fixture/delay?ms=3000`), not by `page.waitForTimeout` — gate 3's
+  `no-restricted-syntax` rule stays intact.
+
 Browser install is pinned (`npx playwright install --with-deps` in CI) and cached by
 version. WebKit is required, not optional: native `<dialog>` focus cycling is a known
-Safari risk (interaction-patterns Open Question).
+Safari risk (interaction-patterns Open Question). The `pwa` project is Chromium-only
+because `Page.getInstallabilityErrors` is a Chromium CDP domain; WebKit's contribution to
+the PWA layer is the recorded "not applicable" reason in `E-PWA-11`, plus the manual iOS
+rows in §6.12.
 
 ### 3.3 Testability seams required from implementation
 
@@ -194,6 +248,9 @@ not done.
 | `tokens.ts` | Exposes token values **and** declared usage pairs | Contrast gate can enumerate pairs |
 | Components | Semantic roles + accessible names; no test-id-only hooks | Playwright role locators |
 | Build | Emits `reports/size.json` (JS/CSS gzip, per-chunk) | Bundle budget gate |
+| `src/lib/pwa/{cachePolicy,limits,schema}.ts` | Pure functions only — no `self`, no `caches`, no DOM: `shouldCache(request-meta, response-meta)`, `planEvictions(entries, budget)`, `pickStrategy(url, mode, hasSnapshot)`, `isCurrentSnapshot(entry)`, exported `CACHE_SCHEMA`/`LIMITS` | The cache policy is the PWA's only correctness-critical logic; it must be unit-testable without a browser (§5.9) |
+| Build (PWA) | `__BUILD_HASH__` injected at build time, emitted as `data-version` on `<html>` **and** in the precache cache name | `E-PWA-04` asserts "new build" by `data-version`, never by a file mtime or a text match |
+| Fixture server | `POST /__fixture/deploy-b` swaps the served build; `GET /__fixture/delay?ms=` delays a route; `GET /__fixture/state` reports the served build hash | Two-build update and 2.5 s-deadline tests without in-test sleeps or fake servers |
 
 ---
 
@@ -490,6 +547,35 @@ Included because the overflow fix is only real if the derivation enforces it.
 | U-CV-06 | Accessible-name fragments come from the dictionary (number, name, rarity, seen state) |
 | U-CV-07 | `focus` maps to `object-position: x*100% y*100%`; default is `50% 50%` |
 
+### 5.9 PWA cache policy, limits and schema — `tests/unit/pwa.*.spec.ts`
+
+`src/lib/pwa/cachePolicy.ts`, `src/lib/pwa/limits.ts` and `src/lib/pwa/schema.ts` are
+pure modules (ADR-0009 §4, §9; architecture v1.2 §PWA Layer). They are the whole
+correctness surface of the offline layer: everything else in the worker is plumbing.
+**Target: 100 % branches on all three files** — a cache that over-admits quietly ships
+originals, and one that over-evicts quietly loses the catalogue.
+
+Three spec files, one per module, so a failure names the module:
+`tests/unit/pwa.cachepolicy.spec.ts`, `tests/unit/pwa.limits.spec.ts`,
+`tests/unit/pwa.schema.spec.ts`.
+
+| ID | Assertion |
+| --- | --- |
+| U-PWA-01 | **Admission negatives (table-driven, every row must be rejected):** cross-origin; non-GET (`POST`, `HEAD`); `Range` request; `status !== 200` (302, 404, 500); `status === 206`; `response.type === 'opaque'`; `?download=`, `?view=`, `?capabilities=1`; a `?image=` URL with a numeric `size` or `size=orig`; a URL outside `photos.php`/`photos/thumbs/*`/`photos/derived/*`. The function returns a *reason code* per rejection, not a bare boolean — a silent `false` cannot be diagnosed in a trace |
+| U-PWA-02 | **Admission positives:** `photos.php?image=…&size=tile` / `size=pack` / `size=detail` for each rendition, `photos/thumbs/…`, `photos/derived/…`, GET, 200, non-opaque. Each maps to the right cache (`tile` → `elsa-img-tile-v1`; `pack` and `detail` → `elsa-img-large-v1`) — a `detail` derivative landing in the tile pool is the failure the two-pool design exists to prevent |
+| U-PWA-03 | **Content-type, credentials and cookie gates:** `Content-Type` must start with `image/` (JSON, HTML, octet-stream, missing header all rejected); `request.credentials === 'include'` rejected; an `Authorization` header rejected; a response carrying `Set-Cookie` rejected. Each of the five gates is independently load-bearing — mutate one away and a test must fail |
+| U-PWA-04 | **`Vary` correctness:** accepted when absent or exactly `Accept-Encoding` (case-insensitive, list-tolerant); rejected for `Vary: *`, `Vary: Cookie`, `Vary: Accept-Language`, `Vary: Accept-Encoding, Accept-Language`. Cache key is the full URL with only `?list=1`'s `ts` and other params dropped; a `format=jpeg` and a `format=webp` URL produce **different** keys (ADR-0008's URL-encoded format negotiation is what makes this safe) |
+| U-PWA-05 | **Rendition ceilings (`limits.ts`):** tile 55 KB / pack 110 KB / detail 210 KB JPEG ceilings, each + 8 KB slack. Exactly at `ceiling + 8192` bytes is admitted; `+1` is not. `Content-Length` is used when present; when absent the body is measured before the decision. Over-ceiling returns "serve but do not store" — a distinct outcome from "reject", because the visitor must still see the image |
+| U-PWA-06 | **Eviction plan (`planEvictions(entries, budget)`):** byte bound only, count bound only, both at once; exact-fit admitted without eviction; eviction order is strictly ascending `lastAccess` (assert the exact surviving key set, not just the counts); an entry missing from the IDB index is treated as evictable first (self-healing); `elsa-cat-v1` is never a candidate; a tile insert never evicts a large entry and vice versa |
+| U-PWA-07 | **Budget parity (both directions):** every ceiling in `limits.ts` equals `tests/fixtures/image-budgets.json` — per rendition, per format, plus entry counts (400 / 200) and byte budgets (20 MB / 32 MB / 54 MB device total). Adding a rendition to either file without the other fails; the fixture is not allowed to be the loose side |
+| U-PWA-08 | **`schema.ts` invariants:** every cache name is `elsa-` prefixed and enumerable from one exported list; bumping `CACHE_SCHEMA` changes every runtime cache name (`elsa-cat-v1` → `elsa-cat-<n>`, both image pools) and **not** the precache name (that is versioned by build hash); `isCurrentSnapshot(entry)` is false for an older schema — an old snapshot is discarded, never read (ADR-0009 §10.5); the never-cached URL list is exported once and consumed by `cachePolicy`, not duplicated |
+| U-PWA-09 | **Strategy selection (`pickStrategy`):** `request.mode === 'navigate'` → precache shell; `/assets/*-<hash>.{js,css}`, `/fonts/*.woff2`, `/icons/*`, `/manifest.webmanifest` → precache cache-first; photo derivative → runtime cache-first; `/photos.php?list=1` **with** snapshot → network-first with the 2.5 s deadline; **without** snapshot → pass through (no SW-level timeout — the app owns its 3 s/4 s chain and must not be double-raced); `/photos.json` → stale-while-revalidate; everything else → pass through, unstored. Table-driven over the ADR's strategy matrix, one row per resource |
+| U-PWA-10 | **Theme parity with the design tokens:** `theme_color` and `background_color` in `schema.ts` (the single source the build writes into `manifest.webmanifest`) equal `tokens.bg` exactly — same literal, same case, no re-typing. The test imports `tokens.ts` and fails on any divergence, so a palette change cannot leave the install splash on the old background. Also asserts `id: "/"`, `start_url: "/"`, `scope: "/"`, `display: 'standalone'`, `lang: 'de'`, `dir: 'ltr'`, `name: "Elsa the Explorer"`, and the absence of `prefer_related_applications` |
+
+The 2.5 s deadline itself is a worker-timer behaviour, not a pure-function rule: it is
+asserted end-to-end in `E-PWA-12`, with `U-PWA-09` guaranteeing only that the policy
+*chooses* network-first with a deadline argument. Do not try to unit-test the timer.
+
 ---
 
 ## 6. Integration test plan (Playwright 1.65)
@@ -696,6 +782,52 @@ UX spec; the architecture text is the stale document.
 | E-PRV-06 | No requests to `photos/captions.json` from the client |
 | E-PRV-07 | `robots`/`noindex` meta present; no network request depends on it (regression guard) |
 
+### 6.12 PWA suite — `tests/e2e/pwa/*.spec.ts`
+
+Runs in the `pwa` Playwright project only (§3.2): its own origin on `:4180`, the
+two-build fixture server, `serviceWorkers: 'allow'`, `workers: 1`, `retries: 0`. Every
+test starts in a fresh browser context (empty Cache Storage, empty IDB, no registration)
+and seeds whatever state it needs through the shared helper
+`tests/e2e/pwa/support/sw.ts` — never by depending on a previous test's leftovers.
+
+| Helper | Purpose |
+| --- | --- |
+| `waitForController(page)` | `navigator.serviceWorker.ready` + `controller` non-null; the one legal wait before any offline assertion |
+| `deployBuildB(page)` / `deployBuildC(page)` | `POST /__fixture/deploy-b` — the served build flips, same origin and scope |
+| `readCaches(page)` | `{ cacheName → [keys] }` from the Cache API, plus the IDB `elsa-cache-index` rows |
+| `cacheStats(page)` | per-cache entry count and byte total (from the index, cross-checked against `Content-Length` of the stored bodies) |
+| `seedCatalogue(page)` / `seedDerivatives(page, keys)` | explicit warm state for the tests that need it (E-PWA-02/03) |
+| `goOffline(context)` / `goOnline(context)` | `context.setOffline()` + `navigator.onLine` shim, used **after** a fetch outcome is already established |
+| `storedHash(page, key)` | base64 SHA-256 of a cached body, compared against the ledger in `tests/fixtures/image-sources.json` |
+
+| ID | Spec | Setup | Assertion |
+| --- | --- | --- | --- |
+| **E-PWA-01** | `offline.spec.ts` — offline cold | Shell precached (`index.html` + assets in `elsa-precache-<hash>`), catalogue **never** loaded, context offline, reload | The stage renders from the precached shell; the `state.offline.nocache` copy appears in the current language ("no collection yet", one online visit needed); **no spinner**, no error dialog, no infinite retry — one action, disabled for 10 s after a failed attempt; zero unhandled console errors |
+| **E-PWA-02** | `offline.spec.ts` — offline warm | Online visit → catalogue snapshot written → open a pack (progress recorded) → derivatives fetched → offline → reload | Full binder from `elsa-cat-v1`; offline badge in the meta line carrying the snapshot date (from the server's `generated`/`Date` stamp, not a client clock); pack opens offline and reveals; cached images render (`naturalWidth > 0`); progress intact after reload; DE↔EN switch works; reset dialog opens; no network request succeeds or is retried in a storm. With the clock advanced 25 h (`page.clock`), the badge states the age plainly (`state.offline.age`) and still shows no error chrome — the `catalogue-stale` row of the taxonomy, asserted rather than assumed |
+| **E-PWA-03** | `offline.spec.ts` — offline image miss | Warm catalogue, then navigate to a card whose derivative was **never** fetched, offline | Card frame, name plate, printed text and foil all render; the art window shows the neutral plate — a box with real dimensions and a background, **never** an empty/collapsed box and never a broken-image glyph; no error dialog, no `state.image.failed` chrome (the `image-miss` state is deliberately silent) |
+| **E-PWA-04** | `update.spec.ts` — two-build update | Build A served and installed; `deployBuildB`; a pack opened **mid-update** and left mid-reveal | `update.ready` affordance appears as one quiet footer row, only after B is in `waiting`; **no reload occurs** — `data-version` still A, the navigation count stays at 1, the open pack's DOM node identity is unchanged and the reveal completes untouched; `skipWaiting` is never posted without a gesture (spy on the message channel); dismiss → affordance gone and does not return for the same build hash across reloads, and **does** return once for build C; confirm → exactly **one** reload → `data-version` is B's hash; the reload is not repeated by a second `controllerchange` (sessionStorage guard keyed on the build hash) |
+| **E-PWA-05** | `cache.spec.ts` — bounds and LRU order | Overfill: 450 distinct tile derivatives, then 250 `pack`/`detail` derivatives, in a deterministic `lastAccess` order | `elsa-img-tile-v1` ≤ 400 entries **and** ≤ 20 MB; `elsa-img-large-v1` ≤ 200 entries **and** ≤ 32 MB; device total ≤ 54 MB; the surviving key set equals the projection from the pure `planEvictions` (`U-PWA-06`) with the same inputs — oldest `lastAccess` evicted first; `elsa-cat-v1` still holds its 2 entries throughout; filling the tile pool never removed a large-pool entry and vice versa |
+| **E-PWA-06** | `cache.spec.ts` — no original in cache | After the full journey (E-PWA-02 sequence) **plus** the overfill from E-PWA-05 | Key scan over every `elsa-*` cache and the IDB index: no key matches `/photos/<original>` or a bare filename under `photos/`; no key is a `?image=` URL without a ladder `size` value (`tile`, `pack` or `detail`); no key contains `download`, `view` or `capabilities`; every sampled stored body's SHA-256 differs from every recorded source hash in `tests/fixtures/image-sources.json` (sample = all entries under 400, else a seeded sample of 100); no stored body exceeds its rendition ceiling + 8 KB |
+| **E-PWA-07** | `install.spec.ts` — install rules | Visit 1 in a fresh context; then visit 2; then a dismissed state; then a standalone emulation (`display-mode: standalone`); then an iOS Safari context | Visit 1: nothing — no affordance, no dialog, no layout shift (reserved line present, empty). Visit 2: exactly **one** text row with a dismiss control, in the footer/meta area, no banner/modal/popover, CLS stays 0. Dismissal is permanent: no re-appearance after reload, after a language switch, after a newer catalogue, or in a new session. `prompt()` fires **only** from the row's click (instrumented `BeforeInstallPromptEvent.prompt`), `appinstalled` removes the row; standalone shows nothing; iOS: the instruction sheet appears at most once ever and is skippable. A repo-level grep asserts no auto-opening dialog exists |
+| **E-PWA-08** | `privacy.spec.ts` — cache privacy | Full journey online, then cache read; plus routes that inject `Set-Cookie`, `Vary: *`, `Vary: Accept-Language`, `credentials: 'include'`, and a cross-origin image | Zero third-party requests (inherits `E-PRV-01`, now with the SW registered) and zero cross-origin cache entries; no cookie is set by any SW-mediated request; each injected response is **served to the page but absent from every cache**; a `Vary: Accept-Encoding` response *is* stored (the gate is not simply "reject Vary"); the `format=jpeg` URL is never answered from a WebP body (byte sniff of the magic number, not the `Content-Type`) |
+| **E-PWA-09** | `state.spec.ts` — reset-cache confirmation | Warm catalogue + derivatives, offline-capable | The cache action is a **separate** action inside the reset dialog with its own confirmation; Cancel/Esc leave every cache intact; confirm deletes `elsa-cat-*`, `elsa-img-*`, the IDB `elsa-cache-index` and the snapshot, while `elsa-precache-*` and the registration survive — an immediate offline reload still opens the shell; the ratified `reset.body` string is byte-identical to the copy deck (D-05) |
+| **E-PWA-10** | `manifest.spec.ts` — manifest and icons | Read `dist/manifest.webmanifest`; decode each icon with `sharp` | `name` "Elsa the Explorer", `short_name`, `id: "/"`, `start_url: "/"`, `scope: "/"`, `display: "standalone"`, `lang: "de"`, `dir: "ltr"`; `theme_color` **and** `background_color` equal `tokens.bg` (cross-checks `U-PWA-10`); icons 192 `any`, 512 `any`, 512 `maskable`, `apple-touch-icon` 180 all resolve, decode, and match their declared pixel dimensions; no `prefer_related_applications`; `manifest.webmanifest` and `sw.js` are both served at the scope root with a JS/JSON content type |
+| **E-PWA-11** | `manifest.spec.ts` — browser installability | Chromium CDP session against the built app | `Page.getInstallabilityErrors` returns `[]`; WebKit records "not applicable — no installability domain" with the reason string in the run report. A skipped or `fixme`'d WebKit row is a violation of §11.2, not a pass |
+| **E-PWA-12** | `manifest.spec.ts` — manifest freshness | Three routes: (a) fast fresh `?list=1`; (b) `/__fixture/delay?ms=3000` on `?list=1`; (c) `?list=1` aborted. Then a `ver` bump on one photo, then an offline→online transition | (a) the live body wins over a stale snapshot **and** the snapshot is refreshed; (b) the snapshot paints by 2.5 s while the in-flight request is left running, and its late arrival updates the snapshot for the next load (asserted on a second reload); (c) snapshot serves with the badge up; `online` triggers exactly one revalidation and the binder updates **in place** — no reload, no prompt (data, not code); a replaced photo (new `ver`, therefore a new URL) appears after one reload while offline data still serves; the `?list=1` snapshot key carries no `ts` or other param |
+
+Deliberately **not** in this suite: the true-first-visit-with-no-connection case. No web
+page can render it (the browser shows its own offline page, ADR-0009 §7), so a test
+asserting otherwise would be asserting a promise the platform does not make. The manual
+iOS rows below cover the platform variance.
+
+Manual, release-checklist only (`qa.level: full` does not make these automatable):
+
+- [ ] iOS: install from Safari via the instruction sheet, then offline reload from the
+      home screen; observe the 7-day eviction degradation (`shell-cold`) once in a fresh
+      container and confirm one online visit restores everything.
+- [ ] Android Chrome: install from the install row, offline launch, then a two-build
+      update driven by a real deploy rather than the fixture server.
+
 ---
 
 ## 7. Image delivery assertions
@@ -790,16 +922,18 @@ any step stops the pipeline.
 
 | # | Gate | Command (contract) | Fails when |
 | --- | --- | --- | --- |
+| 1a | Canon / vocabulary | `node scripts/canon-check.mjs` | Any live copy uses the retired collection name or the retired progress verb (canon: `docs/decisions.md` D-04b; vocabulary SSOT: `design/copy/copy-deck.md` §0); any retired binder noun; any water vocabulary from the canon list (`AGENTS.md` — water); any `!` in error, announcement, reset or aria copy; a stale, ambiguous or unreasoned entry in `scripts/canon-allowlist.json`; a baseline entry beyond the recorded `maxBaseline` |
 | 1 | Typecheck | `tsc --noEmit` then `svelte-check --tsgo` | Any type error in `src/` or tests; TS 7 fallback per ADR-0001 is applied only by the documented alias |
 | 2 | Stylelint + selector diff + unused CSS | `stylelint "src/**/*.{css,svelte}"` → `node scripts/selector-diff.mjs` → Svelte compiler warnings escalated | Raw value where `var()` is required; duplicate selector in a file; duplicate selector **across** files; unused scoped CSS |
 | 3 | ESLint | `eslint .` | Lint error, including `no-restricted-syntax` for `page.waitForTimeout` in `tests/e2e/` |
 | 4 | knip | `knip` | Dead token, recipe, export, or unused dependency |
 | 4b | jscpd | `npx jscpd --config jscpd.json src tests scripts` | Duplicate blocks ≥50 tokens; threshold 2% lines; report in `reports/jscpd/` |
-| 5 | Vitest | `vitest run --coverage` | Any unit/property/contrast/i18n failure or coverage below threshold |
+| 5 | Vitest | `vitest run --coverage` | Any unit/property/contrast/i18n/**PWA-policy** failure or coverage below threshold |
 | 6 | Build | `vite build` | Build error; also emits `reports/size.json` |
 | 7 | Playwright | `playwright test --project=chromium --project=webkit --project=mobile-chrome --project=mobile-safari` | Any journey, keyboard, motion, focus, error, overflow, browse or reset failure |
 | 8 | axe | `playwright test tests/e2e/a11y.axe.spec.ts` (dedicated stage, reuses the build) | Any critical/serious violation; any new moderate outside the dated baseline |
 | 9 | Bundle + byte budget | `node scripts/budget-check.mjs` reading `reports/size.json` + the image ledger | JS gzip > 100 KB hard cap (60 KB target reported); CSS gzip > 30 KB including `styled-system/`; any render response over its §4.3 per-format ceiling; any download response over 500,000 B JPEG / 350,000 B WebP; any original in the UI ledger |
+| **10** | **PWA** | `node scripts/pwa-gate.mjs` (precache bytes, `sw.js` gzip bytes) → `node scripts/manifest-check.mjs` (manifest fields + icon decode via sharp) → `playwright test --project=pwa` | Precache total > **400 KB** compressed; `dist/sw.js` > **25 KB** gzip; a missing/misnamed manifest field or an icon that does not resolve and decode at its declared size; `Page.getInstallabilityErrors` non-empty; any `E-PWA-01..12` failure; a service-worker or precache request observed **before first paint** |
 
 Notes:
 
@@ -807,10 +941,27 @@ Notes:
   discovered last; mitigation: gate 6 prints a preliminary size table and gates 2–5
   run in parallel where the runner allows, so the wall-clock penalty is minutes, not
   tens of minutes.
+- Gate 1a is a text scan, so it runs first: it costs under a second and a vocabulary
+  regression is cheaper to fix before the typecheck/build/test stages. Its allowlist is
+  a register, not a permission: every entry is line-anchored, carries a reason, and fails
+  the gate when the text no longer matches. `npm run canon:strict` fails on the remaining
+  design-doc baseline (issue #31); CI runs the non-strict gate until that baseline is empty.
 - axe is a separate stage rather than folded into gate 7 so an a11y regression is
   attributable in the pipeline UI without reading traces.
 - `LCP` tracing is advisory and never fails the pipeline (PRD §5 target, not a
   contract). CLS is a hard assertion inside Playwright, not a budget job.
+- **Gate 10 is deterministic on purpose, and Lighthouse is not part of it.** Lighthouse
+  12.0.0 (April 2024) **removed the PWA category**; Lighthouse 13.x ships Performance,
+  Accessibility, Best Practices and SEO only. "PWA score" is therefore a metric that no
+  longer exists, and anyone quoting one is quoting a retired audit. The gate asserts the
+  things that can be asserted: precache and worker byte budgets, manifest/icon validity,
+  CDP `Page.getInstallabilityErrors`, and the twelve `E-PWA-*` scenarios. **Lighthouse
+  runs advisory only** — its artifact is attached to the run and a regression is a
+  comment, never a red pipeline. Diagnostics such as `no-unload-listeners`,
+  `service-worker` and `works-offline` moved out of the scored set and are not
+  reintroduced here by name.
+- Gate 7's explicit `--project` list deliberately omits `pwa`; gate 10 owns that project.
+  Running it twice would double the slowest stage for no extra signal.
 
 ### 8.2 Cross-file selector-diff check
 
@@ -835,10 +986,13 @@ bytes.
 
 ### 8.3 Branch protection
 
-Required checks: all nine gates. No `continue-on-error`, no `|| true`, no
-`--passWithNoTests`. Nightly job adds the full four-project Playwright matrix plus the
-flaky report; PR runs use Chromium + WebKit and the two mobile profiles (they are cheap
-enough at this app size). `main` is protected against direct pushes.
+Required checks: all eleven gates. No `continue-on-error`, no `|| true`, no
+`--passWithNoTests`. Gate 10 runs on every PR (the `pwa` project plus two byte checks —
+minutes, not tens of minutes); the manual iOS rows in §6.12 stay release-checklist items,
+because a real device install is not a CI assertion. Nightly job adds the full
+four-project Playwright matrix plus gate 10's `pwa` project across two Chromium versions
+and the flaky report; PR runs use Chromium + WebKit and the two mobile profiles (they are
+cheap enough at this app size). `main` is protected against direct pushes.
 
 ---
 
@@ -854,6 +1008,12 @@ enough at this app size). `main` is protected against direct pushes.
 | Evidence | Trace on first retry, video on failure, screenshot on failure. A flake report without a trace is not actionable. |
 | Bans | `waitForTimeout`, `networkidle` waits, CSS-class selectors for behavior, `force: true` clicks, retrying assertions to hide timing. |
 
+**The `pwa` project overrides the CI retry to `0`** (§3.2). Its failures are usually
+state-ordering bugs — a stale cache, a registration from the previous test, a race with
+`controllerchange` — and a retry turns each of those into a random pass on the next
+attempt. The ≥ 95 % target is measured per project, so a flaky PWA spec lowers its own
+number instead of hiding inside the global one.
+
 ---
 
 ## 10. Coverage targets
@@ -864,6 +1024,7 @@ enough at this app size). `main` is protected against direct pushes.
 | `normalize.ts`, merge | 100 % branches + property suite | The data funnel; silent corruption is the worst failure |
 | `persistence` | 100 % branches | Data-loss risk |
 | `cardView.ts`, budgets | 100 % branches | Overflow fix |
+| `src/lib/pwa/{cachePolicy,limits,schema}.ts` | 100 % branches | A cache that over-admits ships originals; one that over-evicts loses the catalogue — both silently |
 | `i18n` | 100 % key parity (not line coverage) | F8/M4 |
 | Domain layer overall | ≥ 95 % branches | Gate in `vitest.config.ts` |
 | Golden-path journeys | 100 % of the 14 steps in §6.1 | Release definition |
@@ -911,8 +1072,19 @@ default checklist because the project is a full refactor with a committed a11y t
       check.
 - [ ] axe: no new critical/serious; moderate only via a dated baseline entry.
 - [ ] No new third-party request; no new storage key outside `lucky-elsa.*`.
+- [ ] **Offline path asserted.** Any story that touches boot, data fetch, images, the shell
+      or routing lands with the `pwa` project green for `E-PWA-01` (cold), `E-PWA-02`
+      (warm) and `E-PWA-03` (image miss) — or the PR body records why the story cannot
+      change them, with the run link. "We didn't run the PWA suite" is not a reason.
+- [ ] **No reload without confirm.** Any story touching the worker, registration or update
+      affordance keeps `E-PWA-04` green: no automatic reload, `skipWaiting` only from a
+      user gesture, and an open pack survives a build landing mid-reveal.
+- [ ] **No cache without a bound.** Any new `cache.put`, cache name or cached resource type
+      ships with its bound in `limits.ts`, a mirror in `tests/fixtures/image-budgets.json`
+      (`U-PWA-07` parity), an eviction path covered by `U-PWA-06`, and an `E-PWA-05/06`
+      assertion. An unbounded cache is a NOT-done condition, not a follow-up ticket.
 - [ ] Bundle budgets unchanged, or the increase is documented and approved in the PR.
-- [ ] All nine CI gates green on the merged commit.
+- [ ] All eleven CI gates green on the merged commit.
 - [ ] Screenshots of every touched screen captured to
       `qa-shots/<story-slug>/<viewport>.png` (UI and Visual/Feel stories).
 - [ ] Code reviewed; the reviewer confirms the test IDs actually assert the AC.
@@ -1020,6 +1192,32 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 - [ ] Zero third-party requests, zero cookies, no non-`lucky-elsa` storage
 - [ ] axe: 0 critical, 0 serious
 
+### PWA (offline, update, cache)
+
+- [ ] *Offline reload after one online visit still opens the app (shell-cold and
+      catalogue-warm both)
+- [ ] *A pack opens and completes offline; the offline badge carries the snapshot date
+- [ ] *A build landing mid-pack never reloads the page and never interrupts the reveal
+- [ ] Update confirmed by the user → exactly one reload → `data-version` is the new hash;
+      a dismissed build is not offered again, a newer one is
+- [ ] `?list=1` slow (> 2.5 s) still yields the snapshot on this load and a refreshed
+      snapshot on the next; `online` revalidates in place with no reload
+- [ ] A replaced photo (new `ver`) appears after one reload; offline data still serves
+- [ ] A card that never fetched its image renders frame + printed text, not an empty box
+- [ ] Cache bounds hold: tile ≤ 400 / 20 MB, large ≤ 200 / 32 MB, device total ≤ 54 MB,
+      oldest `lastAccess` evicted first, `elsa-cat-v1` never evicted
+- [ ] No cache key names an original; no cached body matches a recorded source hash
+- [ ] Reset-cache asks before deleting, keeps the app shell, and the app still opens
+      offline afterwards
+- [ ] Install: nothing on visit 1, one quiet row on visit 2, dismissal permanent,
+      `prompt()` only from a click, no nag anywhere
+- [ ] Precache ≤ 400 KB compressed; `dist/sw.js` ≤ 25 KB gzip; no SW request before first
+      paint
+- [ ] Manifest fields and every icon validate; `theme_color`/`background_color` equal
+      `tokens.bg`; `Page.getInstallabilityErrors` empty
+- [ ] Lighthouse advisory artifact recorded — and **not** read as a "PWA score" (that
+      category has not existed since Lighthouse 12.0.0)
+
 ### Manual (not automatable)
 
 - [ ] VoiceOver + Safari: pack flow, four names, restart, language switch, dialog titles
@@ -1060,6 +1258,10 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 | F24 thumbnails / tiers | — | §7 all |
 | F25 share + OG | U-I18N-08 | manual + E-JRN-14 |
 | F26 reset | U-PST-13/14 | E-RST-01..10 |
+| **D-01 / ADR-0009 — installable offline catalogue (PRD §5 "works from the train")** | U-PWA-01..10 | E-PWA-01, E-PWA-02, E-PWA-03, E-PWA-12 |
+| **ADR-0009 §4/§9 — bounded, weighted cache; originals inadmissible** | U-PWA-03..07 | E-PWA-05, E-PWA-06, U-PWA-07 parity |
+| **ADR-0009 §6 — prompt update, no automatic reload** | U-PWA-08/09 | E-PWA-04 |
+| **ADR-0009 §8/§9 — one quiet install offer, cache privacy** | U-PWA-10 | E-PWA-07, E-PWA-08, E-PWA-09, E-PWA-10, E-PWA-11 |
 | AGENTS water canon | U-I18N-15 | manual content audit |
 
 ---
@@ -1068,7 +1270,7 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 - Unit: JUnit XML (`reports/vitest.xml`) + coverage (`reports/coverage/`).
 - Playwright: HTML report, JUnit XML, traces/videos on failure.
-- Release-readiness artifact: one page per release candidate summarising gates 1–9,
+- Release-readiness artifact: one page per release candidate summarising gates 1a–10,
   the manual checklist, and the pass-on-first-run rate for the last 20 runs.
 - QA evidence: `qa-shots/<story-slug>/` for screenshots and sign-off notes.
 - A gate failure is reported with the gate number, the failing test ID, and the
@@ -1087,7 +1289,7 @@ These are findings from writing the plan. Test code must not silently choose a s
 | **C3** | Architecture renders the pack as inline `PackTheatre`; UX v2 specifies a **pack dialog** with backdrop rules and skip semantics | Focus/backdrop tests need one surface definition | Behaviour tests are role-first; E-FOC-04/05 assume dialog semantics. Confirm the surface before implementing focus tests. |
 | **C4** | Progress copy: PRD F13 and architecture say "gesehen/seen"; interaction-patterns v2 declares **"gesammelt/collected"** canon | `copy-canon.json` cannot be pinned both ways | **RESOLVED 2026-11-22** — the copy deck canonises "gesammelt/collected" and retires the old verb; pin that. |
 | **C9** | Pack size: PRD/ADR/architecture said five cards; owner ruling 2026-11-22 sets **four** (mobile-first, 2×2) with sequential reveal then pull-back | Pack-size tests and copy could assert the old count | **RESOLVED** — canon is four; PRD F1/F5/F22, ADR-0001 and architecture updated; test code asserts four. |
-| **C5** | Storage keys: architecture lists `{lang,sound,seen}.v2`; UX v2 also names `sets.v1` and `flags.v1` | U-PST-20 cannot pin a list | ADR-0003 must ratify the key set before persistence tests are written. Migration covers unknown legacy keys defensively meanwhile. |
+| **C5** | Storage keys: architecture lists `{lang,sound,seen}.v2`; UX v2 also names `sets.v1` and `flags.v1` | U-PST-20 cannot pin a list | **RESOLVED 2026-11-22** — ADR-0003 §2 ratifies the key set (lang/sound/seen v2; sets/flags/exhibition/cardback v1); pin U-PST-20 to it. |
 | **C6** | `qa.level` resolves to `minimal`; `AGENTS.md` and the brief require production rigor | If taken literally, most automated rows would be dropped | Recorded override to `full` (§header). No action. |
 | **C7** | Architecture mentions "set" as an optional grouping; UX v2 fixes six named departments + `Neuzugänge` | U-I18N-16 and set-progress tests need the canon | Treat interaction-patterns v2 as copy SSOT; add the department names to `copy-canon.json` once confirmed. |
 | **C8** | Empty-state copy references `npm run photos` (a Node workflow), while AGENTS.md says owners FTP-drop and `photos.php` is runtime truth | Copy may instruct a workflow the owner does not use | UX/writer: confirm the owner-facing instruction; test asserts the chosen copy. |
@@ -1105,6 +1307,34 @@ These are findings from writing the plan. Test code must not silently choose a s
    of a production photo would leak its EXIF/GPS payload into git history for good. The
    generator's ledger (`tests/fixtures/image-sources.json`) is gitignored too, because its
    hashes move with the sharp/libvips build.
+
+### Superseded assumptions
+
+**S1 — "the app ships no service worker" (SUPERSEDED 2026-11-22 by ADR-0009).** Earlier
+drafts of this plan, and the pre-refactor app, assumed an online-only product: no service
+worker, no Cache Storage, no install path, and a `serviceWorkers: 'block'` that was a
+statement about the product. **ADR-0009 (owner decision D-01) reverses that premise**:
+the app is installable and offline-first, with a bounded, versioned cache. Everything in
+this document that inherited the old assumption is now wrong in the same way, and the
+corrections are these:
+
+- `serviceWorkers: 'block'` is a **determinism default for the non-PWA suites only**
+  (§3.2). It is not a product fact, and it must not be widened back to a global setting —
+  that single line is what made every offline assertion unwritable.
+- Any test asserting "no service worker is registered", "no Cache Storage exists", or
+  "the network is the only source of the shell" is a **v1 assertion and therefore a
+  defect**, exactly like the v1 conflicts in C1–C5. `architecture.md` v1.2 and ADR-0009
+  are the sources; the older test-plan text is not.
+- "Offline" is not a single state to test. It is the taxonomy in §6.12 — cold, warm,
+  stale, image-miss — and each row has a distinct, falsifiable assertion. A single
+  "works offline" checkbox would pass while three of the four states are broken.
+- Privacy gains a boundary it did not have before: the cache is now a place data can
+  leak to, so `E-PWA-06` (no original in any cache) and `E-PWA-08` (credentials,
+  `Set-Cookie`, `Vary`) are privacy tests first and cache tests second.
+- Lighthouse cannot arbitrate any of this: its PWA category was removed in Lighthouse
+  12.0.0 (April 2024), so the PWA gate (§8.1 gate 10) is byte budgets, manifest/icon
+  validation, CDP installability and the twelve `E-PWA-*` specs — with Lighthouse
+  advisory only.
 
 ### Open questions
 
@@ -1158,13 +1388,22 @@ npx vitest run --coverage
 # single e2e spec against a local build
 npm run build && npx playwright test tests/e2e/journey.spec.ts --project=chromium
 
+# PWA suite only (own fixture origin on :4180, service workers allowed)
+npx playwright test --project=pwa
+npx playwright test tests/e2e/pwa/offline.spec.ts --project=pwa   # one spec
+
+# gate 10 alone
+node scripts/pwa-gate.mjs && node scripts/manifest-check.mjs \
+  && npx playwright test --project=pwa
+
 # full gate locally (same order as CI)
-npm run check && npx stylelint "src/**/*.{css,svelte}" \
+npm run canon && npm run check && npx stylelint "src/**/*.{css,svelte}" \
   && node scripts/selector-diff.mjs && npx eslint . && npx knip \
   && npx jscpd --config jscpd.json src tests scripts \
   && npx vitest run --coverage && npm run build \
   && npx playwright test && npx playwright test tests/e2e/a11y.axe.spec.ts \
-  && node scripts/budget-check.mjs
+  && node scripts/budget-check.mjs && node scripts/pwa-gate.mjs \
+  && node scripts/manifest-check.mjs && npx playwright test --project=pwa
 ```
 
 ## Appendix C — Test ID conventions
@@ -1183,6 +1422,7 @@ npm run check && npx stylelint "src/**/*.{css,svelte}" \
 | `E-FOC` / `E-KBD` / `E-RM` | Focus / keyboard / reduced motion |
 | `E-ERR` / `E-IMG` | Manifest errors / image errors |
 | `E-OVF` / `E-BRW` / `E-RST` | Overflow / browse / reset |
+| `U-PWA` / `E-PWA` | PWA cache policy (Vitest) / PWA lifecycle (Playwright `pwa` project, §6.12) |
 
 ---
 

@@ -30,7 +30,7 @@ normalizes one logical catalogue through all three and asserts identical `PhotoR
 ### 2. Fields
 
 Manifest level: `generated` (ISO, required), `source` (`'photos' | 'demo'`, required),
-`pipeline` (int, optional — rendition pipeline version), `ladder` (string[], optional),
+`pipeline` (int, optional — rendition pipeline version), `ladder` (`Record<rendition, px>`, optional — `{tile,pack,detail,download}` longest-edge values),
 `photos[]` (required).
 
 Per photo — required: `id` (slug, unique), `width`/`height` (oriented **source** dimensions; the
@@ -39,6 +39,7 @@ aspect-ratio authority). Optional, every one defaulted:
 | Field | Type / default | Rule |
 | --- | --- | --- |
 | `ver` | string ≤ 32 | Hash of `mtime`+`size`; cache-buster, not a secret. Absent → URLs without `&v=`. |
+| `aspect` | number | Emitted convenience value (`width/height`); **not authoritative** — consumers derive from `width`/`height`. |
 | `images` | `{ tile, pack, detail: { jpeg, webp, w, h }, download: url }` | Fixed renditions, same-origin, under `photos.php` or `photos/thumbs/`. Missing → deprecated aliases. |
 | `src` / `thumb` / `view` | string | **Deprecated bounded aliases** → `detail` / `pack` / `download` rung. Never a file. |
 | `download` | string | Accepted synonym of `images.download`, normalized into it. |

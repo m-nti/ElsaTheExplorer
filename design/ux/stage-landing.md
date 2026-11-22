@@ -95,7 +95,7 @@ The stage remains scrollable behind them; the dialogs themselves do not scroll
 |-------------|-------------|-------|
 | Direct URL (family chat link) | Visitor taps shared link | German default, `lang=de` |
 | `?lang=en` / `?lang=de` | URL parameter | Beats stored preference (F9); stage renders in that language before copy paint |
-| Stored language | Returning visitor | `lucky-elsa.lang.v1`, applied by the inline head script pre-render |
+| Stored language | Returning visitor | `lucky-elsa.lang.v2`, applied by the inline head script pre-render |
 | `?photo=<id>` deep link | Shared card link | Stage renders normally; CardDetail opens above it after the collection loads |
 | Wordmark click | Visitor taps "Elsa the Explorer" | Scroll back to the entrance (anchor `./`) |
 
@@ -118,7 +118,7 @@ The stage remains scrollable behind them; the dialogs themselves do not scroll
 | Tap "Pack öffnen" / seal / press `P` | PackOpening (#pack-dialog) | Modal open + wrapper theatre | none yet; catalogue updates happen when the accession completes | Disabled while an accession is resolving |
 | Tap "Zur Sammlung" | Binder section (`#katalog`) | Anchor scroll | — | Also reachable from the masthead nav |
 | `?photo=` deep link resolves | CardDetail | Modal open above stage | opens card, marked collected via the card system | Only after catalogue load succeeds |
-| Language switch DE/EN | Same screen, re-rendered | Instant re-copy | `lucky-elsa.lang.v1` updated by persistence | Announced in live region |
+| Language switch DE/EN | Same screen, re-rendered | Instant re-copy | `lucky-elsa.lang.v2` updated by persistence | Announced in live region |
 
 ---
 
@@ -242,8 +242,8 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | State Name | Trigger | What Changes Visually | What Changes Behaviorally | Notes |
 |------------|---------|----------------------|--------------------------|-------|
 | Loading (catalogue) | Page load until `photos.php`/`photos.json` resolves (≤3s/≤4s timeouts) | Catalogue label "Karten werden gesucht"; seal shows crest with placeholder photo | CTA + seal disabled; `P` inert | Must resolve or fall through to Empty or Error within 4s; no spinner layer beyond the label text |
-| First visit (populated) | Catalogue loaded, `seen.v1` empty/missing | Catalogue line "0 von 24 gesammelt", bar 0; seal fully intact | All input active | The default state; German copy (F7) |
-| Returning | Catalogue loaded, `seen.v1` non-empty | Catalogue line shows real count + fill; seal identical (the crate never shows fake wear — the collection grows instead) | All input active | Masthead count mirrors the line |
+| First visit (populated) | Catalogue loaded, `seen.v2` empty/missing | Catalogue line "0 von 24 gesammelt", bar 0; seal fully intact | All input active | The default state; German copy (F7) |
+| Returning | Catalogue loaded, `seen.v2` non-empty | Catalogue line shows real count + fill; seal identical (the crate never shows fake wear — the collection grows instead) | All input active | Masthead count mirrors the line |
 | New in the collection ("{n} neue Schmuckstücke sind da!") | Returning visitor; **mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids that were absent from the stamp of the visitor's previous visit | Line above catalogue: "N neue Schmuckstücke sind da!" (EN "N new treasures have arrived!"; copy-deck sync 2026-11-22, D5) | Line disappears **once any new card is collected** (not on pack open); flag updated by persistence | **Vertical Slice (GDD R8)**; owner = persistence system |
 | Sample / Mixed | All or some catalogue entries flagged `demo` | Demo/mixed note line visible in the collection zone | Packs work normally | Copy per `demoNote`/`mixedNote`, updated to library register |
 | Empty | Catalogue resolves to 0 photos (both sources exhausted cleanly) | CTA label becomes "Noch keine Karten" and disabled; seal disabled (greyscale foil, no glow); catalogue line "Noch keine Karten" | `P`, CTA, seal inert; the collection shows the owner instruction ("npm run photos") | F14/F15 — owner-instruction copy lives **only** in the true-empty state, never in the failure state |
@@ -275,7 +275,7 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | Tap seal / CTA | Touch | — | Open pack | Same | Same; seal hover styles skipped | Same | Hit target ≥280px (seal) / ≥44px (CTA) |
 | Click "Zur Sammlung" / nav link | Mouse/Touch | — | Anchor to `#katalog` | Smooth scroll | 300ms; instant under reduced motion | none | |
 | Click DE / EN | Mouse/Touch | — | Switch language | All visible strings swap immediately incl. `<title>`, aria-labels | Instant (no fade — F8) | none | Announced: "Auf Deutsch umgestellt." / "Switched to English." |
-| Click sound toggle | Mouse/Touch | — | Toggle sound | Icon slash + label "Ton an/aus", `aria-pressed` flips | Instant | tick on enabling | Persists via `lucky-elsa.sound.v1` |
+| Click sound toggle | Mouse/Touch | — | Toggle sound | Icon slash + label "Ton an/aus", `aria-pressed` flips | Instant | tick on enabling | Persists via `lucky-elsa.sound.v2` |
 | `P` while disabled/empty | Keyboard | — | No-op | none | none | none | Guarded by busy/empty state |
 | Right-click anywhere | Mouse | — | Browser context menu | Default | — | — | Defined as no custom handling |
 
@@ -296,16 +296,18 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | Data Element | Source System | Update Frequency | Who Owns It | Format | Null / Missing Handling |
 |--------------|--------------|-----------------|-------------|--------|------------------------|
 | Card catalogue (photos, names, moods, captions, rarity, setId, demo flag) | Card source system: `photos.php?list=1` → `photos.json` → empty | On page load only | Card source system (file drop + `npm run photos`) | JSON array → normalized photo objects | Empty → Empty state; fetch/server failure after both sources → **Error state** (retry in the collection); PHP failure → JSON fallback silently |
-| Collected set (which cards the visitor has) | Persistence system, key `lucky-elsa.seen.v1` | When a card is collected (after pack reveal / card open) | Persistence system | JSON array of ids | Missing → empty set, First-visit state |
+| Collected set (which cards the visitor has) | Persistence system, key `lucky-elsa.seen.v2` | When a card is collected (after pack reveal / card open) | Persistence system | JSON array of ids | Missing → empty set, First-visit state |
 | Set-completion snapshots (per completed room) | Persistence system, key `lucky-elsa.sets.v1` | On room completion | Persistence system | JSON map setId → {completedAt, memberCount, manifestStamp} — **snapshots only; no seen/total counts, no diploma records** | Missing → room not completed |
 | Milestone/visit flags | Persistence system, key `lucky-elsa.flags.v1` | On relevant events (load, pack complete, completion) | Persistence system | JSON map {milestones, lastManifestStamp, diploma, masterIndex} — **no lap integer, no lastSeenTotal** | Missing → treated as first visit |
-| Language | Persistence system, key `lucky-elsa.lang.v1` | On switch | Persistence system | `"de"` \| `"en"` | Missing → `"de"` (F7) |
-| Sound preference | Persistence system, key `lucky-elsa.sound.v1` | On toggle | Persistence system | boolean | Missing → `true` |
+| Language | Persistence system, key `lucky-elsa.lang.v2` | On switch | Persistence system | `"de"` \| `"en"` | Missing → `"de"` (F7) |
+| Sound preference | Persistence system, key `lucky-elsa.sound.v2` | On toggle | Persistence system | boolean | Missing → `true` |
 | Cover photo for the seal preview | Card source system (first catalogue entry / setId cover) | On catalogue load | Card source system | URL | Missing → crest-only seal variant |
 
 > **Rule**: The stage never writes `localStorage` directly. Every player action
 > fires an event (Section 9); the persistence system is the only writer of
-> `seen.v1` / `sets.v1` / `flags.v1` / `lang.v1` / `sound.v1`. All keys are
+> `seen.v2` / `sets.v1` / `flags.v1` / `lang.v2` / `sound.v2`. Key suffixes follow
+> ADR-0003: the suffix **is** the envelope version (`{ "v": n, "data": … }`), and a key
+> introduced after the v1→v2 migration starts at `.v1`. All keys are
 > first-party, on-device, no cookies (PRD privacy row).
 
 ---

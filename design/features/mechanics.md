@@ -16,11 +16,11 @@ Four visitor-facing mechanics sit on the existing collection loop without adding
 | # | Invariant |
 | --- | --- |
 | I1 | **Determinism**: no `Math.random()`, no `Date.now()` in any formula except the calendar day. Every pick is a pure function of `(dateKey, manifestStamp, ids, label, k)`. Tests inject date + manifest. |
-| I2 | **Read/write separation**: `seen.v1` is written only by the collection module's five verbs (`markSeen, onWingComplete, onMilestone, onAllComplete, resetAll`). **No mechanic here marks a card collected.** |
+| I2 | **Read/write separation**: `seen.v2` is written only by the collection module's five verbs (`markSeen, onWingComplete, onMilestone, onAllComplete, resetAll`). **No mechanic here marks a card collected.** |
 | I3 | **Derived, never stored**: unlocks, progress, forecast and print content are computed at render. Only *choices* persist (`exhibition.v1`, `cardback.v1`). |
 | I4 | **No pressure**: no countdown, no "expires", no streak, no counter that punishes absence, no badge/dot, no locked-item checklist. Missing a day costs nothing and is not mentioned. The calendar in §1 varies **what is read**, never **what is earned**: no card, reward or milestone is gated on a date. |
 | I5 | **Bilingual**: every string in `COPY.de` / `COPY.en`, index-aligned. One draw *index* serves both languages — switching language mid-read never re-rolls content. Placeholder sets must match index-by-index (tested). |
-| I6 | **Reset**: R-J extended — `lucky-elsa.exhibition.v1` and `lucky-elsa.cardback.v1` join the cleared key set (Phase 5). The confirmation's loss line gains "Sonderausstellung und Kartenrücken" / "special exhibition and card backs" (owner copy decision, see Open Questions). |
+| I6 | **Reset**: R-J extended — `lucky-elsa.exhibition.v1` and `lucky-elsa.cardback.v1` join the cleared key set (Phase 5). The confirmation's loss line gains "Sonderausstellung und Kartenrücken" / "special exhibition and card backs" (owner copy decision, see Open Questions). The ratified `reset.body` (copy deck §9) **predates these two keys and does not name them** — it must be extended in the same change that ships them, never earlier; the copy deck stays untouched until then. |
 | I7 | **Pack canon (owner, 2026-11-22)**: a pack holds **4 cards** — no duplicate inside it, the unseen-first walk unchanged, ≥1 holo/rare via the existing promotion rule. The holo/rare climax is revealed in **slot 4**, **slot 3** only when a second rare/holo was drawn, and never slot 1. A mid-reveal skip collects **only the cards already revealed** (at most 4). None of the four mechanics may resize, reorder, re-roll or draw from the pack, and none may weaken the skip rule. |
 
 **New storage — the only additions in this document**
@@ -102,7 +102,7 @@ pick(n,label,k): r = rnd(label,k); limit = 2^32 - (2^32 mod n)
 
 **Rules**
 
-- **X1 · Scope.** **1–5 cards, ordered.** The editor offers only `seen.v1 ∩ manifest`; the view renders any *known* id (a curated reprint may show a card no longer in the collection — it is a snapshot, and it is not silently recollected). The stored array is the visitor's order verbatim — no reordering, dedupe or sort on write.
+- **X1 · Scope.** **1–5 cards, ordered.** The editor offers only `seen.v2 ∩ manifest`; the view renders any *known* id (a curated reprint may show a card no longer in the collection — it is a snapshot, and it is not silently recollected). The stored array is the visitor's order verbatim — no reordering, dedupe or sort on write.
 - **X2 · Editing.** Add (cap 5: at cap the add control is disabled and reads "5 von 5"), remove, reorder. Every edit writes `exhibition.v1` immediately through one verb `setExhibition(ids)` — no draft/apply split, no undo (removal is one tap to re-add). No free-text title (X6).
 - **X3 · Hash encoding (versioned, compact, tolerant).** `#ausstellung/1/<enc(id)>,<enc(id)>…`, each id `encodeURIComponent`d **before** joining with `,` (so `,`, `/`, `#` inside an id can never break parsing). Parser returns `{status:"ok"|"version"|"none", ids}`: missing/other first segment → `none`; unknown version → `version` with parsed ids retained; >5 → first 5 kept + one quiet line; duplicates → dedupe keeping first; empty ids dropped. **Order is the payload** (canon 2026-11-22): ids are **never sorted** — the visitor's arrangement *is* the exhibition, and a sorted link would make X2's reorder controls meaningless in the one artefact they exist to arrange. Malformed *encoding* (`decodeURIComponent` throws) refuses the whole payload; a well-formed id merely unknown to the manifest is dropped per id with an honest count (X5). Max canonical length = `15 + 5×64 + 4 = 339` chars, far below any browser/host limit.
 - **X4 · Read-only shared view.** Hash present on load → the page renders the exhibition view above the collection: placard (X6 title, "{n} von 5 Karten"), the exhibits **in hash order**, actions **Teilen** (Share Button pattern), **Als eigene Ausstellung übernehmen**, **Zur Sammlung**. No edit/remove controls. Opening an exhibit uses the normal lightbox → normal collection (never bypasses the walk; the collection already offers this path) and **must not drop the fragment** (X9). Own hash (equal to the local draft) → shows "Bearbeiten" instead of "Übernehmen".
@@ -201,7 +201,7 @@ Order rationale: 1 and 2 are read-only projections and can land as soon as wings
 
 ## Top 3 risks
 
-1. **Der Aushang short-circuits the deck walk** — the moment any surface of it marks a card collected or draws from the unseen pool, the archive's moral spine is gone. Mitigation: import-boundary lint (no `markSeen`), no flip/lightbox, a 30-date Vitest asserting `seen.v1` is byte-identical, and a review checklist item on the module.
+1. **Der Aushang short-circuits the deck walk** — the moment any surface of it marks a card collected or draws from the unseen pool, the archive's moral spine is gone. Mitigation: import-boundary lint (no `markSeen`), no flip/lightbox, a 30-date Vitest asserting `seen.v2` is byte-identical, and a review checklist item on the module.
 2. **Print fidelity** — the parlour is a dark, gradient-and-foil page; printed naively it floods ink or clips. Mitigation: paper palette, `print-color-adjust` only on photos, `overflow: visible` on scroll containers, and Playwright PDF snapshots at A4 portrait, A3 and landscape as a CI gate.
 3. **Identity backs turn into a checklist** — listing locked backs, adding "neu" dots or auto-switching would reintroduce exactly the to-do pressure R-K forbids, and would re-open the reward framing the owner retired. Mitigation: unlocked-only listing, no badge, no auto-switch, no count, one quiet line; experiential probe "does anyone ask what the other backs are?" — a yes is a pass (curiosity), a *worry* about earning them is a fail.
 
@@ -210,7 +210,7 @@ Order rationale: 1 and 2 are read-only projections and can land as soon as wings
 **Functional (Vitest unless noted; GIVEN / WHEN / THEN, boundary included)**
 
 1. GIVEN a fixed `dateKey` + `manifestStamp`, WHEN Der Aushang renders twice, THEN the same id and the same three indices, in DE and in EN.
-2. GIVEN 30 consecutive dates over a 64-card manifest, WHEN Der Aushang renders daily, THEN `seen.v1` is unchanged after all 30 (the bulletin never collects).
+2. GIVEN 30 consecutive dates over a 64-card manifest, WHEN Der Aushang renders daily, THEN `seen.v2` is unchanged after all 30 (the bulletin never collects).
 3. GIVEN `n ≥ 2`, WHEN two consecutive days render, THEN the card ids differ (T2 bump); GIVEN `n = 1`, THEN the same id twice and no loop.
 4. GIVEN `p_all < 1`, WHEN line 2 renders, THEN `stock` is never selected; GIVEN `p_all = 1`, THEN line 2 comes from `stock` and the eyebrow is the 100 % string.
 5. GIVEN a device year of 1999 or 2200, WHEN Der Aushang resolves the date, THEN it uses UTC; GIVEN an invalid `Date`, THEN the module is absent and no exception is logged.

@@ -380,7 +380,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | Set membership / chase flag / edition stamp | Card catalogue (`set`, `chase`) + persistence (`flags.v1` lap) | On open | Card source system / persistence respectively | string / boolean | Missing set → no chip; missing stamp → none |
 | Focus anchor | Card source system (manifest `focus`) | On render | Card source system | {x,y}% | Missing → `center 42%` |
 | Display image / original | Card source system (`view` ≤720px / `src` original) | On open | Card source system | URL (+ HEIC flag) | HEIC → conversion; failure → fallback panel |
-| Collected set | Persistence system (`seen.v1`) | On open (idempotent if already present) | Persistence system | id array | Storage refused → session-only, silent |
+| Collected set | Persistence system (`seen.v2`) | On open (idempotent if already present) | Persistence system | id array | Storage refused → session-only, silent |
 | Share URL | Persistence system (lang) + current photo id | On share | Persistence system owns lang; the dialog composes the URL | absolute URL | n/a |
 | Catalogue position | Card source system (index of id) | On open/navigate | Card source system | {number, total} | n/a |
 
@@ -564,7 +564,7 @@ numbers are read (F2a), preventing misreading them as data.
 **Layout & Rendering**
 - [ ] The dialog never scrolls at any listed viewport; all six bands visible simultaneously
 - [ ] All §6 states render correctly (front, flipped, navigating, HEIC converting, image error, share states, completed-room frame, capstone plaque, reduced motion, deep link)
-- [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v1` write occurs
+- [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v2` write occurs
 - [ ] Photo crop honours the `focus` anchor; the display copy never exceeds 720px; "Foto speichern" delivers the original filename
 - [ ] Holo cards show the adopted halo + ground shadow dressing; reduced motion shows both static
 
@@ -574,7 +574,7 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] From the pack flow, closing returns focus to the same pack card; from the collection, to the same tile; from a deep link, to `#open-pack`
 
 **Events & Data**
-- [ ] `card:opened` fires once per open; `seen.v1` gains the id (idempotent re-open test)
+- [ ] `card:opened` fires once per open; `seen.v2` gains the id (idempotent re-open test)
 - [ ] Share URL always carries `lang` and `photo`; clipboard fallback text matches the copy deck in the current language
 - [ ] No direct `localStorage` writes from this dialog (code review check)
 - [ ] The same photo renders the same name/rarity/text after reload and in a deep link (F3 test)

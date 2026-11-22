@@ -26,10 +26,13 @@ contract (architecture "API Boundaries"), so it is ratified once here.
 
 ### 1. Namespace and envelope
 
-Every key is `lucky-elsa.<concern>.v<n>`; the suffix **is** the envelope version and equals the
-`v` inside: `{ "v": 2, "data": <payload> }`. A key introduced after the v1→v2 migration starts at
-`.v1` because it never had a bare v1 value — so `sets.v1` / `flags.v1` (the names the GDD already
-uses) need no rename. A shape change bumps `n` and adds a migration step.
+Every key is `lucky-elsa.<concern>.v<n>`; the suffix **is** the envelope version. Payloads that
+have ever existed in a bare form use the envelope `{ "v": 2, "data": <payload> }`; keys introduced
+after the v1→v2 migration start at `.v1` and **may store a self-describing bare payload**
+(`sets.v1`, `flags.v1`, `exhibition.v1`, `cardback.v1`), because their shape is already versioned by
+the key and there is no legacy bytes to disambiguate. A shape change bumps `n` and adds a migration
+step. Rationale: an envelope around a self-describing payload adds ceremony without adding safety,
+and the earlier blanket rule contradicted the accepted Phase-5 feature specs.
 
 ### 2. Ratified key register (closed set)
 
@@ -86,9 +89,7 @@ provably complete on a family device; almost nothing is persisted (no accounts, 
 nothing leaves the browser), so the privacy claim stays structural (PRD §5).
 
 **Negative / accepted costs** — nine keys and a migration path are more code than v1's three bare
-values; paid deliberately (D-08), because the alternative is silent loss. `collection-meta.md`
-and `stage-landing.md` still say `.v1` for lang/sound/seen and need a one-line sync (architecture
-is binding meanwhile). `sets`/`flags` are registered now but unwritten until B5; tests assert
+values; paid deliberately (D-08), because the alternative is silent loss. `collection-meta.md` and `stage-landing.md` were synced to the register on 2026-11-22. `sets`/`flags` are registered now but unwritten until B5; tests assert
 their absence is legal.
 
 ## Performance Implications

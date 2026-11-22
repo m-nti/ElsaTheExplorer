@@ -52,9 +52,9 @@ specified here ahead of implementation.
 Non-negotiable constraints that shape every pattern:
 
 1. **First-party only**: no cookies, no analytics, no third-party requests at
-   runtime. Storage is `localStorage` keys `lucky-elsa.seen.v1`,
+   runtime. Storage is `localStorage` keys `lucky-elsa.seen.v2`,
    `lucky-elsa.sets.v1`, `lucky-elsa.flags.v1` (collection state) plus the
-   existing `lucky-elsa.lang.v1` and `lucky-elsa.sound.v1` (preferences).
+   existing `lucky-elsa.lang.v2` and `lucky-elsa.sound.v2` (preferences).
 2. **Bilingual everything**: every string a pattern can emit exists in the
    i18n copy deck in both languages, key-aligned. German is the default; the
    household *du* register, museum-catalogue dry humor, no marketing voice.
@@ -562,7 +562,7 @@ implementation change.
 | Default (unselected) | Plain text button "DE" / "EN" in the segmented pair | — | — | — | — |
 | Selected (active) | Foil-accented fill + `aria-pressed="true"` | — | — | — | — |
 | Hover / Focus | Lift + focus ring on either half | pointer / Tab | 80 ms | — | none |
-| Press (switch) | Clicking the inactive language switches *everything immediately* | click / `Enter` / `Space` | `<html lang>` swaps; every string re-renders; open dialogs re-render; `<title>`, meta, `og:locale` update; URL gains `?lang=`; choice persists (`lucky-elsa.lang.v1`) | instant (a language switch must feel like the page was always in that language) | soft toggle click |
+| Press (switch) | Clicking the inactive language switches *everything immediately* | click / `Enter` / `Space` | `<html lang>` swaps; every string re-renders; open dialogs re-render; `<title>`, meta, `og:locale` update; URL gains `?lang=`; choice persists (`lucky-elsa.lang.v2`) | instant (a language switch must feel like the page was always in that language) | soft toggle click |
 | Press (already active) | No-op | click | Nothing changes; no announcement | — | — |
 | URL override | `?lang=de` / `?lang=en` beats stored choice and is then stored | page load | — | — | — |
 
@@ -591,7 +591,7 @@ implementation change.
 | State | Visual | Input trigger | Response | Duration | Audio |
 |-------|--------|---------------|----------|----------|-------|
 | On (default) | Speaker icon with sound waves; label "Ton an" / "Sound on"; `aria-pressed="true"` | — | — | — | — |
-| Off | Same icon, waves replaced by the slash; label "Ton aus" / "Sound off"; `aria-pressed="false"` | click | All WebAudio muted at the source (audio store returns null context); choice persists (`lucky-elsa.sound.v1`) | 80 ms icon swap | soft toggle click (only when switching *on*) |
+| Off | Same icon, waves replaced by the slash; label "Ton aus" / "Sound off"; `aria-pressed="false"` | click | All WebAudio muted at the source (audio store returns null context); choice persists (`lucky-elsa.sound.v2`) | 80 ms icon swap | soft toggle click (only when switching *on*) |
 | Hover / Focus | Lift + focus ring | pointer / Tab | 80 ms | — | none |
 | Blocked context | If WebAudio is unavailable, the toggle still functions as a preference; no error state is shown | — | — | — | — |
 
@@ -677,7 +677,7 @@ implementation change.
 
 **Animation spec**: fill 300 ms ease-out; completion flourish (subtle foil brightening on the line, never page-scale confetti — the pack dialog owns the single small holo burst, and the capstone owns the larger celebration); reduced motion: instant states, flourish becomes a plain text change.
 
-**Implementation Notes** (Svelte 5): `<SetLine>` renders from a `sets.svelte.ts` store; data lives in `lucky-elsa.sets.v1` (per-set ids) and `lucky-elsa.flags.v1` (milestones, Ehrenmensch claimed), both recomputed defensively from `seen.v1` on load (stale-key hygiene, as `pruneSeen()` did). The loose department is automatic, never manually maintained. Container queries: full line ≥ ~480 px, compact line (name + "3/5") below. Vitest: assignment fallback to Neuzugänge; stale-id pruning.
+**Implementation Notes** (Svelte 5): `<SetLine>` renders from a `sets.svelte.ts` store; data lives in `lucky-elsa.sets.v1` (per-set ids) and `lucky-elsa.flags.v1` (milestones, Ehrenmensch claimed), both recomputed defensively from `seen.v2` on load (stale-key hygiene, as `pruneSeen()` did). The loose department is automatic, never manually maintained. Container queries: full line ≥ ~480 px, compact line (name + "3/5") below. Vitest: assignment fallback to Neuzugänge; stale-id pruning.
 
 ---
 
@@ -691,7 +691,7 @@ implementation change.
 **Trigger (GDD R8 mechanism — manifest stamp vs. stored stamp)**:
 - The manifest carries a stamp (its generation timestamp or photo count) — runtime truth from `photos.php` / `photos.json`.
 - The visitor's last-seen stamp lives in `lucky-elsa.flags.v1` (`lastManifestStamp`).
-- On load: manifest stamp ≠ stored stamp → the line appears, counting the visitor's unseen cards in the current manifest ("new" = ids not in `seen.v1`). Equal stamps → hidden. A returning visitor with unseen cards from an *old* manifest is never nagged.
+- On load: manifest stamp ≠ stored stamp → the line appears, counting the visitor's unseen cards in the current manifest ("new" = ids not in `seen.v2`). Equal stamps → hidden. A returning visitor with unseen cards from an *old* manifest is never nagged.
 
 **Interaction Specification**:
 
@@ -710,7 +710,7 @@ implementation change.
 
 **Animation spec**: 200 ms fades; reduced motion: instant show/hide.
 
-**Implementation Notes** (Svelte 5): a `zuwachs.svelte.ts` store compares stamps on load; `lastManifestStamp` is written at dismissal. The count derives from `seen.v1` ∩ manifest ids. Vitest: mismatch → shown; dismissal → stamp written; equal stamps → hidden.
+**Implementation Notes** (Svelte 5): a `zuwachs.svelte.ts` store compares stamps on load; `lastManifestStamp` is written at dismissal. The count derives from `seen.v2` ∩ manifest ids. Vitest: mismatch → shown; dismissal → stamp written; equal stamps → hidden.
 
 ---
 
@@ -959,7 +959,7 @@ behavior, not an afterthought):
 > All audio is synthesized WebAudio — zero audio assets, consistent with the
 > no-dependency constraint. The palette is deliberately small: five core
 > categories cover everything. Sound respects the toggle
-> (`lucky-elsa.sound.v1`, default on), requires a prior user gesture (the
+> (`lucky-elsa.sound.v2`, default on), requires a prior user gesture (the
 > `AudioContext` resumes on the pack-open gesture), and is always an
 > enhancement layer: nothing is sound-only. Master output gain ~0.55 (ref);
 > the `holo-card-ref.html` study's recipes (noise bursts, sine chime with

@@ -322,7 +322,7 @@ block.
 | Data Element | Source System | Update Frequency | Who Owns It | Format | Null / Missing Handling |
 |--------------|--------------|-----------------|-------------|--------|------------------------|
 | Card catalogue + set membership (`set`, `chase`) | Card source system (`photos.php` → `photos.json` → empty) | Page load (and after retry) | Card source system | photo objects with optional `set` field | Missing `set` → Neuzugänge (loose row); catalogue empty → owner instruction |
-| Collected set | Persistence system (`seen.v1`) | On each card open / pack reveal | Persistence system | id array | Missing → nothing collected |
+| Collected set | Persistence system (`seen.v2`) | On each card open / pack reveal | Persistence system | id array | Missing → nothing collected |
 | Set-completion snapshots | Persistence system (`sets.v1`, **GDD R-E contract**): snapshots only `{completedAt, memberCount, manifestStamp}` per completed room | On room completion | Persistence system | JSON map | Missing → room not completed; **no seen/total counts, no milestoneAcks, no frameUnlocked, no diploma in sets.v1** |
 | Capstone record (100 % reached) | Persistence system (`flags.v1` `diploma` field) | When the collection reaches 100 % | Persistence system | {date, lap} | Missing → capstone not rendered |
 | Milestone/visit flags | Persistence system (`flags.v1`, **GDD R-E contract**): `{milestones, lastManifestStamp, diploma, masterIndex}` | On relevant events | Persistence system | JSON map | Missing → first-visit defaults; **no lap integer, no lastSeenTotal** |
