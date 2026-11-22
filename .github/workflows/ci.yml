@@ -64,6 +64,12 @@ jobs:
       - name: Markdown table integrity
         run: npm run gate:tables
 
+      # The bible is a document, so its palette can go stale while the tokens
+      # pass every contrast check (#30: --quiet and credit were quoted retired).
+      # Each palette row and each inline `--token #value` must equal tokens.ts.
+      - name: Art bible <-> token parity
+        run: npm run gate:parity
+
       - name: Typecheck (tsc)
         run: npm run check:ts
 
