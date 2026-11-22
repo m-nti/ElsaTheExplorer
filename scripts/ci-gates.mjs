@@ -69,11 +69,11 @@ for (const [pattern, why] of [
   [/\|\|\s*(?:true|:)(?:\s|$)/m, "ci.yml uses `|| true`/`|| :`: a failure would report success"],
   [/\|\|\s*exit\s+0\b/, "ci.yml uses `|| exit 0`: a failure would report success"],
   [
-    /^\s*["']?continue-on-error["']?:\s*(?:true|\$\{\{\s*true\s*\}\})\s*$/im,
+    /^\s*["']?continue-on-error["']?:\s*(?:true|\$\{\{\s*true\s*\}\})\s*(?:#.*)?$/im,
     "ci.yml sets continue-on-error: a failing gate would report success",
   ],
   [
-    /^\s*["']?if["']?:\s*(?:false|\$\{\{\s*false\s*\}\})\s*$/im,
+    /^\s*["']?if["']?:\s*(?:false|\$\{\{\s*false\s*\}\})\s*(?:#.*)?$/im,
     "ci.yml gates a step on `if: false`: a gate that never runs would report success",
   ],
   [

@@ -65,7 +65,7 @@ describe("gate manifest", () => {
   });
 
   it("fails on continue-on-error, in any casing or expression form", () => {
-    for (const value of ["true", "True", "${{ true }}"]) {
+    for (const value of ["true", "True", "${{ true }}", "true # flaky until #24"]) {
       const result = run(
         fixture({
           workflow: `steps:\n  - run: npm run canon\n    continue-on-error: ${value}\n`,
@@ -77,7 +77,7 @@ describe("gate manifest", () => {
   });
 
   it("fails when a gate step is gated on `if: false`, in any casing", () => {
-    for (const value of ["false", "False", "${{ false }}"]) {
+    for (const value of ["false", "False", "${{ false }}", "false # disabled"]) {
       const result = run(
         fixture({ workflow: `steps:\n  - run: npm run canon\n    if: ${value}\n` }),
       );
