@@ -340,6 +340,10 @@ export const tokens = defineTokens({
     "card-min": value("180px"),
     "card-max": value("340px"),
     content: value("1440px"),
+    // Minimum interactive target — WCAG 2.2 SC 2.5.8 and the committed 44 px
+    // Standard-tier rule (`design/accessibility-requirements.md`, baseline M9).
+    // One token, every control; no short-viewport override may shrink it.
+    target: value("44px"),
     // Card bays — art-bible §8, D12a ruling (#47). Percentages of the plate's
     // inner height; the seven bays sum to exactly 100 %. `zone-header` is §8's
     // plate bay (name row + number/mood/chip row). `zone-gutters` is the
