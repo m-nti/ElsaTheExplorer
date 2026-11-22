@@ -1,0 +1,8 @@
+source ~/.config/elsa/ionos/common.lftp
+open sftp://IONOS_HOST
+lcd LOCAL_STAGE_DIR
+cd IONOS_REMOTE_DIR
+# Staged upload only. Never add -e/--delete: remote files absent from the staged
+# directory are left untouched, including the previous live version.
+mirror -R --verbose --no-p
+bye
