@@ -1,5 +1,13 @@
 Options -Indexes
 
+# Originals are source data, never a public endpoint (photo-pipeline §5.3 config B).
+# ^[^/]+ is per-directory context, so only files directly in photos/ are denied;
+# generated derivatives in photos/thumbs|derived keep being served.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule "^[^/]+\.(jpe?g|png|gif|webp|avif|heic|heif)$" - [F,NC]
+</IfModule>
+
 <FilesMatch "\.(php|phtml|phar|cgi|pl|py|sh|html?)$">
   <IfModule mod_authz_core.c>
     Require all denied
