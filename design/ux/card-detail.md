@@ -370,7 +370,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | Rarity | Card source system (from the photo's own id — F3) | Stable per photo | Card source system | `common\|rare\|holo` | n/a — identity must not drift |
 | Set membership / chase flag / edition stamp | Card catalogue (`set`, `chase`) + persistence (`flags.v1` lap) | On open | Card source system / persistence respectively | string / boolean | Missing set → no chip; missing stamp → none |
 | Focus anchor | Card source system (manifest `focus`) | On render | Card source system | {x,y}% | Missing → `center 42%` |
-| Display image / original | Card source system (`view` ≤720px / `src` original) | On open | Card source system | URL (+ HEIC flag) | HEIC → conversion; failure → fallback panel |
+| Display image / original | Card source system (`detail` 1200 px on open / `download` 1600 px on save; never the original) | On open | Card source system | URL (+ HEIC flag) | HEIC → conversion; failure → fallback panel |
 | Collected set | Persistence system (`seen.v2`) | On open (idempotent if already present) | Persistence system | id array | Storage refused → session-only, silent |
 | Share URL | Persistence system (lang) + current photo id | On share | Persistence system owns lang; the dialog composes the URL | absolute URL | n/a |
 | Catalogue position | Card source system (index of id) | On open/navigate | Card source system | {number, total} | n/a |
