@@ -61,7 +61,7 @@
 | Collected tile state | **gesammelt** | **collected** | ~~gesehen / seen~~ |
 | Unseen tile state | **noch nicht gesammelt** | **not yet collected** | ~~ungesehen / unseen~~ |
 | Location badge (not a state) | **In der Sammlung** | **In the collection** | used as a state verb |
-| Collection | **Die Sammlung** | **The Collection** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13). **Renamed 2026-11-22 (D-04b):** the former name `Die Sammlung` / `The Collection` is retired (§13) |
+| Collection | **Die Sammlung** | **The Collection** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13). **Renamed 2026-11-22 (D-04b):** the former name `Katalog` / `Catalogue` is retired (§14) |
 | Second-lap stamp | **2. Auflage** | **Second edition** | ~~2nd printing~~ |
 | Brand | **Elsa the Explorer** | **Elsa the Explorer** | translated in either language |
 | Pack size | **vier Karten** | **four cards** | ~~fünf / five~~ — **4-card canon 2026-11-22** (mobile-first); the holo/rare still lands late, now 3rd or 4th |
@@ -580,8 +580,8 @@ or any screenshot:
 
 | Retired | Replaced by | Why |
 | --- | --- | --- |
-| Serie I / Erste Auflage (as the page eyebrow) | Katalog I / Catalogue I | Owner rebrand (BR) |
-| Sammelwerk · Serie I / The Collection · Series I | Katalog I | Owner rebrand (D3) |
+| Serie I / Erste Auflage (as the page eyebrow) | Sammlung I / Collection I | Owner rebrand (BR), renamed by D-04b |
+| Sammelwerk · Serie I / The Collection · Series I | Sammlung I / Collection I | Owner rebrand (D3), renamed by D-04b |
 | Sammelheft, binder, "das Heft" as the collection's name | Die Sammlung / The Collection | Owner canon 2026-11-22. **No exception: not even the arrival line says "Heft" any more** (D5) |
 | gesehen / seen, ungesehen / unseen | gesammelt / collected, noch nicht gesammelt / not yet collected | GDD R9 |
 | katalogisiert / catalogued | gesammelt / collected | Verb canon |
@@ -591,12 +591,12 @@ or any screenshot:
 | Zero exclamation marks (the rule itself) | at most one `!` per surface; never in error, destructive-confirmation or a11y strings (§0.4.4) | Owner voice ruling 2026-11-22 — the old rule made the deck too dry. Superseded, not merely relaxed |
 | Die Nassabteilung / The Wet Collection | Der Abfahrtsaal / The Departure Hall | Owner water ruling 2026-11-22 |
 | "Badegast des Jahres", "Unwetterwarnung Stufe Pfote", "nasser Hund und Stolz" | — (no replacement; the card bank entries stay retired) | Owner water ruling — must not be re-pulled from the card bank at runtime |
-| "Den Katalog ansehen" / "See the collection" | Zum Katalog / To the collection | D4 |
-| "Fünf Karten. Ein Sammelwerk." | Was steckt im Katalog? | D2 |
+| "Den Katalog ansehen" / "See the collection" | Zur Sammlung / To the collection | D4, renamed by D-04b |
+| "Fünf Karten. Ein Sammelwerk." | Was steckt in der Sammlung? | D2, renamed by D-04b |
 | fünf Karten / five cards as the **pack count** — "1. Auflage · fünf frische Karten", "Fünf Karten pro Pack", "five cards per pack" | **vier Karten / four cards** ("1. Auflage · vier frische Karten", "Vier Karten pro Pack") | Owner canon 2026-11-22 (**4-card canon**, mobile-first). The holo/rare still lands late, now **3rd or 4th** (PL §Card Reveal Step). "Fünf Karten. Ein Sammelwerk." above is retired on *both* grounds (D2 and this) |
 | "Du hast alle … gesehen. Das Pack beginnt von vorn." | Das waren alle Karten. Jetzt beginnt das Pack von vorn. | A11Y/PRE-refactor lap line, superseded by PL |
 | Diplom, DiplomCard, per-set Diplom | Elsas Ehrenmensch / Elsa's Honorary Human, one surface at 100 % | Owner canon (BND §15 resolved) |
-| "1. Auflage" as the masthead/series label | stage.eyebrow = Katalog I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
+| "1. Auflage" as the masthead/series label | stage.eyebrow = Sammlung I / Collection I; "1. Auflage" survives only as the seal edition and the card credit | D1, D24 |
 | "Holo" as a printed rarity word | Holo-Pracht / Holo glory | D7 |
 | 2nd printing | Second edition | D8 |
 
