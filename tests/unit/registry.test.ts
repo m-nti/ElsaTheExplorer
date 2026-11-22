@@ -197,31 +197,19 @@ function parseRegistry(source: string): ParsedRegistry {
       const { key, value } = splitKeyValue(text, line);
       current = null;
       pendingList = null;
-      if (value === "") {
+      if (value === "" || value === "[]") {
         const existing = sections.get(key);
         if (existing !== undefined && existing.length > 0) {
           throw new RegistryLayoutError(line, `a second ${key}: section`, "one section per key");
         }
         sections.set(key, existing ?? []);
         section = key;
-        sectionEmpty = false;
+        sectionEmpty = value === "[]";
         dashColumn = null;
         return;
       }
-      if (value === "[]") {
-        const existing = sections.get(key);
-        if (existing !== undefined && existing.length > 0) {
-          throw new RegistryLayoutError(line, `a second ${key}: section`, "one section per key");
-        }
-        sections.set(key, existing ?? []);
-        section = key;
-        sectionEmpty = true;
-        dashColumn = null;
-        return;
-      }
-      const { key: metaKey } = { key };
-      if (meta.has(metaKey)) throw new RegistryLayoutError(line, `a duplicate ${metaKey}:`, "one registry-level value per key");
-      meta.set(metaKey, scalar(value, line));
+      if (meta.has(key)) throw new RegistryLayoutError(line, `a duplicate ${key}:`, "one registry-level value per key");
+      meta.set(key, scalar(value, line));
       section = null;
       sectionEmpty = false;
       return;
