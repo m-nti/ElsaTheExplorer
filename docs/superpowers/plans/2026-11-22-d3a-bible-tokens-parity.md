@@ -16,7 +16,7 @@
 
 - Panda tokens in `design/tokens/` are the single numeric authority (ADR-0002); the bible is a document, so a bible value that disagrees with a token is the defect this gate names.
 - CI is fail-closed via `.github/gates.json`: a gate needs an `npm run <script>` entry, a `ci.yml` step, and no `--if-present` / `|| true` (`scripts/ci-gates.mjs`).
-- Canon: **Die Sammlung / The Collection**, **four** cards per pack, **Der Abfahrtsaal**, no water content, no `Heft`, no `Katalog`-naming of the collection, at most one `!` per surface.
+- Canon: **Die Sammlung / The Collection**, **four** cards per pack, **Der Abfahrtsaal**, the progress verb **gesammelt / collected**, no water vocabulary, no retired booklet noun for the collection, at most one `!` per surface.
 - Every numeric example in a plan or doc must be a value the code actually holds; a stale example is the failure mode this ticket exists to close.
 - No new dependency; no runtime code; the gate runs in seconds.
 
