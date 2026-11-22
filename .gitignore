@@ -35,3 +35,6 @@ photos/.cache/[0-9a-f]/*
 # (it changes with the sharp/libvips build).
 tests/fixtures/images/generated/
 tests/fixtures/image-sources.json
+
+# duplicate-code reports
+reports/
