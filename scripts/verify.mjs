@@ -25,7 +25,14 @@ const started = Date.now();
 
 for (const gate of gates) {
   const at = Date.now();
-  const result = spawnSync("npm", ["run", gate.script], { stdio: "inherit" });
+  // Windows resolves `npm` to `npm.cmd`, which `spawnSync` cannot execute
+  // without a shell (EINVAL since Node's CVE-2024-27980 fix). Without this the
+  // local mirror failed at the FIRST gate on the owner's host while CI stayed
+  // green — the gate disagreed with itself between hosts.
+  const result = spawnSync("npm", ["run", gate.script], {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
   if (result.status !== 0) {
     failed.push(`${gate.id} (npm run ${gate.script})`);
     console.error(`\nverify: FAILED ${gate.id} — stopping.\n`);
