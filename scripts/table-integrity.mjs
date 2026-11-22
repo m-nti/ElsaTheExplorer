@@ -198,7 +198,7 @@ for (const violation of violations) {
 }
 if (violations.length > 0) {
   console.error(
-    `\ntable-integrity: ${violations.length} table defect(s) in ${tables} tables — ` +
+    `\ntable-integrity: ${violations.length} table defect(s) in ${tables} table(s) — ` +
       "a row must match its header and must not be separated from it by prose; never drop content.",
   );
   process.exit(1);
