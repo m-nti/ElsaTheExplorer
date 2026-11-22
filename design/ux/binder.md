@@ -22,8 +22,9 @@
 > (EN: "The Catalogue"; owner canon, binding 2026-11-22); seen-copy → **"gesammelt"**
 > (collected) as the progress verb **and the tile's state word** — the **"Im Katalog"**
 > badge is the tile's *location* label and never stands in for the state (D16);
-> new-photos line → **"Das Heft hat Zuwachs: {n} neue Karten."** (EN: "New in the
-> binder: {n} new cards."; D5 — copy-deck sync 2026-11-22).
+> new-photos line → **"{n} neue Schmuckstücke sind da!"** (EN: "{n} new treasures
+> have arrived!"; D5 — copy-deck sync 2026-11-22: the count is required, and both
+> "… hat Zuwachs" forms are retired).
 
 **Set register (archive-rooms register, six rooms + loose — owner canon, binding 2026-11-22):**
 
@@ -143,8 +144,8 @@ answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissab
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │ ALLE KARTEN        Du hast 15 von 24 gesammelt  [Räume|Alle]    │
-│ Jede Karte, die es gibt — öffne eine für die ganze Geschichte.     │
-│ Das Heft hat Zuwachs: 3 neue Karten.            (round 2, when new)│
+│ Jedes Schmuckstück, das es gibt — öffne eines für die …            │
+│ 3 neue Schmuckstücke sind da!                   (round 2, when new)│
 │                                                     [ Von vorn ]   │
 │ ┌────────┐┌────────┐┌────────┐┌────────┐┌────────┐┌────────┐       │
 │ │plate   ││plate   ││plate   ││plate   ││plate   ││plate   │       │
@@ -161,7 +162,7 @@ answered, Escape/„Abbrechen" cancels). Nothing in the catalogue is undismissab
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │ DER KATALOG · NACH RÄUMEN   Du hast 15 von 24 gesammelt  [Räume|Alle]  │
-│ Die Sammlung nach Räumen. Jeder Raum wächst für sich.              │
+│ Die Sammlung nach Räumen. Jeder Raum wächst für sich, in Ruhe.    │
 │ ┌──────────────────────────────────────────────────────────────┐   │
 │ │ 🐾 RUHESAAL · The Nap Wing              7 von 8 ▰▰▰▰▰▰▰░ 25%✦│   │
 │ │  ────────────────────────────────────────────────────────    │   │
@@ -267,15 +268,15 @@ block.
 | Populated — flat view | Catalogue loaded, view A | Grid of all tiles; badges "Im Katalog"/"NEU"; `aus:` chips (round 2) | Tap → CardDetail; toggle active | Default view |
 | Populated — set view | View B | One row per set in §3 order (loose row last); per-set bars | Same tile actions | **Empty rooms are OMITTED — hidden, never rendered as "0 von 0"** (R2 canon) |
 | Newly pulled | Return from a pack this visit | The five fresh tiles get a one-time highlight (soft ring, ~1.5s) | none | Session-only; skipped reduced-motion |
-| New in the binder ("Das Heft hat Zuwachs: {n} neue Karten.") | **Mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids absent from the stamp of the visitor's previous visit | "Das Heft hat Zuwachs: N neue Karten." above the grid; new tiles carry "NEU" | Line disappears **once any new card is collected**; NEU badge clears per tile once opened | **Vertical Slice (GDD R8)**; owner = persistence system |
-| Catalogue milestones | **Overall-catalogue** collected count crosses 25/50/75 % first time | Header line + marker swap: 25 % gilded door sign ("Türschild vergoldet"), 50 % reading lamp lit ("Leselampe angezündet"), 75 % velvet rope ("Samtband gespannt") — each with its text label, never colour alone | Announcement from the **`catalogue:milestone-reached { pct }` single source** (§12); acknowledged in `flags.v1` so it never re-fires | Phase 2; per-room markers remain row affordances only |
-| Set complete | Per-set collected = total | Row header shows full bar; that room's tiles switch to the **gilt frame variant** + one-line unlock note in the catalogue header | Announcement "{Set} ist komplett." | Phase 2 — no per-set Diplom tile; frame persists until reset |
-| Everything complete | Whole catalogue at 100 % | **Elsas Ehrenmensch / Elsa's Honorary Human** capstone renders in the catalogue header (collage of collected photos, "Katalog I · abgeschlossen", completion date, lap number); the **"Das Gesamtverzeichnis"** plaque sits beside it, separate | Announcement "Katalog komplett. Elsas Ehrenmensch ist eingetragen." | Phase 3 (Full Vision); GDD R5 composition; reduced motion honoured |
+| New in the catalogue ("{n} neue Schmuckstücke sind da!") | **Mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids absent from the stamp of the visitor's previous visit | "N neue Schmuckstücke sind da!" above the grid (copy-deck sync 2026-11-22, D5); new tiles carry "NEU" | Line disappears **once any new card is collected**; NEU badge clears per tile once opened | **Vertical Slice (GDD R8)**; owner = persistence system |
+| Catalogue milestones | **Overall-catalogue** collected count crosses 25/50/75 % first time | Header line + marker swap: 25 % gilded door sign ("Türschild vergoldet"), 50 % reading lamp lit ("Leselampe angezündet"), 75 % velvet rope ("Samtband gespannt") — each with its text label, never colour alone | Announcement "Katalog: {pct} Prozent geschafft — {outfit}." / "Catalogue: {pct} per cent done — {outfit}." from the **`catalogue.milestone` single source** (§12), emitted on `catalogue:milestone-reached` (copy-deck sync 2026-11-22 — "Meilenstein erreicht" retired, no `!`); acknowledged in `flags.v1` so it never re-fires | Phase 2; per-room markers remain row affordances only |
+| Set complete | Per-set collected = total | Row header shows full bar; that room's tiles switch to the **gilt frame variant** + one-line unlock note in the catalogue header | Announcement "{set} ist komplett. Alle da." / "{set} is complete. All present." (copy-deck sync 2026-11-22 — `set.complete.announce`; the visible frame note `set.complete.note` is where the surface's one `!` lives, never the announcement) | Phase 2 — no per-set Diplom tile; frame persists until reset |
+| Everything complete | Whole catalogue at 100 % | **Elsas Ehrenmensch / Elsa's Honorary Human** capstone renders in the catalogue header (collage of collected photos, "Katalog I · vollzählig" / "Catalogue I · all present", completion date, lap number); the **"Das Gesamtverzeichnis"** plaque sits beside it, separate | Announcement "Katalog komplett — Elsas Ehrenmensch ist eingetragen." / "Catalogue complete — Elsa's Honorary Human is entered." (copy-deck sync 2026-11-22 — one sentence, em dash, no `!`) | Phase 3 (Full Vision); GDD R5 composition; reduced motion honoured |
 | Chase card (Porträtsaal — Das Hauptporträt / The Portrait of Record) | Catalogue flags `chase: true` | Tile renders as holo material with a **gold-glint keystone frame** (GDD R-G) | Normal unseen-first draw otherwise | Special reveal treatment undecided (§15) |
 | Sample / Mixed | Catalogue flagged `demo` | Demo/mixed note replaces the Zuwachs slot | Tiles work | F15 register: owner-directed copy |
-| Empty (catalogue truly empty) | Both sources resolve to 0 photos | Owner instruction block: "Noch keine Karten. Leg Elsa-Fotos in den Ordner photos und führe dann npm run photos aus." with the command in `<code>` | Count "Noch nichts da" | Distinguishes from error (below) |
-| Error (load failed) | Both fetches fail non-emptily — network/server fault | "Der Katalog lädt nicht gerade." + [Nochmal versuchen] button | Retry re-runs the load chain | New in refactor; never tells a visitor to run npm commands |
-| Reset confirm | "Von vorn" tapped | Modal per the **reset SSOT (copy deck §9: title, body, buttons)**: title "Von vorn?" / "Start over?"; body DE "Das löscht den Katalog, die Set-Fortschritte, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN "This clears the Catalogue, set progress, milestones and Elsa's Honorary Human — sound and language return to their defaults." (copy-deck sync 2026-11-22: `reset.body` is the single source; the retired per-set diploma wording does not return); confirm "Alles löschen" / "Delete everything" (destructive-styled, never "Ja"); cancel "Abbrechen" / "Cancel", **default focus** | Only confirm clears; Escape/Abbrechen cancels | F26; persistence clears **all** `lucky-elsa.*` keys — collection state and preferences (canon 2026-11-22) |
+| Empty (catalogue truly empty) | Both sources resolve to 0 photos | Owner instruction block: "Noch keine Karten. Leg Elsa-Fotos in den Ordner photos und führe dann npm run photos aus." with the command in `<code>` | Count "Leer, aber bereit" / "Empty, but ready" (copy-deck sync 2026-11-22 — count-line slot only; the owner instruction stays verbatim) | Distinguishes from error (below) |
+| Error (load failed) | Both fetches fail non-emptily — network/server fault | "Der Katalog kommt gleich wieder." / "The catalogue will be back shortly." + [Nochmal versuchen] button (copy-deck sync 2026-11-22 — `state.error.catalogue`; no `!` in an error) | Retry re-runs the load chain | New in refactor; never tells a visitor to run npm commands |
+| Reset confirm | "Von vorn" tapped | Modal per the **reset SSOT (copy deck §9: title, body, buttons)**: title "Von vorn?" / "Start over?"; body DE "Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN "This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default." (copy-deck sync 2026-11-22: `reset.body` is the single source — the spec-sounding "Set-Fortschritte" is gone, and the retired per-set diploma wording does not return); confirm "Alles löschen" / "Delete everything" (destructive-styled, never "Ja"); cancel "Abbrechen" / "Cancel", **default focus** | Only confirm clears; Escape/Abbrechen cancels | F26; persistence clears **all** `lucky-elsa.*` keys — collection state and preferences (canon 2026-11-22) |
 | Reset done | Confirm accepted | Count returns to 0; badges reset; frame variants gone; **"Ehrenmensch zurückgesetzt"** (capstone cleared); language returns to German default (all keys cleared) | Announcement "Von vorn. Alle Karten können wieder kommen." | |
 | Reduced motion | System setting | No crossfade, no highlight pulse, no lamp/gilt animation — variants applied statically | unchanged | Variants never rely on animation to be legible |
 
@@ -436,7 +437,7 @@ transfers into the modal and returns to the originating tile on close.
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
 | View switch | "Nach Räumen sortiert." / "Grouped by room." | After the swap |
-| New in the binder | "Das Heft hat Zuwachs: {n} neue Karten." | Once per visit |
+| New in the catalogue | "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" | Once per visit |
 | Catalogue milestone first-crossed | "Katalog-Meilenstein erreicht: {pct} Prozent — {outfit}." | On the count change that crosses it |
 | Set complete | "{Set} ist komplett." (the room's frame note is visible copy, `set.complete.note`, not an announcement) | On completion |
 | Everything complete | "Katalog komplett. Elsas Ehrenmensch ist eingetragen." | Once, at 100 % |
@@ -476,7 +477,7 @@ requires comparison across rooms to act.
 | Milestone labels ("Velvet rope strung" / "Samtband gespannt"; "Gilded door sign" / "Türschild vergoldet") | ~19 | 27 | 40 % | n/a | Wraps under the marker | Low |
 | Location badge "In the catalogue" / "Im Katalog" (not a state string); "NEW" / "NEU" — **R9 copy canon** | 16 / 3 | 22 / 6 | 40 % | n/a | Badge grows; tile plate reserves the row (fixed zones, card-detail.md §14) | Low |
 | Set chip "from: {Set}" / "aus: {Set}" | 12 + set | 17 + set | 40 % | n/a | Chip truncates the set name at 12 chars + ellipsis | Medium |
-| Zuwachs "New in the binder: {n} new cards." / "Das Heft hat Zuwachs: {n} neue Karten." | 33 | 47 | 40 % | n/a | Wraps to 2 lines | Low |
+| Zuwachs "New in the catalogue: {n} new treasures have arrived!" / "{n} neue Schmuckstücke sind da!" | 31 | 44 | 40 % | n/a | Wraps to 2 lines | Low |
 | Reset modal copy + buttons | ~90 / 14 / 7 | 140 / 20 / 10 | 40 % | n/a | Modal copy wraps to 4 lines; buttons stack | Medium |
 | Owner instruction + `npm run photos` | ~70 | 100 | 40 % | n/a | Wraps; code string never breaks mid-token | Low |
 

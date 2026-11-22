@@ -7,7 +7,7 @@
 
 ## 1. Purpose
 
-A **Sonderausstellung** is a curated set of up to five *collected* cards the visitor hangs together and can send as one link. It is the collection's first outbound artifact: not a score, not a reward, an exhibition. Museum register, dry humour, no exclamation marks. It must work with no server: the whole share is in the URL hash, and nothing about the sender beyond the five photo ids travels.
+A **Sonderausstellung** is a curated set of up to five *collected* cards the visitor hangs together and can send as one link. It is the collection's first outbound artifact: not a score, not a reward, an exhibition. Museum register, dry humour, at most one exclamation mark per surface and never in errors. It must work with no server: the whole share is in the URL hash, and nothing about the sender beyond the five photo ids travels.
 
 **Decision (explicit — this reverses an earlier draft of this spec, whose text was wrong, not merely stale):** the previous version of this paragraph required the share payload to carry **sorted** ids, so that the same five works always produced an identical link, with the visitor's arrangement held in storage only. **That decision is reversed.** Ids travel in **visitor order**. The arrangement *is* the artefact: it is the one thing the reorder controls in §4 exist to produce, and a sorted link would make every one of them meaningless in the only surface where the arrangement leaves the browser. Consequences, all binding:
 

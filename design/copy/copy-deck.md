@@ -215,6 +215,7 @@ No string may be assembled by concatenating a noun with a count.
 | `progress.masthead` | see `progress.overall` | see `progress.overall` | 18 + ellipsis | **space-critical** — same key, truncated by CSS inside the masthead span, full string in `title` | STG §5.3 |
 | `progress.note` | Jede Karte kommt dran, bevor eine wieder auftaucht. | Every card gets a turn before any come back around. | 82 | DE 51 / EN 51; wraps to 3 lines | PL |
 | `zuwachs.line` | {n} neue Schmuckstücke sind da! | {n} new treasures have arrived! | 44 | **space-critical** — DE 30 / EN 31; wraps to 2 lines. Cap **47 → 44**, re-derived from the new EN baseline (31 × 1.4); the old 47 described the retired string. The count-free variants and both "… hat Zuwachs" forms are retired (D5). The single `!` is this row's one exclamation; §8 renders it neutralised on the announcement path (D26). **re-voiced 2026-11-22** · VOICE | GDD R8, superseded by the owner voice ruling (D5) |
+| `zuwachs.line.one` | 1 neues Schmuckstück ist da! | 1 new treasure has arrived! | 34 | Singular variant used at `{n}` = 1 (German "1 neue Schmuckstücke" is ungrammatical); same voice, same single `!`, same neutralisation rule. **re-voiced 2026-11-22** · VOICE | adds singular agreement to `zuwachs.line` |
 | `demo.note` | Das hier sind Beispielkarten. Die echten Fotos fehlen noch. | These are sample cards. The real photos are not in yet. | 100 | DE 58 / EN 55 | PL, STG |
 | `demo.mixed` | **PROPOSED** Manche Karten sind noch Beispielkarten. | **PROPOSED** Some cards are still samples. | 60 | one line above the grid; needs owner sign-off (no source string exists) | PROPOSED |
 
@@ -424,7 +425,7 @@ never re-keyed.
 | `live.set.complete` | see `set.complete.announce` | see `set.complete.announce` | 40 | a room completes | PL |
 | `live.milestone` | see `catalogue.milestone` | see `catalogue.milestone` | 80 | 25 / 50 / 75 %, once each per reset cycle, threshold order | PL |
 | `live.capstone` | see `capstone.announce` | see `capstone.announce` | 80 | 100 %, once ever | PL |
-| `live.zuwachs` | see `zuwachs.line` | see `zuwachs.line` | 44 | once per visit, on load with a manifest-stamp mismatch. Announced with the terminal `!` neutralised to `.` (D26) — the visitor hears "1 neue Schmuckstücke sind da." / "new treasures have arrived." | GDD R8, voice D5 |
+| `live.zuwachs` | see `zuwachs.line` (and `zuwachs.line.one` at `{n}` = 1) | see `zuwachs.line` (and `zuwachs.line.one` at `{n}` = 1) | 44 | once per visit, on load with a manifest-stamp mismatch. Announced with the terminal `!` neutralised to `.` (D26) — the visitor hears "1 neues Schmuckstück ist da." at one, otherwise "… neue Schmuckstücke sind da." | GDD R8, voice D5 |
 | `live.share` | see `card.share.*` | see `card.share.*` | 85 | share success, copy success, share failure | PL |
 | `live.view` | see `view.announce.rooms` / `view.announce.all` | see `view.announce.rooms` / `view.announce.all` | 40 | view toggle | PL |
 

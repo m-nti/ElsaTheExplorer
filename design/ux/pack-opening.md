@@ -124,7 +124,7 @@ Post-reveal, desktop (≥760px), five-across:
 
 ```
 ╔════════════════════════════════════════════════════════════════╗ ║ backdrop
-║  Elsa the Explorer eyebrow: „1. Auflage · fünf Karten"  [ ✕ ]  ║
+║  Elsa the Explorer eyebrow: „1. Auflage · fünf frische Karten"  [ ✕ ]  ║
 ║  Dein Neuzugang  (dialog title, h2)                           ║
 ║                                                              ║
 ║  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐      ║
@@ -137,7 +137,7 @@ Post-reveal, desktop (≥760px), five-across:
 ║  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘      ║
 ║   (card--drop ×5; reveal order: holo occupies slot 4/5)      ║
 ║                                                              ║
-║  Wähle eine Karte. Wische für die nächste.                    ║
+║  Tippe eine Karte an, wisch zur nächsten.                     ║
 ║  ┌──────────────────┐  ┌────────────┐  ┌───────────┐         ║
 ║  │  Noch ein Pack   │  │  Zum Katalog │  (footer row,   ║    ║
 ║  └──────────────────┘  └────────────┘   post-reveal)   ║      ║
@@ -178,7 +178,7 @@ The dialog itself never scrolls: `max-height: calc(100svh - 36px)` with
 | `.pack-dialog__flash` | Overlay | theatre | Tear flash frame | Yes | Yes |
 | `.pack__drop` (`<ol>` of `pack__slot`) | Ordered list | drop | The five cards in reveal order | Yes | Yes |
 | `CardTile` (variant `card--drop`) | **Svelte 5 component** (one line: the shared card renderer, size-variant `drop`) | drop | Each revealed card is a real `<button>` | Yes | Shared with binder + pack |
-| `.pack-dialog__hint` | Text | hint | "Wähle eine Karte. Wische für die nächste." | Yes | Yes |
+| `.pack-dialog__hint` | Text | hint | "Tippe eine Karte an, wisch zur nächsten." | Yes | Yes |
 | `.pack-dialog__actions` | Button row | footer | "Noch ein Pack" (primary) + "Zum Katalog" (outline) | Yes | "Noch ein Pack" reuses the lightbox action label |
 | `.confetti` canvas | Canvas | overlay | Celebration burst | Yes | Yes |
 | `#live` live region | Status | body | Announcements | Yes | Yes |
@@ -221,7 +221,7 @@ focus move is announced ("Fünf Karten: …").
 | Reduced motion | `prefers-reduced-motion: reduce` | **No sachet, no flash, no ascend: all five cards are present at once** (canon + F22); confetti skipped; **rip is skipped, a single soft tick marks the layout** (library) | Reveal completes immediately; sounds reduced to the single tick | Cards may still use the static foil material |
 | Image failure (drop card) | A drawn photo fails to load/convert | Delegates to the **shared `CardTile` image states** (HEIC shimmer → set-coloured fallback panel); the card stays readable, the reveal never stalls | Interaction unaffected | One code path for pack, binder and lightbox images |
 | Small catalogue | Catalogue < 5 photos | Row shows as many cards as exist (F1) | Same; announcement states the real count | E.g. "Drei Karten: …" |
-| Second lap ("2. Auflage") | Persistence reports lap restart (catalogue exhausted; lap derived per GDD R-H at pull time) | Inline line above the drop: "Von vorn — alle Karten kommen wieder. Ab jetzt mit 2.-Auflage-Stempel." + cards pulled from now on carry the stamp on the plate | Announcement: "Das waren alle Karten. Jetzt beginnt das Pack von vorn." | Stamp display = GDD R6, Phase 3; the dialog's stamp line lives in card-detail.md §6 |
+| Second lap ("2. Auflage") | Persistence reports lap restart (catalogue exhausted; lap derived per GDD R-H at pull time) | Inline line above the drop: "Von vorn — jede Karte kommt wieder, jetzt mit 2.-Auflage-Stempel. Das Archiv vergisst nichts." + cards pulled from now on carry the stamp on the plate | Announcement: "Das waren alle Karten. Jetzt beginnt das Pack von vorn." | Stamp display = GDD R6, Phase 3; the dialog's stamp line lives in card-detail.md §6 |
 | Recovered | Dialog closed mid-reveal (Escape/✕ skip) | Dialog closes cleanly; **Ruling 1b: only the cards already revealed are collected — the remainder are NOT; the pack can be reopened immediately** | Focus returns to the trigger | A closed-early pack is never silently dropped or double-charged; the unseen remainder stays in the unseen-first pool |
 | Empty | Catalogue empty | Dialog cannot open; landing shows the Empty state instead | `P`/CTA inert | Error surface belongs to the landing (stage-landing.md §6) |
 
@@ -373,7 +373,7 @@ returns to the originating pack card (see `card-detail.md` §12).
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
 | Dialog opens | "Das Pack geht auf." | On entry |
-| Reveal complete | "{count} Karten: {names}." | Once, after the last card lands |
+| Reveal complete | "{n} Karten: {names}." | Once, after the last card lands |
 | Second lap | "Das waren alle Karten. Jetzt beginnt das Pack von vorn." | When the restart moment fires |
 | Card selected | "{number}. {name}. {rarity}." | On entering CardDetail |
 | Focus moved to first card | (part of the reveal-complete announcement) | On auto-focus move |
@@ -394,16 +394,19 @@ countdowns, nothing expires.
   from the copy deck. Layout budgets tolerate **DE at +40 % over the EN
   baseline**.
 - No RTL target; layout not mirrored.
+- **Copy-deck sync 2026-11-22**: eyebrow, hint and lap line below carry the copy
+  deck's winning variants; the pack announcement uses `{n}` per the deck
+  placeholder table (renamed from the former `count` placeholder).
 
 | Text Element | English Baseline Length | Max Characters | Expansion Budget | RTL Behavior | Overflow Behavior | Risk |
 |--------------|------------------------|----------------|-----------------|--------------|-------------------|------|
-| Eyebrow "1st edition · five cards" / "1. Auflage · fünf Karten" | 24 | 34 | 40 % | n/a | Ellipsis in the head; the sachet copy duplicates it and wraps instead | Low |
+| Eyebrow "1st edition · five fresh cards" / "1. Auflage · fünf frische Karten" | 30 | 34 | 40 % | n/a | Ellipsis in the head; the sachet copy duplicates it and wraps instead | Low |
 | Title "Your new arrival" / "Dein Neuzugang" | 10 | 17 | 40 % | n/a | Head is single-line flex; ceiling is 17, not 15 (D19 — the 15 was an arithmetic slip); wraps only under 320px | Low |
-| Hint "Pick a card. Swipe for the next." / "Wähle eine Karte. Wische für die nächste." | 34 | 48 | 40 % | n/a | Wraps to 2 lines; hides under 380px height | Low |
-| Pack announcement "{count} cards: {names}." / "{count} Karten: {names}." | 12 + names | 20 + 5×name | 40 % | n/a | Live region only — length uncapped by layout | Low (a11y only) |
+| Hint "Tap a card, swipe to the next." / "Tippe eine Karte an, wisch zur nächsten." | 29 | 48 | 40 % | n/a | Wraps to 2 lines; hides under 380px height | Low |
+| Pack announcement "{n} cards: {names}." / "{n} Karten: {names}." | 12 + names | 20 + 5×name | 40 % | n/a | Live region only — length uncapped by layout | Low (a11y only) |
 | Footer "Another pack" / "Noch ein Pack" | 12 | 17 | 40 % | n/a | Button grows; wraps to own row ≤380px | Low |
 | Footer "To the catalogue" / "Zum Katalog" | 16 | 22 | 40 % | n/a | same | Low |
-| Lap line "Starting over — every card comes around again. From now on with the second-edition stamp." (D8) | ~75 | 106 | 40 % | n/a | Wraps to 3 lines above the row | Medium — longest new string |
+| Lap line "Starting over — every card comes again, now with the second-edition stamp. The archive forgets nothing." (D8) | ~98 | 106 | 40 % | n/a | Wraps to 3 lines above the row | Medium — longest new string |
 | Card names (5 in the reveal) | catalog-driven | 24 per name | 40 % | n/a | Name clamps to plate zone (fixed proportions, see card-detail.md §14) — never paints over the photo | Medium |
 
 ---

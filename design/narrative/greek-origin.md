@@ -131,7 +131,7 @@ Two dates, both display-only. **No festival creates state:** nothing is stored, 
 | Rescue reality | the shelter, staff and finder stay unnamed; only Greece and Dortmund are named, both owner facts | no proper noun but Greece and Dortmund |
 | Tone of the arrival | odd logistics, not secrecy or illegality: no clandestine vocabulary, no raid framing | no stealth vocabulary in any string |
 | Address | German `du`; Elsa in third person; no first-person claim about her feelings | no formal `Sie` address; no "ich" at all |
-| Punctuation | zero exclamation marks, both languages | `!` absent from every cell |
+| Punctuation | at most one exclamation mark per surface; never in errors, destructive confirmations or accessibility strings | no string breaks the rule |
 | No fake Greek | no Greek script, no transliteration, no invented ancient names | Latin script only |
 | Localisation | one key = one DE + one EN string at one index; German is the layout driver | missing EN = build defect, not backlog |
 
@@ -153,7 +153,7 @@ Canon level per surface: plaque and provenance line **Provisional** (Discoverabl
 
 ## 9 · Cross-references, contradictions, decisions
 
-**Checked 2026-11-22 against `archive-fiction.md`, `copy-deck.md` §0.4 and `art-bible.md` §1–2 — no contradiction introduced.** Owner facts of 2026-11-22 (pickup 14 May, 02:00, petrol station near Dortmund, last station of a three-day journey from Greece) are recorded in §1, §5 and §6; the shelter origin stands. No existing document mentions a Greek origin (grep: 0 hits), so this adds canon rather than changing it. Room names and codes (`RUH GAR ABF BAL POR WAC NEU`), the water ruling and every SSOT string are quoted, not altered. `du`, no exclamation marks, no water imagery outside the refusal — verified across all cells above. The capstone line is PROPOSED and leaves every existing diploma field untouched.
+**Checked 2026-11-22 against `archive-fiction.md`, `copy-deck.md` §0.4 and `art-bible.md` §1–2 — no contradiction introduced.** Owner facts of 2026-11-22 (pickup 14 May, 02:00, petrol station near Dortmund, last station of a three-day journey from Greece) are recorded in §1, §5 and §6; the shelter origin stands. No existing document mentions a Greek origin (grep: 0 hits), so this adds canon rather than changing it. Room names and codes (`RUH GAR ABF BAL POR WAC NEU`), the water ruling and every SSOT string are quoted, not altered. `du`, at most one exclamation mark per surface, no water imagery outside the refusal — verified across all cells above. The capstone line is PROPOSED and leaves every existing diploma field untouched.
 
 **Decisions for the owner / `narrative-director`:**
 

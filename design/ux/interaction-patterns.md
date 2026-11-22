@@ -112,7 +112,7 @@ implementation change.
 | Sound Toggle | Input | On/off toggle with remembered state | Masthead | Draft |
 | Progress Bar | Feedback | Overall "gesammelt" progress with numeric label | Stage, Lightbox (dialog copy) | Draft |
 | Set Progress Line | Feedback / Layout | Per-department progress row with frontier and completion state | The Catalogue (set section headers) | Draft |
-| Zuwachs Accession Line | Feedback | The "Das Heft hat Zuwachs / New in the binder" acquisitions notice | Stage, Catalogue header | Draft |
+| Zuwachs Accession Line | Feedback | The acquisitions notice — DE: *"{n} neue Schmuckstücke sind da!"* / EN: *"{n} new treasures have arrived!"* (cap 44; copy-deck sync 2026-11-22) | Stage, Catalogue header | Draft |
 | View Toggle | Input / Navigation | Segmented Alle Karten ↔ Nach Räumen view switch | The Catalogue (header) | Draft |
 | Collection Grid Tile | Game-Specific | Button tile in the catalogue grid, all states | The Catalogue | Draft |
 | Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Catalogue (flat + grouped) | Draft |
@@ -242,7 +242,7 @@ implementation change.
 | Sachet opening | Pack dialog shows the sachet graphic tearing at center viewport | Pack open | Sachet tear + flash; drop row still empty | 900 ms ease-out | Pack Rip |
 | Card arriving (×5) | Slot `i` receives card; entrance: rise + settle; foil glare sweeps once | Timed, `index * 200 ms` stagger | Card becomes interactive on settle | 200 ms stagger, ~700 ms settle each | Card Tick per card; Rare Chime / Holo Shine for non-commons |
 | Highest-rarity arrival (pos. 4/5) | Strongest foil material; confetti burst "big" if holo | Timed | Same, plus celebration | as above | Holo Shine + celebration |
-| Settled | All five cards in row, interactive, hint line visible: "Wähle eine Karte. Wische für die nächste." / "Pick a card. Swipe to see the next one." | — | Cards openable → Card Lightbox | — | — |
+| Settled | All five cards in row, interactive, hint line visible: "Tippe eine Karte an, wisch zur nächsten." / "Tap a card, swipe to the next." (copy-deck sync 2026-11-22) | — | Cards openable → Card Lightbox | — | — |
 | Reduced motion | **All five cards appear at once, immediately** — no sachet, no stagger, no confetti; hint and copy carry the beat instead | Pack open | Cards laid out synchronously; still ≥1 holo, still ordered so the holo is printed last in the DOM row | 0 ms | Rip skipped; a single soft tick on layout (no dramatic audio for skipped drama — per `accessibility-requirements.md`) |
 | Fewer than 5 photos | Haul = every photo; no empty slots, no placeholders | — | Same rules, `PACK_SIZE = min(5, photos)` | as above | as above |
 | Second lap (all seen) | Each card wears the "2. Auflage / Second edition" stamp; restart announced before the reveal: "Das waren alle Karten. Jetzt beginnt das Pack von vorn." / "That was every card. The pack starts over." | — | Same sequence | as above | as above |
@@ -444,15 +444,15 @@ implementation change.
 | Hover / Focus | Standard lift + focus ring | pointer / Tab | 80 ms | — | none |
 | Active | Scale 0.98 | press | share sheet opens (mobile) or clipboard write | 60 ms | none (sheet is system UI) |
 | Busy | No visual busy state — `navigator.share` is modal on mobile; on desktop the operation is instant | — | — | — | — |
-| Success | Status line under the actions: "Geteilt." / "Shared." | — | `role="status"` text; auto-clears | visible ~3.4 s | soft success chime |
+| Success | Status line under the actions: "Unterwegs." / "On its way." (copy-deck sync 2026-11-22) | — | `role="status"` text; auto-clears | visible ~3.4 s | soft success chime |
 | Fallback success (clipboard) | Status line: "Link kopiert." / "Link copied." | share API unavailable | `navigator.clipboard` → `execCommand` fallback | as above | soft success chime |
-| Error | Status line: "Link konnte nicht kopiert werden. Er steht oben in der Adresszeile." / "Could not copy the link. It is up in the address bar." | both fail | Always gives the user a usable next step | as above | soft error thud |
+| Error | Status line: "Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn." / "Copying did not work. The link is up in the address bar — you can get it there." (copy-deck sync 2026-11-22; deck error wording, no `!`) | both fail | Always gives the user a usable next step | as above | soft error thud |
 | Cancelled (AbortError) | Status line stays empty — a cancel is not an event | user closes the share sheet | silent | — | — |
 
 **Accessibility**:
 - Status line is `role="status" aria-live="polite"` — success and failure are announced without moving focus.
 - The button's accessible name is just "Teilen" / "Share"; what is shared is unambiguous from context (the open exhibit).
-- Shared payload: title "«name» — eine Elsa-Karte / an Elsa card", text "Ich habe Elsa gezogen: «name»." / "I pulled Elsa: «name».", URL `?photo=<id>&lang=<lang>` — the recipient opens the same entry in the sender's language.
+- Shared payload: title "«name» — eine Elsa-Karte / an Elsa card", text "Aus Elsas Archiv: «{name}»." / "From Elsa's archive: «{name}»." (copy-deck sync 2026-11-22), URL `?photo=<id>&lang=<lang>` — the recipient opens the same entry in the sender's language.
 
 **Animation spec**: status line fades in 200 ms ease-out, out 200 ms ease-in; reduced motion: instant set/clear.
 
@@ -501,16 +501,15 @@ implementation change.
 
 **Structure** (Confirmation Dialog — these strings are canon / SSOT; the confirm button is labelled with the action, never "OK" / "Ja"):
 - Title: "Von vorn?" / "Start over?"
-- Body (one line, listing what is lost): DE: *"Das löscht den Katalog, die Set-Fortschritte, die Meilensteine und Elsas Ehrenmensch."* / EN: *"This clears the Catalogue, set progress, milestones and Elsa's Honorary Human."*
+- Body (one line, listing what is lost): DE: *"Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN: *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default."* (copy-deck sync 2026-11-22)
 - Confirm button: Primary-styled **destructive** — DE: *"Alles löschen"* / EN: *"Delete everything"* — labeled with the action, never "OK" / "Ja".
 - Cancel button: Secondary — "Abbrechen" / "Cancel". **Default focus here.**
 - Scope note (binding, per project facts): reset clears **all** `lucky-elsa.*`
   keys — collection state *and* preferences; language and sound return to
   their defaults (German, sound on). The one-line confirmation lists what is
-  lost: DE: *"Das löscht den Katalog, die Set-Fortschritte, die Meilensteine
-  und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN: *"This
-  clears the Catalogue, set progress, milestones and Elsa's Honorary Human — sound and
-  language return to their defaults."*
+  lost and carries the Ton-und-Sprache clause verbatim — the canon body line
+  quoted above is the SSOT (copy-deck sync 2026-11-22); never restate it in a
+  shorter form here.
 
 **Interaction Specification**:
 
@@ -653,16 +652,16 @@ implementation change.
 |-------|--------|---------------|----------|----------|-------|
 | Frontier (default, incomplete) | Set name · "3 von 5 gesammelt" · mini fill bar; the unfilled remainder is visible | — | — | 300 ms fill animation on change | none |
 | Just gained an entry | Count ticks up, fill animates | card of this set marked | — | 300 ms ease-out | none (card sounds suffice) |
-| Department complete | Line flips to its completion state: DE: *"Der Ruhesaal ist komplett."* / EN: *"The Nap Wing is complete."* (zero-exclamation rule); the **permanent frame variant** for this set now applies to its tiles | last card of set | Small one-time flourish + live region announcement | 300 ms + one-time flourish ~800 ms | milestone chime (set-scale, quieter than the Ehrenmensch chime) |
+| Department complete | Line flips to its completion state. Visible note (carries the surface's one permitted `!`): DE: *"Der Rahmen leuchtet, als hätte er gewartet!"* / EN: *"The frame is glowing, as if it had been waiting!"*; live region: DE: *"{set} ist komplett. Alle da."* / EN: *"{set} is complete. All present."* — no `!` (copy-deck sync 2026-11-22). **Exclamation rule: at most one `!` per surface; never in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region.** The **permanent frame variant** for this set now applies to its tiles | last card of set | Small one-time flourish + live region announcement | 300 ms + one-time flourish ~800 ms | milestone chime (set-scale, quieter than the Ehrenmensch chime) |
 | Loose department | Same pattern, labeled "Neuzugänge / New Acquisitions"; completion possible and celebrated the same way | — | — | — | — |
-| Milestone crossing (25/50/75 % overall) | Surfaced once via a catalogue-level flourish + live region; **milestone announcements are overall-catalogue** — copy key `catalogue:milestone-reached { pct }` (the GDD references this key; do not rename in one place only), with the outfit resolved from the milestone — SSOT: binder spec §12 (**25 % gilded door sign / Türschild, 50 % reading lamp / Leselampe, 75 % velvet rope / Samtband**): DE: *"Katalog-Meilenstein erreicht: {pct} Prozent — {outfit}."* (25 %: *"… — das Türschild ist vergoldet."*) / EN: *"Catalogue milestone reached: {pct} per cent — {outfit}."* (25 %: *"… — the door sign is gilded."*); the outfit then persists in the catalogue's presentation | overall ratio crosses | one-time | one-time | milestone chime |
-| 100 % overall | All lines complete; the **single capstone Elsas Ehrenmensch / Elsa's Honorary Human** is presented in the catalogue header; the Das Gesamtverzeichnis / The Master Index plaque stands beside it | last entry | Completion announcement once: DE: *"Katalog komplett. Elsas Ehrenmensch ist eingetragen."* / EN: *"Catalogue complete. Elsa's Honorary Human is entered."* — ceremony beats in player-journey.md Phase 7 | — | Ehrenmensch chime |
+| Milestone crossing (25/50/75 % overall) | Surfaced once via a catalogue-level flourish + live region; **milestone announcements are overall-catalogue** — copy key `catalogue:milestone-reached { pct }` (the GDD references this key; do not rename in one place only), with the outfit resolved from the milestone — SSOT: binder spec §12 (**25 % gilded door sign / Türschild, 50 % reading lamp / Leselampe, 75 % velvet rope / Samtband**): DE: *"Katalog: {pct} Prozent geschafft — {outfit}."* / EN: *"Catalogue: {pct} per cent done — {outfit}."* ({outfit} resolves from the milestone — no competing copy; announced, so no `!`; copy-deck sync 2026-11-22); the outfit then persists in the catalogue's presentation | overall ratio crosses | one-time | one-time | milestone chime |
+| 100 % overall | All lines complete; the **single capstone Elsas Ehrenmensch / Elsa's Honorary Human** is presented in the catalogue header; the Das Gesamtverzeichnis / The Master Index plaque stands beside it | last entry | Completion announcement once: DE: *"Katalog komplett — Elsas Ehrenmensch ist eingetragen."* / EN: *"Catalogue complete — Elsa's Honorary Human is entered."* — no `!` (copy-deck sync 2026-11-22); ceremony beats in player-journey.md Phase 7 | — | Ehrenmensch chime |
 | Empty department (0 cards exist in it) | **Decision: omit** — the catalogue only shows departments that exist in the current collection | — | — | — | — |
 
 **Accessibility**:
 - Each line is text-first: name + numeric count ("3 von 5") — the mini bar is redundant decoration, `aria-hidden`.
 - Set names and counts are plain text in the page language; both languages carry the set names (key-aligned copy).
-- Completion and milestone announcements go through the live region once, at the moment they happen: department completion — DE: *"Der Ruhesaal ist komplett."* / EN: *"The Nap Wing is complete."*; milestones — `catalogue:milestone-reached { pct }` (overall-catalogue, not per-department).
+- Completion and milestone announcements go through the live region once, at the moment they happen: set completion — DE: *"{set} ist komplett. Alle da."* / EN: *"{set} is complete. All present."*; milestones — `catalogue:milestone-reached { pct }` (overall-catalogue, not per-department). At most one `!` per surface; never in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region.
 - No color-only completion: the word "komplett / complete" carries it.
 
 **Animation spec**: fill 300 ms ease-out; completion flourish (subtle foil brightening on the line, never page-scale confetti — the pack dialog owns confetti); reduced motion: instant states, flourish becomes a plain text change.
@@ -675,7 +674,7 @@ implementation change.
 
 **Category**: Feedback
 **Status**: Draft
-**When to Use**: Telling a returning visitor that the curator accessioned new material: the one-line notice **"Das Heft hat Zuwachs." / "New in the binder."** (count variant: *"Das Heft hat Zuwachs: 12 neue Karten." / "New in the binder: 12 new cards."*). Home decision (stage copy vs. masthead line) is tracked in `design/player-journey.md` Open Questions.
+**When to Use**: Telling a returning visitor that the curator accessioned new material: the one-line notice **"{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!"** (cap 44; at `{n}` = 1 use `zuwachs.line.one`: "1 neues Schmuckstück ist da!" / "1 new treasure has arrived!"; copy-deck sync 2026-11-22). Home decision (stage copy vs. masthead line) is tracked in `design/player-journey.md` Open Questions.
 **When NOT to Use**: On a first visit (nothing to compare against); when the manifest is unchanged since the stored stamp; as a modal or banner — it is quiet copy in the parlour, never an interruption.
 
 **Trigger (GDD R8 mechanism — manifest stamp vs. stored stamp)**:
@@ -761,7 +760,7 @@ implementation change.
 - Thumbnails lazy-load (`loading="lazy"`); tile images carry width/height to prevent layout shift (PRD NFR: no CLS).
 - Focus-driven scroll: a focused tile must always be scrolled into view.
 
-**Animation spec**: hover lift and static-foil brightening per table; entrance animation for newly accessioned tiles ("Das Heft hat Zuwachs") is a light 300 ms fade-in stagger, **capped at ~2 s total** so 50 new tiles don't animate for 15 s; reduced motion: none of it, tiles appear instantly.
+**Animation spec**: hover lift and static-foil brightening per table; entrance animation for newly accessioned tiles ("Zuwachs accession line") is a light 300 ms fade-in stagger, **capped at ~2 s total** so 50 new tiles don't animate for 15 s; reduced motion: none of it, tiles appear instantly.
 
 **Implementation Notes** (Svelte 5): `<BinderTile>` per entry in a keyed `{#each}`; the "gesammelt" marker derives from the collection store. One delegated click handler on the grid (`closest('[data-photo-id]')` semantics via a wrapper or per-tile handlers — Svelte's cheap listeners make per-tile fine). Focus management uses `scrollIntoView({ block: 'nearest' })` on focus. Re-visit rendering strategy only above ~200 entries (PRD §9.2).
 
