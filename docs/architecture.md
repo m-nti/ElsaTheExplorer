@@ -1085,6 +1085,7 @@ ADR-0008.
 | ADR-0007 | Release & static deploy (IONOS, versioning, rollback) | Accepted (owner decision, 2026-11-22) |
 | ADR-0008 | Image derivatives: fixed rendition ladder, no-original rule, `ver`-keyed cache | Accepted (owner decision, 2026-11-22) |
 | ADR-0009 | PWA: installable, offline-first catalogue with a bounded, versioned cache | Accepted (owner decision 2026-11-22, D-01) |
+| ADR-0010 | Accessibility runtime: two live regions, announcer store, focus-return contract, motion gate | Accepted (owner decision 2026-11-22, D-08); merged `a979f5a` |
 
 No conflicts. ADR-0002 refines ADR-0001's styling consequences (hand-authored tokens → typed
 token source; toolchain fallback ladder for the styling layer is recorded in ADR-0002).
@@ -1095,13 +1096,12 @@ boundary rather than only at the request boundary. ADR-0009 additionally binds
 
 ## Required ADRs (remaining)
 
-Written and accepted: 0001–0009 (see the audit above; ADR-0003 also ratifies the PWA
+Written and accepted: 0001–0010 (see the audit above; ADR-0003 also ratifies the PWA
 keys `lucky-elsa.{visits,install,update}.v1`).
 
 | ADR | Topic | Why it needs its own record |
 | --- | --- | --- |
-| ADR-0010 | A11y runtime architecture (announcer, focus manager, motion gate) | Committed Standard tier; runtime, not per-screen |
-| ADR-0011 | Card frame & content budgets | The overflow fix is a component-level contract |
+| ADR-0011 | Card frame & content budgets | The overflow fix is a component-level contract; in review (PR #41), held on the AD-ART-BIBLE pass (#47) |
 
 ## Architecture Principles
 

@@ -100,7 +100,7 @@ Implementation follows the Superpowers harness, in this order:
 The harness is the method; the standing rules below are the policy. Ambiguity is ruled
 on and recorded in the ledger, not escalated — except force-push, history rewrite,
 deleting owner data, an FTP deploy over `photos/`, or a plan where every path is a
-guess. `docs/action-plan.md` §0 is the full contract.
+guess. The current plan in `docs/superpowers/plans/` §0 is the full contract.
 
 ## Standing rule — commit and PR cadence
 
@@ -137,7 +137,7 @@ cross-check. One exception: the PHP runtime service (`photos.php`) is owned by
 `tools-programmer` owns the sharp CLI beside it. A workstream staffed only with cs-*
 agents has otherwise skipped this rule.
 
-This table is a compact summary; `docs/action-plan.md` §0.5 is authoritative where the
+This table is a compact summary; §0.5 of the current plan in `docs/superpowers/plans/` is authoritative where the
 two differ (it also carries the per-workstream skill list).
 
 | Workstream | Studio owner | Cross-check |
