@@ -49,6 +49,7 @@ describe("check-paths: seeded failure", () => {
       { file: "tests/canon/fixtures/paths-seeded/broken.md", line: 5, target: "docs/action-plan.md", kind: "path" },
       { file: "tests/canon/fixtures/paths-seeded/broken.md", line: 7, target: "docs/EXISTS.md", kind: "path" },
       { file: "tests/canon/fixtures/paths-seeded/broken.md", line: 13, target: "Docs/exists.md", kind: "link" },
+      { file: "tests/canon/fixtures/paths-seeded/broken.md", line: 20, target: "../elsewhere/deep.md", kind: "link" },
     ]);
   });
 
@@ -58,6 +59,7 @@ describe("check-paths: seeded failure", () => {
     expect(stderr).toContain("broken.md:3: link docs/action-plan.md does not exist");
     expect(stderr).toContain("docs/archive/action-plan.md");
     expect(stderr).toContain("broken.md:13: link Docs/exists.md does not exist");
+    expect(stderr).toContain("broken.md:20: link ../elsewhere/deep.md climbs out of the repository");
     expect(stderr).not.toContain("cachePolicy.ts");
     expect(stderr).not.toContain("gone-too.md");
     expect(stderr).not.toContain("design/never-there.md");

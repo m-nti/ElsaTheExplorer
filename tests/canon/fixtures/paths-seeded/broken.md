@@ -16,3 +16,5 @@ Wrong case in a relative link: [exists](Docs/exists.md).
 [fenced example, not a link](docs/gone-too.md)
 `design/never-there.md`
 ```
+
+A link that climbs out of the tree: [outside](../elsewhere/deep.md).

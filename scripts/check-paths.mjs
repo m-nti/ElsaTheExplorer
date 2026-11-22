@@ -13,7 +13,9 @@
  * 1. **Links** — `[text](target)`, `![alt](target)` and inline `<a href>` /
  *    `<img src>`. A link is navigation: if the target is not there, the reader
  *    cannot get there. A fragment (`#section`) is stripped, not resolved —
- *    heading anchors are not part of this contract.
+ *    heading anchors are not part of this contract. A target that climbs out of
+ *    the tree (`../elsewhere`) is reported rather than resolved: whether a file
+ *    exists outside this repository is none of a document gate's business.
  * 2. **Backticked paths** — a span rooted at `docs/`, `design/`, `src/`,
  *    `scripts/`, `tests/`, `public/`, `photos/`, `assets/` or `.github/`, whose
  *    target resolves **exactly**, or whose file name this repository holds
@@ -263,7 +265,12 @@ function linkTarget(raw) {
   const value = raw.trim();
   if (value === "" || value.startsWith("#") || value.startsWith("/")) return null;
   if (SCHEME.test(value) || NOT_LITERAL.test(value.replace(/^<|>$/g, ""))) return null;
-  return normalise(value);
+  const normalised = normalise(value);
+  // A link that climbs out of the repository is not a link this gate can check,
+  // and resolving it would probe paths the scanner has no business stating. It is
+  // reported instead, so `../` is a violation rather than a silent pass.
+  if (normalised.split("/")[0] === "..") return normalised;
+  return normalised;
 }
 
 /** A backticked repository path, or null when the span is prose or a template. */
@@ -312,14 +319,17 @@ for (const file of files) {
     }
 
     for (const candidate of found) {
-      if (resolvesExactly(candidate.against, candidate.target)) {
+      // A link that climbs out of the repository is reported, never resolved: the
+      // scanner has no business stating whether a path outside the tree exists.
+      const outside = candidate.target.split("/").includes("..");
+      if (!outside && resolvesExactly(candidate.against, candidate.target)) {
         claims += 1;
         continue;
       }
       // A link is navigation and must resolve. A backticked path is a claim only
       // when the same name lives somewhere else in the repository.
       const held = heldByName.get(basename(candidate.target).toLowerCase());
-      if (candidate.kind === "path" && !held) {
+      if (!outside && candidate.kind === "path" && !held) {
         notYet += 1;
         continue;
       }
@@ -329,6 +339,7 @@ for (const file of files) {
         line: index + 1,
         target: candidate.target,
         kind: candidate.kind,
+        outside,
         elsewhere: held ? [...held].map(toLabel).sort().slice(0, 3).join(", ") : "",
       });
     }
@@ -351,6 +362,13 @@ if (json) {
 }
 
 for (const violation of violations) {
+  if (violation.outside) {
+    console.error(
+      `${violation.file}:${violation.line}: ${violation.kind} ${violation.target} climbs out of the repository` +
+        " — a document link must stay inside the tree",
+    );
+    continue;
+  }
   const hint = violation.elsewhere ? ` (the file is at ${violation.elsewhere})` : "";
   console.error(`${violation.file}:${violation.line}: ${violation.kind} ${violation.target} does not exist${hint}`);
 }
