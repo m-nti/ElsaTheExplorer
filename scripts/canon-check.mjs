@@ -591,10 +591,15 @@ function loadAllowlist(path) {
  * configuration errors: the allowlist must not outlive the text it excuses.
  */
 function applyAllowlist(violations, sources, entries, root) {
+  // Group under the normalised key: the map key, the `sources` lookup below and
+  // the path the violation is compared with are then one shape on every host.
+  // Without this the scan side was normalised and the key side was not, so an
+  // entry written the other host's way covered nothing and read as unused.
   const byFile = new Map();
   for (const entry of entries) {
-    if (!byFile.has(entry.file)) byFile.set(entry.file, []);
-    byFile.get(entry.file).push(entry);
+    const file = toPosix(entry.file);
+    if (!byFile.has(file)) byFile.set(file, []);
+    byFile.get(file).push(entry);
   }
 
   const covered = new Set(); // `${file}:${line}:${rule}`
@@ -648,9 +653,13 @@ function applyAllowlist(violations, sources, entries, root) {
  * because that is how the corpus is written down. `relative()` is host-shaped: on
  * Windows it returns `design\copy\copy-deck.md`, so comparing the two directly
  * silently uncovered every entry and turned a clean run into 128 violations.
+ *
+ * Both separators are folded, not just the host's `sep`: an entry's `file` is data
+ * an author typed on some host, so a key written the Windows way must resolve on
+ * Linux too, and every comparison then has exactly one shape everywhere.
  */
 function toPosix(value) {
-  return value.split(sep).join("/");
+  return value.split(/[\\/]/).join("/");
 }
 
 function describe(violation, root) {
@@ -744,8 +753,12 @@ function main() {
   const baselineHits = violations.filter((violation) =>
     baseline.some(
       (entry) =>
-        toPosix(relative(options.root, violation.file)) === entry.file &&
-        sources.get(resolve(options.root, entry.file))?.[violation.line - 1]?.includes(entry.match),
+        // `entry.file` is author-typed data, like the scanned path above: both
+        // sides take the same shape or a baseline row stops being counted.
+        toPosix(relative(options.root, violation.file)) === toPosix(entry.file) &&
+        sources.get(resolve(options.root, toPosix(entry.file)))?.[violation.line - 1]?.includes(
+          entry.match,
+        ),
     ),
   );
 

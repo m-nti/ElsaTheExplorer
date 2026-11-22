@@ -228,6 +228,27 @@ describe("canon-check: allowlist discipline", () => {
     expect(report.allowlist.baseline).toBe(0);
   });
 
+  it("applies an entry whose `file` key uses the Windows separator", () => {
+    // The key is data, not host output: an author on a Windows checkout writes
+    // `design\spec.md`, a Linux author writes `design/spec.md`, and both must
+    // cover the same line. Before the fix the comparison normalised only the
+    // scanned path, so this entry covered nothing and the row read as a defect.
+    const { code, report } = fixture("backslash-allowlist");
+    expect(code).toBe(0);
+    expect(report.status).toBe("clean");
+    expect(report.allowlist.allowed).toBe(1);
+  });
+
+  it("counts a Windows-keyed baseline row instead of painting it green", () => {
+    // `--strict`, `baselineHits` and the cap all read `entry.file`; a key in the
+    // other host's shape must still resolve to its row, or a known defect stops
+    // being counted and the ratchet reports a pass it did not earn.
+    const { code, report } = fixture("backslash-baseline");
+    expect(code).toBe(0);
+    expect(report.allowlist.baseline).toBe(1);
+    expect(report.allowlist.baselineHits).toBe(1);
+  });
+
   it("fails a stale entry — the allowlist must not outlive the text", () => {
     const { code, report } = fixture("stale");
     expect(code).toBe(2);
@@ -331,7 +352,9 @@ describe("canon-check: the real tree (D12b)", () => {
     const { report } = run([]);
     expect(report.templates).toEqual([
       "src/App.svelte",
+      "src/lib/components/CardDialog.svelte",
       "src/lib/components/CardFace.svelte",
+      "src/lib/components/CardTile.svelte",
     ]);
   });
 
