@@ -8,6 +8,7 @@
  * fails CI.
  */
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -37,7 +38,16 @@ describe("canon-check: seeded failure", () => {
     expect(report.status).toBe("violations");
     const rules = new Set(report.violations.map((violation) => violation.rule));
     expect(rules).toEqual(
-      new Set(["entity-de", "entity-en", "verb-en", "heft", "water-de", "water-en", "bang"]),
+      new Set([
+        "entity-de",
+        "entity-en",
+        "verb-de",
+        "verb-en",
+        "heft",
+        "water-de",
+        "water-en",
+        "bang",
+      ]),
     );
     expect(
       report.violations.some(
@@ -119,6 +129,44 @@ describe("canon-check: compound naming (D12)", () => {
       .map((violation) => violation.term);
     expect(terms).toContain("cardcatalogue");
     expect(terms).toContain("archivecatalogue");
+  });
+
+  it("keeps the bare word case-insensitive (no regression from main)", () => {
+    const { code, report } = fixture("case-forms");
+    expect(code).toBe(1);
+    const terms = report.violations
+      .filter((violation) => violation.rule === "entity-en")
+      .map((violation) => violation.term);
+    expect(terms).toContain("CataLog");
+    expect(terms).toContain("cataLOGUE");
+  });
+});
+
+describe("canon-check: HTML embedded regions", () => {
+  it("ignores script, style and comment bodies — and still catches the copy beside them", () => {
+    const { code, report } = fixture("embedded");
+    expect(code).toBe(1);
+    // Exactly one hit: the <p> a visitor reads. The selector in <style>, the
+    // `const catalog` and the water word inside <script>, and both comments
+    // (one of them containing `>`) must all be silent.
+    expect(report.violations).toHaveLength(1);
+    const [only] = report.violations;
+    expect(only.rule).toBe("entity-de");
+    expect(only.term).toBe("Katalog");
+    const source = readFileSync(join(here, "fixtures", "embedded", "index.html"), "utf8");
+    const copyLine = source.split("\n").findIndex((line) => line.includes("kein Sammelwerk")) + 1;
+    expect(only.line).toBe(copyLine);
+  });
+
+  it("reads every copy-bearing attribute", () => {
+    const { code, report } = fixture("copy-attributes");
+    expect(code).toBe(1);
+    // <title> text node, alt, aria-label, placeholder, title, value.
+    expect(report.violations).toHaveLength(6);
+    expect(new Set(report.violations.map((violation) => violation.line)).size).toBe(6);
+    expect(new Set(report.violations.map((violation) => violation.rule))).toEqual(
+      new Set(["entity-de", "entity-en"]),
+    );
   });
 });
 

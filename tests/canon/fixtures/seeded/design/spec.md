@@ -6,3 +6,4 @@ The archive says "catalogued this week".
 "Das Heft hat Zuwachs."
 "Elsa kommt aus dem Regen."
 "The dog is wet."
+Die Karte wurde "katalogisiert".

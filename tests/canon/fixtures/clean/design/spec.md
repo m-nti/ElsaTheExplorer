@@ -14,3 +14,4 @@ The `seedCatalogue` helper fills a warm state, and `totalInCatalogue` must stay 
 "Zur Sammlung (#katalog, next fold)."
 "Call seedCatalogue() before the first paint."
 "Every catalogue entry is dated."
+"Die Katalog-Karte liegt oben."

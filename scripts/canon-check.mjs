@@ -107,8 +107,10 @@ const TEXT_EXTENSIONS = new Set([
  * `seedCatalogue`, `totalInCatalogue`, `normalizeCatalogueKey`. A bare lowercase
  * German "katalog" is not a compound head and not a noun, so it is left alone
  * (`#katalog`, `nav:katalog` are ids, and `INLINE_EXEMPTIONS` covers the
- * URL-shaped ones anyway). All-caps English headings are matched explicitly so
- * the rule cannot silently lose a case form when the `i` flag is dropped.
+ * URL-shaped ones anyway). The English bare word stays case-insensitive by
+ * character class rather than the `i` flag: `CataLog` and `cataLOGUE` are the
+ * same word, and the flag cannot be used without also matching the mixed-case
+ * identifiers the compound branch exists to keep silent.
  */
 const RULES = [
   {
@@ -124,7 +126,7 @@ const RULES = [
     label:
       'English "catalogue"/"catalog"/compound naming the collection (canon: The Collection)',
     pattern:
-      /(?<![A-Za-z])(?:CATALOG(?:UE)?|[Cc]atalog(?:ue)?)s?(?![A-Za-z])|(?<![A-Za-z])[A-Z]?[a-z]+(?:catalogue|catalog)s?(?![A-Za-z])/g,
+      /(?<![A-Za-z])[Cc][Aa][Tt][Aa][Ll][Oo][Gg](?:[Uu][Ee])?s?(?![A-Za-z])|(?<![A-Za-z])[A-Z]?[a-z]+(?:catalogue|catalog)s?(?![A-Za-z])/g,
   },
   {
     id: "verb-de",
@@ -181,8 +183,8 @@ const INLINE_EXEMPTIONS = [
   /\bcatalogue[\s-]+(?:number|numbers|register|certificate|entry|entries|card|catalogue)\b/gi,
   // museum catalogue, archive catalogue, card catalogue
   /\b(?:museum|archive|card)[\s-]+catalogue\b/gi,
-  // Katalog-Nummer / Katalog-Register / Katalog-Zertifikat
-  /\bKatalog(?:-|\s)+(?:Nummer|Register|Zertifikat|Eintrag|Karten)\b/g,
+  // Katalog-Nummer / Katalog-Register / Katalog-Zertifikat / Katalog-Karte(n)
+  /\bKatalog(?:-|\s)+(?:Nummer|Register|Zertifikat|Eintrag|Karte(?:n)?)\b/g,
   // URL-shaped ids, not copy: `#katalog`, `/kartenkatalog`, `?catalog=1`.
   // The anchor ids in `design/ux/*` are identifiers even when quoted.
   /[#?&/][A-Za-z0-9_./-]*(?:katalog|catalogue|catalog)[A-Za-z0-9_./-]*/gi,
@@ -276,9 +278,12 @@ function insideSpans(index, length, spans) {
  * an `<h1>Der Katalog</h1>` reaches the visitor just as the meta description
  * does, and a surface that is "scanned" but half-read is the blind spot this
  * was written to close.
+ *
+ * No length cap on the value: a meta description longer than 500 characters is
+ * exactly the copy most likely to drift, and a silent cap is a blind spot.
  */
 const HTML_ATTRIBUTE =
-  /(?:^|[\s<])([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*(?:"([^"\n]{1,500})"|'([^'\n]{1,500})')/g;
+  /(?:^|[\s<])([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*(?:"([^"\n]+)"|'([^'\n]+)')/g;
 const copyAttributeNames = new Set([
   "aria-description",
   "aria-label",
@@ -291,15 +296,91 @@ const copyAttributeNames = new Set([
 ]);
 
 /**
- * Live segments of one HTML line: the copy-bearing attribute values (in place)
- * and the visible text between tags.
+ * Embedded regions of an HTML document — `<script>` bodies, `<style>` bodies and
+ * comments — as per-line column ranges.
+ *
+ * These are **not copy**: `.catalogue-title{}` is a selector, `const catalog`
+ * is an identifier, and a comment is not rendered. They cannot be found line by
+ * line, and a `<[^>]*>` regex is fooled by a `>` inside a comment or an
+ * attribute, so this walks the whole document once with a small state machine:
+ * `<!--` … `-->`, `<script` … `</script>`, `<style` … `</style>`. Unterminated
+ * regions run to end of file, which is what a browser does.
+ *
+ * Returns `Map<lineIndex, Array<[start, end]>>` in 0-based line and column.
  */
-function htmlSegments(line) {
+function htmlEmbeddedRegions(text) {
+  const lineStarts = [0];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === "\n") lineStarts.push(index + 1);
+  }
+  const lineOf = (offset) => {
+    let low = 0;
+    let high = lineStarts.length - 1;
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+      if (lineStarts[mid] <= offset) low = mid;
+      else high = mid - 1;
+    }
+    return low;
+  };
+
+  const spans = [];
+  const lower = text.toLowerCase();
+  let index = 0;
+  while (index < text.length) {
+    const open = text.indexOf("<", index);
+    if (open === -1) break;
+    index = open + 1;
+    if (text.startsWith("<!--", open)) {
+      const close = text.indexOf("-->", open + 4);
+      const stop = close === -1 ? text.length : close + 3;
+      spans.push([open, stop]);
+      index = stop;
+      continue;
+    }
+    const name = /^<(script|style)[\s>]/.exec(lower.slice(open, open + 8));
+    if (!name) continue;
+    const tagEnd = text.indexOf(">", open);
+    const bodyStart = tagEnd === -1 ? text.length : tagEnd + 1;
+    const closeAt = lower.indexOf(`</${name[1]}`, bodyStart);
+    const closeEnd = closeAt === -1 ? text.length : text.indexOf(">", closeAt);
+    const stop = closeEnd === -1 ? text.length : closeEnd + 1;
+    spans.push([open, stop]);
+    index = stop;
+  }
+
+  const regions = new Map();
+  const add = (lineIndex, start, end) => {
+    if (!regions.has(lineIndex)) regions.set(lineIndex, []);
+    regions.get(lineIndex).push([start, end]);
+  };
+  for (const [from, to] of spans) {
+    let offset = from;
+    while (offset < to) {
+      const lineIndex = lineOf(offset);
+      const nextLine = lineStarts[lineIndex + 1];
+      const lineEnd = nextLine === undefined ? text.length : nextLine - 1;
+      const stop = Math.min(to, lineEnd);
+      add(lineIndex, offset - lineStarts[lineIndex], stop - lineStarts[lineIndex]);
+      if (stop === to) break;
+      offset = stop + 1;
+    }
+  }
+  return regions;
+}
+
+/**
+ * Live segments of one HTML line: the copy-bearing attribute values (in place)
+ * and the visible text between tags. `embedded` is this line's slice of
+ * `htmlEmbeddedRegions` — markup that is never rendered as copy.
+ */
+function htmlSegments(line, embedded = []) {
   const segments = [];
   const hidden = new Array(line.length).fill(false);
   const hide = (from, to) => {
     for (let index = from; index < to; index += 1) hidden[index] = true;
   };
+  for (const [from, to] of embedded) hide(from, to);
 
   HTML_ATTRIBUTE.lastIndex = 0;
   let match;
@@ -336,10 +417,11 @@ function htmlSegments(line) {
  *   `const catalog` is code, not copy; only the text a visitor can be shown is
  *   in scope.
  * - copy deck: the DE and EN value cells of a keyed row.
- * - HTML: copy-bearing attribute values and text nodes (see `htmlSegments`).
+ * - HTML: copy-bearing attribute values and text nodes (see `htmlSegments`),
+ *   minus the embedded regions that never render (see `htmlEmbeddedRegions`).
  * - other docs: quoted strings — `"…"`, `*"…"*`, and German „…“.
  */
-function liveSegments(line, file, relativeFile) {
+function liveSegments(line, file, relativeFile, embedded) {
   if (relativeFile === "src" || relativeFile.startsWith(`src${sep}`)) {
     const segments = [];
     const literal = /"([^"\\\n]{1,500})"|'([^'\\\n]{1,500})'|`([^`\\\n]{1,500})`/g;
@@ -364,7 +446,7 @@ function liveSegments(line, file, relativeFile) {
     }
     return segments;
   }
-  if (file.endsWith(".html") || file.endsWith(".htm")) return htmlSegments(line);
+  if (file.endsWith(".html") || file.endsWith(".htm")) return htmlSegments(line, embedded);
   const segments = [];
   const quoted = /"([^"\n]{1,500})"|„([^“\n]{1,500})“/g;
   let match;
@@ -375,11 +457,25 @@ function liveSegments(line, file, relativeFile) {
   return segments;
 }
 
+/** Blank out embedded HTML regions, keeping every column where it was. */
+function blankEmbedded(line, embedded) {
+  if (!embedded || embedded.length === 0) return line;
+  const chars = line.split("");
+  for (const [from, to] of embedded) {
+    for (let index = from; index < to && index < chars.length; index += 1) chars[index] = " ";
+  }
+  return chars.join("");
+}
+
 /** Collect rule hits for one line. */
-function scanLine(line, file, relativeFile, lineNumber) {
+function scanLine(line, file, relativeFile, lineNumber, embedded) {
   const hits = [];
-  const fullSpans = exemptSpans(line);
-  const live = liveSegments(line, file, relativeFile);
+  // Embedded HTML (`<script>`, `<style>`, comments) is not content for *any*
+  // rule, not just the live-copy ones: a minified bundle must not be able to
+  // trip the water or Heft ban from inside a string literal.
+  const text = blankEmbedded(line, embedded);
+  const fullSpans = exemptSpans(text);
+  const live = liveSegments(line, file, relativeFile, embedded);
 
   for (const rule of RULES) {
     const targets =
@@ -389,7 +485,7 @@ function scanLine(line, file, relativeFile, lineNumber) {
             offset: segment.offset,
             spans: exemptSpans(segment.text),
           }))
-        : [{ text: line, offset: 0, spans: fullSpans }];
+        : [{ text, offset: 0, spans: fullSpans }];
 
     for (const target of targets) {
       rule.pattern.lastIndex = 0;
@@ -594,10 +690,14 @@ function main() {
     const firstSegment = relativeFile.split(sep)[0];
     sources.set(file, lines);
     lineCount += lines.length;
+    // One walk of the whole document: `<script>`, `<style>` and comments are not
+    // copy, and a per-line reader cannot know where they start and end.
+    const embedded =
+      file.endsWith(".html") || file.endsWith(".htm") ? htmlEmbeddedRegions(text) : null;
     for (let index = 0; index < lines.length; index += 1) {
       const line = lines[index];
       const lineNumber = index + 1;
-      const hits = scanLine(line, file, firstSegment, lineNumber);
+      const hits = scanLine(line, file, firstSegment, lineNumber, embedded?.get(index));
       if (file.endsWith("copy-deck.md")) {
         const bang = copyDeckBangHit(line, file, lineNumber);
         if (bang) hits.push(bang);
