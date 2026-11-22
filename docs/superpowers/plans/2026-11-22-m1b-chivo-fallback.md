@@ -185,9 +185,18 @@ git commit -m "test(#81): CLS 0 and a metric-matched Chivo swap, asserted in the
 
 ### Task 3: The face and the stack (green)
 
+> **As executed:** two faces, not one. Measurement showed the advance ratio is not a
+> single number — Chivo's sentence copy is 1.0557 × Arial's, its tracked uppercase
+> 0.9672 ×. With the body face alone the centred eyebrow moved 7.95 px (CLS 0.000121),
+> because a centred line's start moves by half the advance change. A second
+> `Chivo Label Fallback` (96.72 %) plus a `fonts.label` token used by `.eyebrow` makes
+> that delta 0.047 px. The unit test gained the label cases (7 tests, not 4). Everything
+> else below holds: `local()` only, same hhea division, `swap` untouched.
+
 **Files:**
 - Modify: `panda.config.ts:37-68` (`globalFontface`)
-- Modify: `design/tokens/tokens.ts:293-296` (`fonts.body`)
+- Modify: `design/tokens/tokens.ts:293-296` (`fonts.body`, new `fonts.label`)
+- Modify: `src/App.svelte:278-284` (`.eyebrow` uses `var(--elsa-fonts-label)`)
 
 **Interfaces:**
 - Consumes: nothing.
