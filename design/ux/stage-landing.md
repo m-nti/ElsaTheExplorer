@@ -189,6 +189,7 @@ scroll at 320px.
 | Component Name | Type | Zone | Purpose | Required? | Reuses Existing Component? |
 |----------------|------|------|---------|-----------|---------------------------|
 | `.skip-link` | Link | overlay | Jump focus straight to `#open-pack` (label and target agree) | Yes | Yes — exists, target retargeted |
+| `#stage` | Landmark section, `tabindex="-1"` | Page | The main hall: first content region after the masthead. `tabindex="-1"` makes it a legal **programmatic** focus target for ADR-0010 §3's focus-return ladder (rung 3) while keeping it out of the tab order | Yes | Yes — exists, `tabindex` new |
 | `.masthead__wordmark` | Link | Masthead | "Elsa the Explorer", return to entrance | Yes | Yes (text updated) |
 | `.masthead__count` | Live text | Masthead | Compact catalogue count, mirrors the collection line | Yes | Yes |
 | `.nav-link` ("Zur Sammlung") | Link | Masthead | Anchor to the collection | Yes | Yes (relabelled) |
@@ -206,7 +207,7 @@ scroll at 320px.
 | `.pack__seal-tear` | Decorative span | Inside seal | Pre-cut tear line affordance | Yes | Yes |
 | `#pack-preview` | Image | Inside seal | Photo teaser (cover of the collection) | Yes | Yes |
 | "{n} neue Schmuckstücke sind da!" accession line (`zuwachs.line`) | Text | Above catalogue line, returning visitors only | Cards added since last visit, stated as a count (EN "{n} new treasures have arrived!"; copy-deck sync 2026-11-22, D5 — both "… hat Zuwachs" forms retired) | No (round 2) | No — new |
-| `#live` live region | Visually hidden status | Body end | Announcements | Yes | Yes |
+| `#live-status` / `#live-alert` live regions | Visually hidden status + alert | App root, siblings before `<main>` (ADR-0010 §1: mounted once, outside every dialog and conditional; relocated into the open `<dialog>` while a modal is up, and home again on close) | Announcements | Yes | Yes |
 | `EntranceHall` | **Svelte 5 component** (one line: stage shell — masthead wiring, hero copy, catalogue line, seal, catalogue-state subscription) | all | The stage as one mount boundary | Yes | Refactor of the current stage DOM |
 
 **Pattern references** (implemented by `design/ux/interaction-patterns.md` —
@@ -218,8 +219,10 @@ Announcement · Empty State · Loading State.
 **Primary focus element on open**: The skip link is first in Tab order (focus
 lands on it only via Tab). After page load with no interaction, no element
 holds programmatic focus. If the page loaded with `?photo=`, focus goes to the
-CardDetail dialog (child spec). In the empty state, focus stays free; the
-disabled CTA carries `aria-disabled` and an explanatory label.
+CardDetail dialog (child spec). In the empty state, focus stays free; the CTA is
+genuinely `disabled` — not `aria-disabled`, because a disabled button leaves the tab
+order and cannot take focus, which is what ADR-0010 §3's focus-return fallback ladder
+depends on — with its empty label, and the seal is disabled with it.
 
 ### 5.4 Information Hierarchy
 
@@ -412,7 +415,7 @@ Cycle: natural page Tab order, no trap (no modal here).
 
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
-| Catalogue resolved (populated) | "Du hast {seen} von {total} gesammelt." via catalogue label + `#live` | After load, once |
+| Catalogue resolved (populated) | "Du hast {seen} von {total} gesammelt." via catalogue label + `#live-status` | After load, once |
 | Pack opened (stage-side handoff) | "Das Pack geht auf." | On `pack:open-request` accepted |
 | Second lap begins | "Das waren alle Karten. Jetzt beginnt das Pack von vorn." | When persistence reports the lap restart |
 | Language switch | "Auf Deutsch umgestellt." / "Switched to English." | Immediately after swap |

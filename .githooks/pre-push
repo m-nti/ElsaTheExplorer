@@ -17,15 +17,7 @@ if [ "${SKIP_VERIFY:-}" = "1" ]; then
 fi
 
 head=$(git rev-parse HEAD)
-while read -r local_ref local_sha _remote_ref _remote_sha; do
-  [ -z "$local_sha" ] && continue
-  case "$local_sha" in 0000000000000000000000000000000000000000) continue ;; esac
-  if [ "$local_sha" != "$head" ]; then
-    echo "pre-push: $local_ref is $local_sha but only HEAD ($head) was verified." >&2
-    echo "Push the verified commit, or bypass deliberately with SKIP_VERIFY=1." >&2
-    exit 1
-  fi
-done
+sh "$(git rev-parse --show-toplevel)/scripts/pre-push-refs.sh" "$head"
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "pre-push: working tree is dirty." >&2

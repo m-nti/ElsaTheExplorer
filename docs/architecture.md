@@ -701,7 +701,7 @@ migration. Names are `elsa-` prefixed so `activate` and the reset flow can enume
 
 | Cache / store | Contents | Hard bound | Versioned by |
 | --- | --- | --- | --- |
-| `elsa-precache-<buildHash>` | `index.html`, hashed `assets/*.js|css`, `/fonts/*.woff2`, `/icons/*`, `manifest.webmanifest` | **≤ 400 KB** compressed | build hash (old caches deleted) |
+| `elsa-precache-<buildHash>` | `index.html`, hashed `assets/*.js\|css`, `/fonts/*.woff2`, `/icons/*`, `manifest.webmanifest` | **≤ 400 KB** compressed | build hash (old caches deleted) |
 | `elsa-cat-v1` | Validated catalogue snapshot (key `/photos.php?list=1`), last `photos.json` body (key `/photos.json`) | ≤ **2 MB**, 2 entries | `CACHE_SCHEMA` |
 | `elsa-img-tile-v1` | `tile` derivatives only | **≤ 400 entries / ≤ 20 MB** | `CACHE_SCHEMA` |
 | `elsa-img-large-v1` | `pack` + `detail` derivatives | **≤ 200 entries / ≤ 32 MB** | `CACHE_SCHEMA` |
@@ -719,7 +719,7 @@ binder's tiles, because the offline *catalogue* is the product and detail browsi
 | JS / CSS | `/assets/*-<hash>.{js,css}` | Precache, cache-first, immutable | — |
 | Fonts | `/fonts/*.woff2` | Precache, cache-first | — |
 | Icons / manifest | `/icons/*`, `/manifest.webmanifest` | Precache, cache-first | — |
-| Photo derivatives | same origin + `photos.php?image=…&size=tile|pack|detail`, `photos/thumbs/*`, `photos/derived/*` | Runtime **cache-first**, 5-gate admission, LRU by bytes+count | Store an original, a non-image, or a body over its rendition ceiling |
+| Photo derivatives | same origin + `photos.php?image=…&size=tile\|pack\|detail`, `photos/thumbs/*`, `photos/derived/*` | Runtime **cache-first**, 5-gate admission, LRU by bytes+count | Store an original, a non-image, or a body over its rendition ceiling |
 | Manifest (runtime) | `/photos.php?list=1` (`ts` and other params ignored) | **Network-first, 2.5 s deadline → snapshot**; the in-flight request keeps running and refreshes the snapshot | Break FTP-drop freshness: every online boot tries the network first |
 | Manifest (no snapshot) | same | Pass through to the network (no SW-level timeout) | Double-race the app's own 3 s / 4 s chain |
 | Static fallback | `/photos.json` | **Stale-while-revalidate** | Override a newer `?list=1` snapshot |
@@ -768,7 +768,7 @@ one-time instruction sheet (`Teilen → Zum Home-Bildschirm`) at most once ever.
 | No third-party requests | Self-contained built SW; no remote `importScripts`; `privacy.spec.ts` still asserts zero |
 | Cache partitioning | Origin-scoped Cache Storage, app never framed — relied on, not worked around |
 | No credentials in cache | Bypass on `request.credentials === 'include'`, an `Authorization` header, or `Set-Cookie` in the response |
-| `Vary` correctness | Key = full URL (`?list=1` drops `ts` only). A response whose `Vary` names anything but `Accept-Encoding`, or `Vary: *`, is not cached. Format is URL-encoded (`format=jpeg|webp`), so a WebP body cannot answer a JPEG URL |
+| `Vary` correctness | Key = full URL (`?list=1` drops `ts` only). A response whose `Vary` names anything but `Accept-Encoding`, or `Vary: *`, is not cached. Format is URL-encoded (`format=jpeg\|webp`), so a WebP body cannot answer a JPEG URL |
 | Originals inadmissible | (1) URL allowlist, (2) 200 + non-opaque + GET, (3) `Content-Type: image/*`, (4) size ≤ rendition ceiling + 8 KB, (5) no `Set-Cookie`, `Vary` clean. A 4 MB source fails gate 4 before it becomes an entry |
 | Clear cache in reset | `reset.cache.cta` in the reset dialog, own confirmation: deletes `elsa-cat-*`, `elsa-img-*`, the IDB index and the snapshot; **keeps the app shell** and the registration; `reset.body` untouched (D-05) |
 | Schema change | `CACHE_SCHEMA` bump → new names → `activate` deletes the old; an older-schema snapshot is discarded, never read |
