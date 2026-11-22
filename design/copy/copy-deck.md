@@ -266,10 +266,10 @@ No string may be assembled by concatenating a noun with a count.
 | `card.btn.save` | Foto speichern | Save this photo | 21 | **space-critical** — mobile 2-col action grid | PL, CRD |
 | `card.btn.share` | Teilen | Share | 7 | **space-critical** — shortest label in the deck | PL |
 | `card.share.title` | «{name}» — eine Elsa-Karte | «{name}» — an Elsa card | 40 + name | share-sheet title | PL |
-| `card.share.text` | Ich habe Elsa gezogen: «{name}». | I pulled Elsa: «{name}». | 30 + name | share-sheet body | PL |
-| `card.share.shared` | Geteilt. | Shared. | 17 | `role="status"`, auto-clears ~3.4 s | PL |
-| `card.share.copied` | Link kopiert. | Link copied. | 17 | clipboard fallback success | PL |
-| `card.share.error` | Link konnte nicht kopiert werden. Er steht oben in der Adresszeile. | Could not copy the link. It is up in the address bar. | 85 | **space-critical** — DE 67 / EN 53; 2-line reserved slot; always leaves a usable next step | PL |
+| `card.share.text` | Aus Elsas Archiv: «{name}». | From Elsa's archive: «{name}». | 30 + name | share-sheet body; DE 23 / EN 25 + name. No "gezogen / pulled" — draw-and-win language is gambling-adjacent (§0.4.10) and the archive claim is warmer anyway. **re-voiced 2026-11-22** · VOICE | PL |
+| `card.share.shared` | Unterwegs. | On its way. | 17 | `role="status"`, auto-clears ~3.4 s. Status string — no exclamation (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
+| `card.share.copied` | Link kopiert. | Link copied. | 17 | clipboard fallback success. Status string — no exclamation (§0.4.4) | PL |
+| `card.share.error` | Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn. | Copying did not work. The link is up in the address bar — you can get it there. | 85 | **space-critical** — DE 82 / EN 79; 2-line reserved slot; always leaves a usable next step. Plain on purpose: an error never winks (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
 | `card.aria.open` | {n}. {name}. {rarity}. | No. {n}. {name}. {rarity}. | dynamic | spoken on open; Fantasiewerte label follows the values' framing | CRD §12 |
 | `card.aria.position` | {n} von {total}. | {n} of {total}. | 12 + digits | spoken on each navigation step | CRD §12 |
 | `card.image.alt` | {name} | {name} | 24 | alt = the card's printed name; a failed photo degrades to a readable frame, never error text | PL Error State |
@@ -284,8 +284,8 @@ No string may be assembled by concatenating a noun with a count.
 | Key | DE | EN | Max | 40 % / space | Source |
 | --- | --- | --- | --- | --- | --- |
 | `catalogue.title` | Der Katalog | The Catalogue | 15 | **space-critical** — section head wraps | BND §13 |
-| `catalogue.lede` | Jede Karte, die es gibt — öffne eine für die ganze Geschichte. | Every card there is — open one for the whole story. | 100 | DE 57 / EN 51; flat view | BND §5.1 (EN new) |
-| `catalogue.lede.rooms` | Die Sammlung nach Räumen. Jeder Raum wächst für sich. | The collection by room. Every room grows on its own. | 100 | DE 53 / EN 52; room view | BND §5.1 (EN new) |
+| `catalogue.lede` | Jedes Schmuckstück, das es gibt — öffne eines für die ganze Geschichte. | Every treasure there is — open one for the whole story. | 100 | DE 70 / EN 55; flat view. Plants the arrival noun (§0.4 anchors) outside the arrival moment. **re-voiced 2026-11-22** · VOICE | BND §5.1 (EN new) |
+| `catalogue.lede.rooms` | Die Sammlung nach Räumen. Jeder Raum wächst für sich, in Ruhe. | The collection by room. Every room grows on its own, in its own time. | 100 | DE 62 / EN 67; room view. **re-voiced 2026-11-22** · VOICE | BND §5.1 (EN new) |
 | `catalogue.count` | see `progress.overall` | see `progress.overall` | 36 + digits | one overall count string for stage and catalogue (D6) | PL |
 
 ### 6.2 Set names (canonical order — never reorder)
@@ -315,30 +315,33 @@ page language leads. The **chip** form drops the leading article — it is what 
 | --- | --- | --- | --- | --- | --- |
 | `set.progress.line` | {n} von {total} gesammelt | {n} of {total} collected | 36 + digits | **space-critical** — room row header; DE 17 with single digits, number never truncates | PL, GDD R2 |
 | `set.row.aria` | {set}: {n} von {total} gesammelt | {set}: {n} of {total} collected | dynamic | row label; the mini bar is `aria-hidden` | PL |
-| `set.complete.announce` | {set} ist komplett. | {set} is complete. | 40 | zero exclamation; carried by text, not the frame | PL |
-| `set.complete.note` | Sein Rahmen leuchtet im Katalog. | Its frame lights up in the catalogue. | 50 | one-line visible note in the catalogue head; DE 32 / EN 37 | BND §12 (EN new) |
+| `set.complete.announce` | {set} ist komplett. Alle da. | {set} is complete. All present. | 40 | announcement string — **no `!`** (D26). At cap with the longest room name (Außenstelle Garten, 18) + 22. Roll-call warmth, still a plain fact. **re-voiced 2026-11-22** · VOICE | PL |
+| `set.complete.note` | Der Rahmen leuchtet, als hätte er gewartet! | The frame is glowing, as if it had been waiting! | 50 | one-line visible note in the catalogue head; DE 44 / EN 48. Carries the surface's one permitted `!` (§0.4.4): it is visible, not announced, so D26 does not apply. **re-voiced 2026-11-22** · VOICE | BND §12 (EN new) |
 | `milestone.25.label` | Türschild vergoldet | Door sign gilded | 27 | **space-critical** — marker label, wraps under the marker | GDD R-F, BND |
 | `milestone.50.label` | Leselampe angezündet | Reading lamp lit | 27 | | GDD R-F, BND |
 | `milestone.75.label` | Samtband gespannt | Velvet rope strung | 27 | | GDD R-F, BND |
-| `catalogue.milestone` | Katalog-Meilenstein erreicht: {pct} Prozent — {outfit}. | Catalogue milestone reached: {pct} per cent — {outfit}. | 80 | live region + one-time flourish. **Single source** for all three thresholds — no competing copy | PL (key `catalogue:milestone-reached`) |
+| `catalogue.milestone` | Katalog: {pct} Prozent geschafft — {outfit}. | Catalogue: {pct} per cent done — {outfit}. | 80 | live region + one-time flourish. **Single source** for all three thresholds — no competing copy. Announced, so no `!` (D26); the institutional "Meilenstein erreicht" is gone, the `{outfit}` grammar is untouched (DE 34 + outfit = 61, EN 33 + outfit = 56). **re-voiced 2026-11-22** · VOICE | PL (key `catalogue:milestone-reached`) |
 | `outfit.25` | das Türschild ist vergoldet | the door sign is gilded | 40 | `{outfit}` value for 25 % — the only clause the pattern library writes out | PL |
 | `outfit.50` | die Leselampe ist angezündet | the reading lamp is lit | 40 | `{outfit}` value for 50 % — **PROPOSED clause** in the pattern's grammar | PROPOSED |
 | `outfit.75` | das Samtband ist gespannt | the velvet rope is strung | 40 | `{outfit}` value for 75 % — **PROPOSED clause** | PROPOSED |
 
 > **One direction only.** Milestones are overall-catalogue events. Per-room markers are a
 > display affordance; there are no per-set milestone strings and no per-set storage
-> (GDD R-F). Empty rooms render nothing at all — no "0 von 0" (GDD E4, PL omit rule).
+> (GDD R-F). Empty rooms render nothing at all — no "0 von 0" (GDD E4, PL omit rule). **The
+> playful register does not license a line in an empty room**: silence is still the right
+> amount of copy there, and a joke would be the one thing a room with nothing in it cannot
+> afford.
 
 ### 6.4 Capstones (100 %)
 
 | Key | DE | EN | Max | 40 % / space | Source |
 | --- | --- | --- | --- | --- | --- |
 | `capstone.title` | Elsas Ehrenmensch | Elsa's Honorary Human | 40 | **space-critical** — catalogue-header capstone; never wrapped mid-word | BR, GDD R-I |
-| `capstone.subtitle` | Katalog I · abgeschlossen | Catalogue I · completed | 40 | diploma subtitle | GDD R-I |
-| `capstone.announce` | Katalog komplett. Elsas Ehrenmensch ist eingetragen. | Catalogue complete. Elsa's Honorary Human is entered. | 80 | fired once, ever, on the 100 % crossing | PL, JRN (D13) |
+| `capstone.subtitle` | Katalog I · vollzählig | Catalogue I · all present | 40 | diploma subtitle; DE 21 / EN 25. "abgeschlossen" read like a closed account; "vollzählig" is the roll-call word — all accounted for. **re-voiced 2026-11-22** · VOICE | GDD R-I |
+| `capstone.announce` | Katalog komplett — Elsas Ehrenmensch ist eingetragen. | Catalogue complete — Elsa's Honorary Human is entered. | 80 | fired once, ever, on the 100 % crossing. One sentence, em dash instead of two full stops. Announced, so no `!` (D26, §12 item 10). **re-voiced 2026-11-22** · VOICE | PL, JRN (D13) |
 | `capstone.date` | Eingetragen am {date} | Entered on {date} | 30 | `{date}` via `Intl.DateTimeFormat`; never a hardcoded separator | GDD R-I (EN new) |
 | `capstone.lap` | **PROPOSED** Durchgang {lap} | **PROPOSED** Lap {lap} | 16 | the lap number is canon on the diploma; its label exists in no source | PROPOSED |
-| `capstone.waiting` | Das Heft hat Zuwachs — der Ehrenmensch wartet auf die neuen Karten. | New cards in the catalogue — the Honorary Human is waiting for them. | 100 | shown when a new photo drops below 100 % after completion; refresh, never accumulate | GDD E2 |
+| `capstone.waiting` | Der Ehrenmensch wartet auf die neuen Karten. Er hat es nicht eilig. | The Honorary Human is waiting for the new cards. No rush. | 100 | shown when a new photo drops below 100 % after completion; refresh, never accumulate. "Heft" is gone: a new arrival is announced by `zuwachs.line`, never restated here. **re-voiced 2026-11-22** · VOICE | GDD E2 |
 | `plaque.title` | Das Gesamtverzeichnis | The Master Index | 30 | sits beside the capstone, never per room | BR, GDD R-I |
 | `plaque.caption` | see `card.stats.label` | see `card.stats.label` | — | same Fantasiewerte label; the plaque is still a joke, labelled as one | GDD R-I |
 
@@ -361,6 +364,28 @@ page language leads. The **chip** form drops the leading article — it is what 
 | `view.announce.rooms` | Nach Räumen sortiert. | Grouped by room. | 40 | spoken once on switch (D11) | PL |
 | `view.announce.all` | Alle Karten. | All cards. | 20 | flat equivalent | PL |
 
+### 6.6 Lexikon term surfaced outside the cards — Reiselust
+
+One term lives in this deck without being a card stat. It is a **label** in Der Aushang
+(`design/features/specs/karte-des-tages.md` §6), which recorded an open dependency on exactly
+this pair. Keys follow `archive-fiction.md` §4 (`lex:<slug>:term` / `lex:<slug>:def`).
+
+| Key | DE | EN | Max | Where / source |
+| --- | --- | --- | --- | --- |
+| `lex:reiselust:term` | Reiselust | Wanderlust | 20 | the `<dt>` of the travel line in Der Aushang; DE 9 / EN 10. Owner voice ruling 2026-11-22 |
+| `lex:reiselust:def` | die Neigung, im Auto ein Ziel zu vermuten. | the tendency to assume the car has a destination. | 73 | the term's disclosure; DE 46 / EN 52, cap derived `ceil(52 × 1.4)`. Owner voice ruling 2026-11-22 |
+
+> **It is not a per-card stat.** `lex:reiselust:*` is the **forecast label for the travel
+> union** (`departure-hall ∪ garden-annex`) in Der Aushang. It never appears in
+> `card.stats.chip`, never becomes a `photoTraits` value on a card, and carries no
+> `{value}/10` of its own — the number beside it is the union's, formatted by
+> `tag:forecast:value`. This closes the "Reiselust has no Lexikon pair yet — add one to §4
+> before build" gap in `karte-des-tages.md` §6, whose §6 rule 5 forbids first use without a
+> definition. The wording is recorded verbatim as ruled; where `archive-fiction.md` §4
+> capitalises its own definitions, that file matches this pair at write-in rather than the
+> other way round — the deck is the string of record. Trait names are never synonymised at
+> runtime.
+
 ---
 
 ## 7. States
@@ -370,8 +395,8 @@ page language leads. The **chip** form drops the leading article — it is what 
 | `state.loading.stage` | Karten werden gesucht | Finding the cards | 30 | the label *is* the loading indicator — no spinner in the parlour | PL, STG |
 | `state.loading.grid` | Karten werden geladen… | Loading cards… | 30 | grid variant; ellipsis is part of the string | PL, BND |
 | `state.empty.owner` | Noch keine Karten. Leg Elsa-Fotos in den Ordner photos und führe dann npm run photos aus. | No cards yet. Put Elsa's photos in the photos folder, then run npm run photos. | 100 | **space-critical** — DE 89 / EN 78; `npm run photos` in `<code>`, never broken mid-token. Speaks to the curator, the only person who can act | PL, STG, BND |
-| `state.empty.count` | Noch nichts da | Nothing in it yet | 18 | count-line slot only (slot-specific, not a conflict — §11 D23) | BND §6 (EN new) |
-| `state.error.catalogue` | Der Katalog lädt nicht gerade. | The catalogue is not loading just now. | 60 | the stage shows this same string; retry lives with the catalogue | STG, BND |
+| `state.empty.count` | Leer, aber bereit | Empty, but ready | 18 | count-line slot only (slot-specific, not a conflict — §11 D23). Winks without promising cards exist. **re-voiced 2026-11-22** · VOICE | BND §6 (EN new) |
+| `state.error.catalogue` | Der Katalog kommt gleich wieder. | The catalogue will be back shortly. | 60 | the stage shows this same string; retry lives with the catalogue. Warm, but it states the fact and promises nothing it cannot keep — **no `!` in an error** (§0.4.4). **re-voiced 2026-11-22** · VOICE | STG, BND |
 | `state.error.retry` | Nochmal versuchen | Try again | 20 | **space-critical** — DE 17 / EN 11; button grows | BND |
 | `state.storage.refused` | — NO STRING — | — NO STRING — | 0 | **deliberate silence.** A private-window visitor has chosen that trade-off knowingly; the visit works, only persistence is absent. Do not add a warning | JRN Phase 1, GDD E3 |
 | `state.image.failed` | — NO STRING — | — NO STRING — | 0 | the frame, name, mood and line stay readable; the photo window's alt is `card.image.alt`. Never error text aimed at a visitor | PL Error State, CRD |
@@ -399,7 +424,7 @@ never re-keyed.
 | `live.set.complete` | see `set.complete.announce` | see `set.complete.announce` | 40 | a room completes | PL |
 | `live.milestone` | see `catalogue.milestone` | see `catalogue.milestone` | 80 | 25 / 50 / 75 %, once each per reset cycle, threshold order | PL |
 | `live.capstone` | see `capstone.announce` | see `capstone.announce` | 80 | 100 %, once ever | PL |
-| `live.zuwachs` | see `zuwachs.line` | see `zuwachs.line` | 47 | once per visit, on load with a manifest-stamp mismatch | GDD R8 |
+| `live.zuwachs` | see `zuwachs.line` | see `zuwachs.line` | 44 | once per visit, on load with a manifest-stamp mismatch. Announced with the terminal `!` neutralised to `.` (D26) — the visitor hears "1 neue Schmuckstücke sind da." / "new treasures have arrived." | GDD R8, voice D5 |
 | `live.share` | see `card.share.*` | see `card.share.*` | 85 | share success, copy success, share failure | PL |
 | `live.view` | see `view.announce.rooms` / `view.announce.all` | see `view.announce.rooms` / `view.announce.all` | 40 | view toggle | PL |
 
@@ -421,14 +446,17 @@ never becomes a second voice.
 | --- | --- | --- | --- | --- | --- |
 | `reset.trigger` | Von vorn | Start over | 20 | quiet outline button in the catalogue tools row; never adjacent to tiles | PL, GDD R7 |
 | `reset.title` | Von vorn? | Start over? | 20 | dialog `aria-labelledby` target | PL |
-| `reset.body` | Das löscht den Katalog, die Set-Fortschritte, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück. | This clears the Catalogue, set progress, milestones and Elsa's Honorary Human — sound and language return to their defaults. | 140 | **space-critical** — DE 131 / EN 124; wraps to 4 lines. Cap raised from 128 because the owner's Ton-und-Sprache clause overruns it (D20). Frames clear with the set progress (D9, open item) | PL (owner ruling carried in BND) |
+| `reset.body` | Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück. | This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default. | 140 | **space-critical** — DE 130 / EN 124; wraps to 4 lines. Cap stays 140 (raised from 128 for the owner's Ton-und-Sprache clause, D20). Frames clear with the set progress (D9). "Set-Fortschritte" → "Räume samt Fortschritt" removes the deck's only spec-sounding anglicism; full loss list and both preferences are intact. **re-voiced 2026-11-22** · VOICE | PL (owner ruling carried in BND) |
 | `reset.confirm` | Alles löschen | Delete everything | 20 | **space-critical** — destructive styling; labelled with the action, never "OK"/"Ja" | PL |
 | `reset.cancel` | Abbrechen | Cancel | 10 | **space-critical** — default focus lands here | PL |
 
 > Reset clears **every** `lucky-elsa.*` key — collection state and preferences. After
 > confirm the page returns to German and sound-on. `reset.body` is the only place a
 > visitor is told what is lost, so it must name the capstone and the preferences; it is
-> read in full by a screen reader, which is why the buttons never say "Ja".
+> read in full by a screen reader, which is why the buttons never say "Ja". It is also the
+> one string in the deck that **must not wink**: a delete dialog that jokes is a dialog the
+> reader stops trusting, and the playful register is a promise about tone, never about
+> accuracy.
 
 ---
 
@@ -437,7 +465,7 @@ never becomes a second voice.
 | Key | DE | EN | Max | 40 % / space | Source |
 | --- | --- | --- | --- | --- | --- |
 | `footer.mark` | see `brand.name` | see `brand.name` | 40 | brand, untranslated | BR |
-| `footer.line` | Kein Konto, keine Cookies, keine Zählung. Die Bibliothek gehört diesem Gerät. | No account, no cookies, no counting. The library belongs to this device. | 120 | DE 77 / EN 72; wraps to 2 lines | PROPOSED from BR privacy floor |
+| `footer.line` | Kein Konto, keine Cookies, keine Zählung. Alles bleibt auf diesem Gerät — wo es hingehört. | No account, no cookies, no counting. Everything stays on this device — where it belongs. | 120 | DE 90 / EN 87; wraps to 2 lines. States the privacy floor unchanged; the wink is in "wo es hingehört / where it belongs". **re-voiced 2026-11-22** · VOICE | PROPOSED from BR privacy floor |
 | `footer.top` | Nach oben | Back to top | 16 | anchors to `#stage`; instant under reduced motion | STG §4 |
 
 ---
@@ -452,7 +480,7 @@ Every row names the winner. "Winner" is the document whose string this deck ship
 | D2 | Landing H1 | STG §15 records the owner-canon resolution: H1 **"Was steckt im Katalog?"** | JRN Phase 1 proposes "Fünf Karten. Ein Sammelwerk." | **STG** (records an owner ruling) | `stage.h1*` |
 | D3 | Series line | BR: the catalogue is **Katalog I** | JRN Phase 1: "Sammelwerk · Serie I" / "The Collection · Series I" | **BR** (owner ruling) | No series string exists; "Serie I" is retired (§13) |
 | D4 | Secondary catalogue link | STG §5.3: text link **"Zum Katalog"** (and PCK uses the same label in the pack footer) | JRN Phase 1: "Den Katalog ansehen" / "See the catalogue" | **STG** (screen spec, label shared by two screens) | `nav.catalogue` |
-| D5 | New-accessions line | GDD R8, exact copy: **"Das Heft hat Zuwachs: {n} neue Karten."** | BR §Core loop: "Der Katalog hat Zuwachs"; JRN Phase 6: count-free "Das Heft hat Zuwachs." | **GDD** (owner-canon string with count) | `zuwachs.line`; the "Der Katalog hat Zuwachs" variant and the count-free variant are both retired |
+| D5 | New-accessions line | **Owner voice ruling 2026-11-22**: `{n} neue Schmuckstücke sind da!` / `{n} new treasures have arrived!` | GDD R8: "Das Heft hat Zuwachs: {n} neue Karten."; BR §Core loop: "Der Katalog hat Zuwachs"; JRN Phase 6: count-free "Das Heft hat Zuwachs." | **Owner voice ruling** (supersedes GDD R8) | `zuwachs.line` re-voiced; "Heft" is retired with **no exception**, and both count-free variants plus "Der Katalog hat Zuwachs" are retired. Playful count form is the single string for the arrival moment |
 | D6 | Overall progress line | PL: **"Du hast {n} von {total} gesammelt."** (verb canon) | BND §5.1 header: "15 von 24 gesammelt" (no "Du hast") | **PL** (canon progress line) | `progress.overall` is used by stage **and** catalogue head; the short form survives only per room in `set.progress.line` |
 | D7 | Holo rarity label | JRN / CRD: **"Holo-Pracht"** / "Holo glory" (PL's a11y example agrees) | A11Y feature matrix: "Häufig/Selten/Holo" | **JRN + CRD** (full label; A11Y row predates the reframe) | `card.rarity.holo` = Holo-Pracht; bare "Holo" retired in copy (still fine as an internal code value) |
 | D8 | Second-lap stamp, EN | PL (and PCK §13): **"Second edition"** | GDD R-H: "2nd printing" | **PL** (pattern library outranks GDD) | `pack.stamp.label` EN = Second edition; DE "2. Auflage" unchanged everywhere |
@@ -470,6 +498,7 @@ Every row names the winner. "Winner" is the document whose string this deck ship
 | D20 | Reset body cap | BND §13 caps the modal copy at **128 characters** | The owner-mandated Ton-und-Sprache clause makes the canon EN line **124** and the DE line **131** | **Canon string** (cap raised) | `reset.body` max = 140. The 128 figure predates the clause the owner added; the modal wraps to four lines at 320px |
 | D21 | Stamp dialog line, EN | PL: stamp label **"Second edition"** (D8) | GDD R-H line: "Second printing — the catalogue already knows this one." | **PL** (label parity) | `card.stamp.line` EN = "Second edition — …" so the corner stamp and its spoken line use one term |
 | D22 | Chase treatment in copy | JRN Phase 3 / GDD R-G: **no announcement**, the gold frame is the only differentiation | — | **No conflict** | Zero chase strings exist; nothing to drift |
+| D26 | Exclamation mark on an announced string | §0.4.4 (owner voice ruling): `!` allowed, at most one per surface, **never in an accessibility string** — a live-region announcement is one | `zuwachs.line` carries the ruling's `!` and §8 reuses the same key as `live.zuwachs` | **§0.4.4**, by a render-time transform | One key, one string: the announcement path renders `zuwachs.line` with the terminal `!` neutralised to `.`. Same discipline as number/date formatting (§0.1) — the deck does not mint a second key to dodge a rule. No other announced row carries a `!` (§6.3, §6.4, §5 share statuses), so this is the only case |
 
 **Not divergences — resolved by slot** (recorded so nobody merges them later):
 
@@ -491,13 +520,11 @@ can make. Recommended options are marked.
    fit; it would need 145). *Recommendation: keep the canon line* — the frames are the
    set progress's decoration, and a longer confirmation reads as a warning rather than an
    honest summary.
-2. **Reset body register: "Set-Fortschritte" is a mixed-language compound** and the one
-   phrase in the deck that sounds like a spec, not a museum. A plainer German alternative
-   of the same length: *"Das löscht den Katalog, die Räume samt Fortschritt, die
-   Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."*
-   (130 characters). *Recommendation: adopt it* if the owner accepts "Räume samt
-   Fortschritt" as the reader-facing term; it also removes the only anglicism in the reset
-   confirmation. Kept as canon until ruled.
+2. ~~**Reset body register: "Set-Fortschritte" is a mixed-language compound.**~~
+   **CLOSED 2026-11-22 (voice ruling).** The item's own recommendation was adopted:
+   "die Räume samt Fortschritt" (130 characters), which removes the deck's only
+   spec-sounding anglicism. Recorded in `reset.body` (§9), not kept as a canon-vs-proposal
+   split.
 3. **`capstone.lap` has no source label.** Germany has no natural single word for a lap
    through a card walk; "Durchgang" is proposed. *Recommendation: ship "Durchgang
    {lap}"*, or drop the lap line from the diploma if it reads as bookkeeping.
@@ -515,10 +542,28 @@ can make. Recommended options are marked.
    costume. *Recommendation: keep "Pack öffnen"* — it is the label the `P` hint and the
    seal both point at, and it is the one string a first-time visitor must not have to
    interpret.
-8. **`state.error.catalogue` register.** "Der Katalog lädt nicht gerade." is deliberately
-   flat. If the owner wants its dry humour slightly drier, the alternative is "Der Katalog
-   hat gerade Sendepause." — *recommendation: keep the spec's line* (it is quoted in two
-   specs and tested in STG §14).
+8. ~~**`state.error.catalogue` register.**~~ **CLOSED 2026-11-22 (voice ruling).** Re-voiced to
+   *"Der Katalog kommt gleich wieder." / "The catalogue will be back shortly."* — warm, still
+   factual, no `!`. **Propagation cost**: the retired line is quoted in `stage-landing.md`
+   and `binder.md` and asserted in STG §14, so that pass must update both quotes and re-point
+   the test at the new string.
+9. **Landing H1 was left as canon.** The pass was asked to re-voice the headline;
+   `stage.h1` is unchanged because it is owner canon recorded in D2 and is already a warm
+   rhetorical question. If a fuller wink is wanted, the candidate that still fits the fixed
+   13/19 character halves is DE "Was wohl" / "im Katalog steckt?" and EN "What might" /
+   "be in there, then?" — both are re-cuts of the same question, not a new idea.
+   *Recommendation: keep the canon line*; the tagline and lede now carry the playfulness, and
+   the H1 is tested in STG §13/§14.
+10. **The capstone's optional `!` is unspent.** `capstone.announce` is announcement-only, so a
+    `!` there would be neutralised by D26 and never seen. If the moment should land harder,
+    the exclamation belongs on a *visible* capstone line (which would be a new key, and needs
+    the owner's yes), not on the announcement. *Recommendation: leave it* —
+    "Katalog komplett — Elsas Ehrenmensch ist eingetragen." already reads as a satisfied full
+    stop.
+11. **`milestone.25/50/75.label` stayed terse** ("Türschild vergoldet"). They are marker
+    labels under a 27-character cap, and item 4's parallel outfit grammar depends on them.
+    *Recommendation: leave them* — the warmth is in `catalogue.milestone` and `outfit.*`,
+    which are the sentences a reader actually meets.
 
 ---
 
@@ -531,11 +576,13 @@ or any screenshot:
 | --- | --- | --- |
 | Serie I / Erste Auflage (as the page eyebrow) | Katalog I / Catalogue I | Owner rebrand (BR) |
 | Sammelwerk · Serie I / The Collection · Series I | Katalog I | Owner rebrand (D3) |
-| Sammelheft, binder, "das Heft" as the collection's name | Der Katalog / The Catalogue | Owner canon 2026-11-22. The single exception is the fixed line `zuwachs.line`, which says "Heft" because it names the physical binder |
+| Sammelheft, binder, "das Heft" as the collection's name | Der Katalog / The Catalogue | Owner canon 2026-11-22. **No exception: not even the arrival line says "Heft" any more** (D5) |
 | gesehen / seen, ungesehen / unseen | gesammelt / collected, noch nicht gesammelt / not yet collected | GDD R9 |
 | katalogisiert / catalogued | gesammelt / collected | Verb canon |
-| Der Katalog hat Zuwachs | Das Heft hat Zuwachs: {n} neue Karten. | D5 |
-| Das Heft hat Zuwachs. (count-free) | the count variant | D5 — one string, one meaning |
+| Der Katalog hat Zuwachs | {n} neue Schmuckstücke sind da! / {n} new treasures have arrived! | D5, owner voice ruling 2026-11-22 |
+| Das Heft hat Zuwachs. (count-free) | the count form above | D5 — one string, one meaning |
+| Das Heft hat Zuwachs: {n} neue Karten. / New in the binder: {n} new cards. | {n} neue Schmuckstücke sind da! / {n} new treasures have arrived! | D5 — the GDD R8 wording is superseded; "Heft" retires with it |
+| Zero exclamation marks (the rule itself) | at most one `!` per surface; never in error, destructive-confirmation or a11y strings (§0.4.4) | Owner voice ruling 2026-11-22 — the old rule made the deck too dry. Superseded, not merely relaxed |
 | Die Nassabteilung / The Wet Collection | Der Abfahrtsaal / The Departure Hall | Owner water ruling 2026-11-22 |
 | "Badegast des Jahres", "Unwetterwarnung Stufe Pfote", "nasser Hund und Stolz" | — (no replacement; the card bank entries stay retired) | Owner water ruling — must not be re-pulled from the card bank at runtime |
 | "Den Katalog ansehen" / "See the catalogue" | Zum Katalog / To the catalogue | D4 |
@@ -550,7 +597,10 @@ or any screenshot:
 
 - Any water content: no wet dog, rain, mud, bathing, puddles, towelling, "nass". Elsa
   hates water; the archive contains none of it.
-- Any exclamation mark. No "!", no "!!", no substitute glyph standing in for one.
+- More than one exclamation mark in a string, and **any** exclamation mark in an error string,
+  a destructive confirmation, or an accessibility string (alt text, aria label or accessible
+  name, live-region announcement). One `!` in a playful visible line is allowed — the record
+  of that permission is §0.4.4, and the announcement-side handling is D26.
 - Any gambling or odds language: no "chance", "odds", "luck", "ultra rare", percentages of
   pull probability, "last chance", timers, streaks.
 - Any gift framing: no "surprise", no "for you", no unwrapping-as-generosity. The pack is
@@ -566,10 +616,15 @@ or any screenshot:
 ## 14. Parity checklist (run before string freeze)
 
 - [ ] Every key in §1–§10 exists in both `COPY.de` and `COPY.en`, index-aligned.
-- [ ] No entry contains `!`.
+- [ ] No entry contains more than one `!`, and **no** error, destructive-confirmation or
+      announcement row carries one (D26). `zuwachs.line` and `set.complete.note` are the only
+      two rows that carry one at all.
+- [ ] Zero occurrences of `Heft` / `binder` in either column — the arrival line included.
 - [ ] No entry matches the water vocabulary list (nass, Regen, Schlamm, baden, Wet
-      Collection, rain, mud, bath, wet dog).
+      Collection, rain, mud, bath, wet dog, Pfütze, Handtuch).
 - [ ] No entry still says gesehen / seen / katalogisiert / catalogued.
+- [ ] The Reiselust / Wanderlust pair (§6.6) exists in both languages and is never rendered as
+      a per-card stat.
 - [ ] Every `{placeholder}` in DE also appears in EN, and no EN string adds one.
 - [ ] Every space-critical row passes at 320px with its longest set name and a three-digit
       `{total}` substituted, at 200 % zoom, in German.
@@ -582,3 +637,47 @@ or any screenshot:
 - [ ] `localize` validate: 0 missing, 0 placeholder mismatches, 0 over-length, 0 orphans.
 - [ ] `localize` freeze called before any external translation work: this deck is the
       source of record, and DE is the layout driver.
+
+---
+
+## 15. Voice changes (2026-11-22)
+
+Every string this ruling rewrote, with what it replaced. The same rows carry the
+**re-voiced 2026-11-22** marker in their own section; this table exists so a propagation
+pass can follow one list instead of diffing the deck. DE / EN share a cell, old → new.
+Caps moved only where a row says so (the Zuwachs rows).
+
+| Key | Old | New | Why |
+| --- | --- | --- | --- |
+| `brand.tagline` | Das Archiv eines Hundelebens. / The archive of a dog's life. | Das Leben einer Hündin, die weiß, dass sie wichtig ist. / The life of a dog who knows she is important. | The old line described a filing cabinet. The new one is the household's actual thesis — she knows. Also feeds `stage.tagline` (same key). |
+| `meta.description` | Ein Kartenarchiv über Elsa: … den Katalog vervollständigen. Sechs Säle, ein Hauptporträt. Ohne Konto, ohne Tracking. / A card archive of one dog: … complete the catalogue. … | Ein Kartenarchiv für eine sehr wichtige Hündin: … den Katalog füllen. … / A card archive for a very important dog: … fill the catalogue. … | "complete the catalogue" is a compliance task; "fill" is what you do to a shelf. The subject becomes her, not the archive. Facts and privacy floor unchanged. |
+| `stage.lede` | Fünf Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt. / … before any repeats. | … bevor eine wiederkommt — Ordnung muss sein. / … before any repeats — as is only proper. | The mechanic, then the wink. Both promises (one shines, no repeat before a full turn) survive word for word. |
+| `zuwachs.line` | Das Heft hat Zuwachs: {n} neue Karten. / New in the binder: {n} new cards. | {n} neue Schmuckstücke sind da! / {n} new treasures have arrived! | The owner's benchmark line. "Schmuckstücke" is the new arrival noun; "Heft" is retired with no exception (D5). Cap 47 → 44. This row's one `!` is neutralised for the announcement by D26. |
+| `pack.eyebrow` | 1. Auflage · fünf Karten / 1st edition · five cards | 1. Auflage · fünf frische Karten / 1st edition · five fresh cards | Edition canon untouched; "frisch" is the market-stall warmth that fits an accession. |
+| `pack.hint` | Wähle eine Karte. Wische für die nächste. / Pick a card. Swipe to see the next one. | Tippe eine Karte an, wisch zur nächsten. / Tap a card, swipe to the next. | Shorter and warmer, the verb now matches the real gesture (tap), and both gestures are still taught. |
+| `pack.lap.line` | Von vorn — alle Karten kommen wieder. Ab jetzt mit 2.-Auflage-Stempel. / … From now on with the second-edition stamp. | Von vorn — jede Karte kommt wieder, jetzt mit 2.-Auflage-Stempel. Das Archiv vergisst nichts. / … The archive forgets nothing. | A second lap used to read as a system notice. "Das Archiv vergisst nichts" is affectionate and literally true. |
+| `card.stats.label` (also `plaque.caption`) | Fantasiewerte · nur zum Spaß / Imaginary stats · just for fun | Fantasiewerte · mit voller Überzeugung / Imaginary stats · held with conviction | Same disclaimer, funnier: the household believes its own invented numbers. "Fantasiewerte / Imaginary" still leads, so the values cannot read as data. |
+| `card.share.text` | Ich habe Elsa gezogen: «{name}». / I pulled Elsa: «{name}». | Aus Elsas Archiv: «{name}». / From Elsa's archive: «{name}». | "gezogen / pulled" is draw-and-win language, one step from the gambling flavour §0.4.10 forbids; the archive claim is warmer and true. |
+| `card.share.shared` | Geteilt. / Shared. | Unterwegs. / On its way. | A status that reported a machine action now reports the card setting off. Status string — no `!`. |
+| `card.share.error` | Link konnte nicht kopiert werden. Er steht oben in der Adresszeile. / Could not copy the link. It is up in the address bar. | Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn. / Copying did not work. The link is up in the address bar — you can get it there. | Plain on purpose: an error never winks. Colloquial, and it still hands over the usable next step. |
+| `catalogue.lede` | Jede Karte, die es gibt — öffne eine für die ganze Geschichte. / Every card there is — open one for the whole story. | Jedes Schmuckstück, das es gibt — öffne eines für die ganze Geschichte. / Every treasure there is — open one for the whole story. | Plants the arrival noun (§0.4 anchors) outside the arrival moment, so "Schmuckstück" becomes house vocabulary rather than a one-off. |
+| `catalogue.lede.rooms` | Die Sammlung nach Räumen. Jeder Raum wächst für sich. / The collection by room. Every room grows on its own. | … Jeder Raum wächst für sich, in Ruhe. / … Every room grows on its own, in its own time. | "in Ruhe / in its own time" adds the patience the product is about, without promising anything timed. |
+| `set.complete.announce` | {set} ist komplett. / {set} is complete. | {set} ist komplett. Alle da. / {set} is complete. All present. | A room finishing is a roll call, not an audit result. Announced — no `!` (D26); at cap with the longest room name. |
+| `set.complete.note` | Sein Rahmen leuchtet im Katalog. / Its frame lights up in the catalogue. | Der Rahmen leuchtet, als hätte er gewartet! / The frame is glowing, as if it had been waiting! | The visible set-complete line, so the surface's one `!` lives here. The frame is decor that was waiting for its room — the household's own anthropomorphising. |
+| `catalogue.milestone` | Katalog-Meilenstein erreicht: {pct} Prozent — {outfit}. / Catalogue milestone reached: {pct} per cent — {outfit}. | Katalog: {pct} Prozent geschafft — {outfit}. / Catalogue: {pct} per cent done — {outfit}. | "Meilenstein erreicht" is a corporate intranet. "geschafft / done" is a household reporting progress; the `{outfit}` grammar and the single-source rule are untouched. Announced — no `!`. |
+| `capstone.subtitle` | Katalog I · abgeschlossen / Catalogue I · completed | Katalog I · vollzählig / Catalogue I · all present | "abgeschlossen" also means closed for business — wrong for a living archive. "vollzählig" is the roll-call word. |
+| `capstone.announce` | Katalog komplett. Elsas Ehrenmensch ist eingetragen. / Catalogue complete. Elsa's Honorary Human is entered. | Katalog komplett — Elsas Ehrenmensch ist eingetragen. / Catalogue complete — Elsa's Honorary Human is entered. | One sentence instead of two, so it reads as satisfaction rather than a receipt. Announced — no `!`; §12 item 10 keeps the exclamation unspent. |
+| `capstone.waiting` | Das Heft hat Zuwachs — der Ehrenmensch wartet auf die neuen Karten. / New cards in the catalogue — the Honorary Human is waiting for them. | Der Ehrenmensch wartet auf die neuen Karten. Er hat es nicht eilig. / The Honorary Human is waiting for the new cards. No rush. | Removes the last "Heft" and the duplicated arrivals line; the arrival is announced once, by `zuwachs.line`. "Er hat es nicht eilig" makes the wait affectionate. |
+| `state.empty.count` | Noch nichts da / Nothing in it yet | Leer, aber bereit / Empty, but ready | The count-line slot may wink: an empty catalogue is a held breath, not a shortfall. It still promises no cards. (`state.empty.owner` keeps its curator instruction verbatim.) |
+| `state.error.catalogue` | Der Katalog lädt nicht gerade. / The catalogue is not loading just now. | Der Katalog kommt gleich wieder. / The catalogue will be back shortly. | Warm without being jokey: states the fact and promises only what a retry can deliver. No `!` in an error (§0.4.4). |
+| `reset.body` | Das löscht den Katalog, die Set-Fortschritte, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück. / … set progress, milestones … | Das löscht den Katalog, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück. / This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default. | Adopts §12 item 2's plainer German and drops the deck's only spec-sounding anglicism. Full loss list and both preferences intact; this is the one string that must not wink. |
+| `footer.line` | Kein Konto, keine Cookies, keine Zählung. Die Bibliothek gehört diesem Gerät. / … The library belongs to this device. | Kein Konto, keine Cookies, keine Zählung. Alles bleibt auf diesem Gerät — wo es hingehört. / … Everything stays on this device — where it belongs. | Same privacy floor in plainer words. "wo es hingehört / where it belongs" is the wink: this device is where a dog's archive belongs. |
+| `lex:reiselust:term` / `lex:reiselust:def` | — (no string; open dependency recorded in `karte-des-tages.md` §6) | Reiselust / Wanderlust — die Neigung, im Auto ein Ziel zu vermuten. / the tendency to assume the car has a destination. | New pair (§6.6) closing a recorded build blocker. It is the **forecast label for the travel union** in Der Aushang, never a per-card stat. |
+
+**Deliberately unchanged under the ruling** — recorded so nobody "re-voices" them later:
+`stage.h1` (owner canon, D2, and already a warm question), `milestone.25/50/75.label` (27-character
+marker labels; the warmth lives in `catalogue.milestone` and `outfit.*`), `stage.cta`
+("Pack öffnen" must stay the one label a first-time visitor cannot misread), `reset.confirm` /
+`reset.cancel` (destructive controls name the act), `card.share.copied` (a status string),
+`demo.note` / `demo.mixed` (a sample notice is not a joke opportunity), and every set name, room
+name, `Der Katalog`, `gesammelt / collected` and `Elsas Ehrenmensch`.

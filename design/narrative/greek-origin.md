@@ -17,7 +17,7 @@
 
 1. **A pantheon of one.** One goddess, no other gods, no cycle, no genealogy, no second deity implied anywhere. The word *Pantheon* never ships player-facing.
 2. **The myth never explains itself.** No string says "we call her a goddess". The reader infers it from epithets, relics and one plaque. An explained myth is a costume.
-3. **One myth line per screen.** Plaque, accession note, epithet, capstone: one, never two. If a myth line competes with a catalogue line for space, the catalogue wins.
+3. **One myth line per screen.** Plaque, provenance line, epithet, capstone: one, never two. If a myth line competes with a catalogue line for space, the catalogue wins.
 4. **The myth mints nothing.** No card, no number, no room, no progress, no state. It is written in the register's own hand and accessioned like anything else — which is the joke, and the reason it stays small.
 
 `myth:frame:lede` — **core concept, no surface allocated** (copy bank, never rendered as filler) — DE *"Ein Haushalt, eine Göttin, ein Katalog."* / EN *"One household, one goddess, one catalogue."* · ▸SC(46)
@@ -32,11 +32,11 @@ Told in one place only: the record of the card the curator designates as the fir
 | --- | --- | --- | --- |
 | `myth:origin:title` | Die Ankunft | The Arrival | ▸SC(16) |
 | `myth:origin:found` | Gefunden wurde sie in einem Haus voller Türen, in dem sie zu niemandem gehörte. | She was found in a house full of doors, where she belonged to no one. | ▸SC(96) |
-| `myth:origin:aktion` | Eine klammheimliche Aktion: drei Tage Fahrt, letzte Station, eine Tankstelle bei Dortmund, 14. Mai, zwei Uhr nachts. | A hush-hush operation: three days on the road, last stop, a petrol station near Dortmund, 14 May, two in the morning. | ▸SC(120) |
+| `myth:origin:aktion` | Ein Empfang um zwei Uhr nachts am 14. Mai: drei Tage Fahrt, letzte Station, eine Tankstelle bei Dortmund. | A reception at two in the morning on 14 May: three days on the road, last stop, a petrol station near Dortmund. | ▸SC(116) |
 | `myth:origin:claimed` | Dort wurde sie beansprucht — mit einer Decke, einer Leine und einem Napf. | There she was claimed — with a blanket, a leash and a bowl. | ▸SC(84) |
 | `myth:origin:close` | Das ist die ganze Legende. Sie ist kurz, weil sie geprüft wurde. | That is the whole legend. It is short because it has been checked. | ▸SC(80) |
 
-**What the legend must not do:** pity her, praise the rescuers, name the shelter or any person, imply she was adored there, inflate the pickup into a raid, or make the journey an adventure. She was found, she travelled, she was claimed at a petrol station at two in the morning. Flat facts, warm because they are true; the operation is a household word, the record stays flat.
+**What the legend must not do:** pity her, praise the rescuers, name the shelter or any person, imply she was adored there, inflate the pickup into a raid, or make the journey an adventure. She was found, she travelled, she was claimed at a petrol station at two in the morning. Flat facts, warm because they are true — the household calls it a reception, the record stays flat.
 
 ---
 
@@ -96,9 +96,9 @@ Two dates, both display-only. **No festival creates state:** nothing is stored, 
 
 | Key | DE | EN | Note |
 | --- | --- | --- | --- |
-| `myth:fest:arrival:name` | Der Ankunftstag | Arrival Day | 14 May, the end of the operation |
+| `myth:fest:arrival:name` | Der Ankunftstag | Arrival Day | 14 May, the night of the reception |
 | `myth:fest:arrival:line` | Am 14. Mai wird nicht gefeiert; es wird verzeichnet, dass sie da ist. | On 14 May the house does not celebrate; it records that she is here. | one sentence, no thanks |
-| `myth:fest:arrival:time` | Um zwei wird eine Kerze angezündet — die Stunde der klammheimlichen Aktion, sonst nichts. | At two a candle is lit — the hour of the hush-hush operation, nothing else. | the pickup hour, kept small |
+| `myth:fest:arrival:time` | Um zwei wird eine Kerze angezündet — die Stunde des Empfangs, sonst nichts. | At two a candle is lit — the hour of the reception, nothing else. | the pickup hour, kept small |
 | `myth:fest:arrival:note` | Ein Tag im Jahr, kein Zähler. Das Datum steht im Herkunftsvermerk. | One day a year, no counter. The date is in the provenance note. | the anti-streak clause |
 | `myth:fest:solstice:name` | Die Sonnenwende | The Solstice | longest day |
 | `myth:fest:solstice:line` | Die Sonnenwende wird im Liegen begangen: der längste Tag, der wärmste Fleck, keine Verpflichtung. | The solstice is observed lying down: the longest day, the warmest patch, no obligations. | ties to *Sonnenplatz* |
@@ -112,12 +112,12 @@ Two dates, both display-only. **No festival creates state:** nothing is stored, 
 
 | Surface | Key | Wording DE | Wording EN | Budget |
 | --- | --- | --- | --- | --- |
-| Founding plaque — entrance/colophon, no heading | `myth:plaque` | Dieses Haus verzeichnet eine Hündin, die aus dem Süden kam und blieb. | This house records a dog who came from the south and stayed. | ▸SC(90) |
-| Accession note — record footer of the designated first card | `myth:accession` | Zugang aus Griechenland. Gerettet, aufgenommen, verzeichnet. | Accessioned from Greece. Rescued, taken in, recorded. | ▸SC(72) |
+| Founding plaque — entrance/colophon, no heading | `myth:plaque` | Dieses Haus verzeichnet eine Hündin, die auf der letzten Station ihrer Reise bei Dortmund ankam und blieb. | This house records a dog who arrived near Dortmund at the last stop of her journey, and stayed. | ▸SC(112) |
+| Provenance line — record footer of the designated first card | `myth:provenance` | Herkunft: Griechenland · Die letzte Station · 14. Mai, 02:00 | Provenance: Greece · The Last Stop · 14 May, 02:00 | ▸SC(64) |
 | Epithet line — record only until a slot exists | `card:<id>:epithet` | {epithet} | {epithet} | ▸SC(30) |
-| Capstone — one line above the signature, **PROPOSED** | `myth:capstone` | Sie kam aus dem Süden. Alles Weitere steht im Katalog. | She came from the south. Everything else is in the catalogue. | ▸SC(76) |
+| Capstone — one line above the signature, **PROPOSED** | `myth:capstone` | Drei Tage Fahrt, dann blieb sie. Alles Weitere steht im Katalog. | Three days on the road, then she stayed. Everything else is in the catalogue. | ▸SC(76) |
 
-**Budget of the layer:** three surfaces ship quietly (plaque, accession note, epithets); the capstone line appears only at completion and only if D-2 is approved. The myth never enters room door paragraphs, pack copy, progress lines, error states or card captions. Nothing in the register is rewritten; the accession note rides on a real photo card and the myth mints none of its own. `myth:frame:lede`, `myth:domain:lede` and `myth:relic:note` are reserved legend lines: banked until a surface is authorised, never rendered as filler.
+**Budget of the layer:** three surfaces ship quietly (plaque, provenance line, epithets); the capstone line appears only at completion and only if D-2 is approved. The myth never enters room door paragraphs, pack copy, progress lines, error states or card captions. Nothing in the register is rewritten; the provenance line rides on a real photo card and the myth mints none of its own. `myth:frame:lede`, `myth:domain:lede` and `myth:relic:note` are reserved legend lines: banked until a surface is authorised, never rendered as filler.
 
 ---
 
@@ -125,16 +125,17 @@ Two dates, both display-only. **No festival creates state:** nothing is stored, 
 
 | Gate | Binding rule | Check |
 | --- | --- | --- |
-| Rescue honoured | flat facts: found, travelled, claimed; no pity, no farce, no comic rescue | every origin string above |
-| No mock religion | no rite, prayer, altar, clergy, congregation; *Göttin* at most once per screen, never in a card name | grep `Göttin` ≤ 1 per string set |
+| Rescue honoured | flat facts: found, three days on the road, a last stop, a time, claimed; no pity, no farce, no inflated raid | every origin string above |
+| No mock religion | no doctrine, clergy, congregation or prayer; one household gesture — the candle at two — never staged as liturgy | *Göttin* ≤ 1 per screen, never in a card name |
 | No water | water named only in `myth:taboo:*`, as refusal; no sea, rain, bathing, wet dog, boat | grep water vocabulary outside §4 = 0 |
-| Rescue reality | no name, date, place or claim about the shelter, staff or finder; only "Griechenland" is named | no proper noun but Greece |
+| Rescue reality | the shelter, staff and finder stay unnamed; only Greece and Dortmund are named, both owner facts | no proper noun but Greece and Dortmund |
+| Tone of the arrival | odd logistics, not secrecy or illegality: no clandestine vocabulary, no raid framing | no stealth vocabulary in any string |
 | Address | German `du`; Elsa in third person; no first-person claim about her feelings | no formal `Sie` address; no "ich" at all |
 | Punctuation | zero exclamation marks, both languages | `!` absent from every cell |
 | No fake Greek | no Greek script, no transliteration, no invented ancient names | Latin script only |
 | Localisation | one key = one DE + one EN string at one index; German is the layout driver | missing EN = build defect, not backlog |
 
-Canon level per surface: plaque and accession note **Provisional** (Discoverable); epithets **Provisional** (Discoverable); capstone line **Under Review** (Hidden until completion).
+Canon level per surface: plaque and provenance line **Provisional** (Discoverable); epithets **Provisional** (Discoverable); capstone line **Under Review** (Hidden until completion).
 
 ---
 
@@ -152,11 +153,12 @@ Canon level per surface: plaque and accession note **Provisional** (Discoverable
 
 ## 9 · Cross-references, contradictions, decisions
 
-**Checked 2026-11-22 against `archive-fiction.md`, `copy-deck.md` §0.4 and `art-bible.md` §1–2 — no contradiction introduced.** No existing document mentions a Greek origin (grep: 0 hits), so this adds canon rather than changing it. Room names and codes (`RUH GAR ABF BAL POR WAC NEU`), the water ruling and every SSOT string are quoted, not altered. `du`, no exclamation marks, no water imagery outside the refusal — verified across all cells above. The capstone line is PROPOSED and leaves every existing diploma field untouched.
+**Checked 2026-11-22 against `archive-fiction.md`, `copy-deck.md` §0.4 and `art-bible.md` §1–2 — no contradiction introduced.** Owner facts of 2026-11-22 (pickup 14 May, 02:00, petrol station near Dortmund, last station of a three-day journey from Greece) are recorded in §1, §5 and §6; the shelter origin stands. No existing document mentions a Greek origin (grep: 0 hits), so this adds canon rather than changing it. Room names and codes (`RUH GAR ABF BAL POR WAC NEU`), the water ruling and every SSOT string are quoted, not altered. `du`, no exclamation marks, no water imagery outside the refusal — verified across all cells above. The capstone line is PROPOSED and leaves every existing diploma field untouched.
 
 **Decisions for the owner / `narrative-director`:**
 
 - **D-1 · Record the origin in the archive's history.** Recommend one sentence in `archive-fiction.md` §0 and `game-brief.md`; `narrative-director` owns both documents and this file does not edit them. Cost: one line each.
 - **D-2 · Capstone line.** Ship `myth:capstone` above the signature, or drop it. It is the only myth string that touches the completion state, so it needs ND and owner approval.
 - **D-3 · Epithet slot.** `card:<id>:epithet` does not exist in `card-detail.md`. `ux-designer` must authorise a slot and its 30-character budget before any epithet line ships; until then §2 is a copy bank, not a layout. Flagged to `game-designer` as a display-only rule with no state.
-- **D-4 · Adoptionstag date.** Owner supplies it; no date is invented here. Until then the strings say "der Tag der Ankunft" / "the day she arrived" and the date lives in the accession note.
+- **D-4 · Ankunftstag date — RESOLVED (owner, 2026-11-22).** 14 May, the night of the reception. `myth:fest:arrival:*` carries the date; the earlier placeholder and the Adoptionstag/Gotcha Day key are retired before build.
+- **D-5 · Labels — RESOLVED (owner, 2026-11-22).** Catalogue line `Herkunft: Griechenland · Die letzte Station · 14. Mai, 02:00`; event label *Die letzte Station / The Last Stop*; family voice *ein Empfang um zwei Uhr nachts / a reception at two in the morning*. One label per surface, no variants, no stealth or illegality framing.
