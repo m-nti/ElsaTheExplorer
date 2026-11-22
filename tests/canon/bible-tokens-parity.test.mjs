@@ -162,6 +162,35 @@ describe("the gate fails closed instead of skipping", () => {
   });
 });
 
+describe("seeded divergence — the credit regressed", () => {
+  it("fails when the credit quote regresses to the retired 8px value", () => {
+    const { code, report } = seed({
+      bible: (text) => text.replace("`#9a8da0`", "`#928697`"),
+    });
+
+    expect(code).toBe(1);
+    expect(report.violations).toContainEqual(
+      expect.objectContaining({
+        token: "print-credit",
+        problem: "drift",
+        bibleValue: "#928697",
+        tokenValue: "#9a8da0",
+      }),
+    );
+  });
+});
+
+describe("this repository", () => {
+  it("declares every required token and every declaration agrees with tokens.ts", () => {
+    const { code, report } = run(["--json"]);
+
+    expect(code).toBe(0);
+    expect(report.status).toBe("clean");
+    expect(report.missing).toEqual([]);
+    expect(report.checked).toBeGreaterThanOrEqual(REQUIRED_TOKENS.length);
+  });
+});
+
 describe("the parser is pinned to the typed module", () => {
   it("reads every key of the exported palette, hairlines included", () => {
     const parsed = parsePalette(readFileSync(tokensPath, "utf8"));
