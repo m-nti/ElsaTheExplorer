@@ -53,7 +53,7 @@ allowlist + `realpath` containment), `slugify()`, caption loading, `jsonResponse
 | P3 | **No-original rule**: no code path in `photos.php` may emit an unprocessed source byte. Every failure is a status code, never a file. | Privacy + bandwidth + "derivatives are the product". |
 | P4 | Renderer chosen per request: **GD → Imagick → 503**. HEIC/HEIF: **Imagick only**, else 415. | Shared-hosting reality; explicit, testable, no silent degradation. |
 | P5 | Cache key = `sha256(pipelineVersion\|name\|mtime\|size\|rendition\|format\|quality)`; atomic temp+`rename` under a per-key `flock`. | Same-name replacement invalidates correctly; no torn reads. |
-| P6 | Cache **outside the webroot when possible**, otherwise `.cache/.htaccess` deny + top-level-only source deny in `photos/.htaccess`. | D10. Belt and suspenders, because `Require all denied` in `photos/.htaccess` would also block the static `photos/thumbs/` derivatives. |
+| P6 | Cache **outside the webroot** (§8.1, required); the in-webroot `photos/.cache` stays a fallback that only ships with its committed `.htaccess` deny, plus the top-level-only source deny in `photos/.htaccess`. | D10. Belt and suspenders, because `Require all denied` in `photos/.htaccess` would also block the static `photos/thumbs/` derivatives. |
 | P7 | Sources: ≤ 20 MiB, ≤ 32 MP, ≤ 8000 px edge, memory-budget check before decode. | Bounded worst-case request; calibrated against the real inventory (§10.2). |
 | P8 | `?capabilities=1` probe (with optional `&probe=1`) replaces any need for a `phpinfo()` upload. | The owner must be able to verify IONOS without leaving an info file behind. |
 | P9 | `scripts/photos.mjs` uses **sharp 0.35.5** instead of `sips`, emitting the same ladder with the same rounding/quality/orientation rules. | Parity between local QA and runtime; removes the macOS-only dependency. |
@@ -193,7 +193,7 @@ QA can assert without reading bodies.
 | 503 | `no_encoder` | neither GD (for the needed output format) nor Imagick | owner action: `?capabilities=1` |
 | 503 | `cache_unavailable` | cache dir missing/unwritable and no fallback dir | owner action: chmod |
 | 503 | `busy` | `flock` deadline (3 s) or render semaphore saturated | `Retry-After: 1` |
-| 503 | `memory_ceiling` | projected peak > 60 % of `memory_limit` on both renderers | owner action: smaller export |
+| 503 | `memory_ceiling` | projected peak > 70 % of `memory_limit` on both renderers (§10.3) | owner action: smaller export |
 | 503 | `render_timeout` | render exceeded the 15 s budget | `Retry-After: 2` |
 | 500 | `internal` | invariant violation (e.g. containment assert on a cache path) | bug; body empty, one log line |
 
@@ -335,8 +335,10 @@ harness asserts them):
   "gd": { "present": true, "jpeg": true, "webp": true, "avif": true, "png": true, "gif": true },
   "imagick": { "present": true, "version": "7.1.x", "heic": false, "webp": true, "avif": false },
   "decoders": { "jpg": "gd", "png": "gd", "webp": "gd", "gif": "gd", "avif": "gd", "heic": "none" },
-  "memory": { "limit_bytes": 268435456, "peak_headroom_bytes": 161061274 },
-  "cache": { "dir": ".cache", "inside_webroot": true, "writable": true, "files": 412, "bytes": 24117248 },
+  "memory": { "limit_bytes": 536870912, "peak_headroom_bytes": 52105216,
+              "gd_max_pixels": 28540927, "fraction": 0.7 },
+  "cache": { "dir": "elsa-photo-cache", "inside_webroot": false, "shards": 16,
+             "writable": true, "files": 412, "bytes": 24117248 },
   "placeholder": "img/photo-unavailable.webp",
   "pruning": { "ttl_seconds": 3888000, "max_files": 4000 }
 }
@@ -346,6 +348,10 @@ Rules:
 
 - **No absolute paths.** `cache.dir` is the directory *name* only; `inside_webroot` is a
   boolean. This is the one place the owner could leak hosting layout — don't.
+- `cache.inside_webroot` is `false` on a correct production deploy (§8.1) and `shards` is
+  the compile-time shard count (16), so a mismatch with §8.2 is visible from the probe.
+- `memory.gd_max_pixels` is the computed GD ceiling for *this* host (§10.3), not the
+  32 MP acceptance cap: the owner sees which photos need Imagick or a re-export.
 - `&probe=1` additionally performs a real 1×1 encode per advertised
   format and a real decode of a bundled fixture per decoder, returning
   `"probe": {"jpeg":"ok","webp":"ok","heic":"fail"}`, `"verified": "<iso8601>"`.
@@ -441,45 +447,88 @@ at boot with a hardcoded fallback if absent; the file is small and opcache-frien
 
 ### 8.1 Location
 
-1. `PHOTO_CACHE_DIR` constant or `ELSAPHOTO_CACHE_DIR` env, if set and writable —
-   **recommended value `../elsa-photo-cache`** (outside the webroot).
-2. Else `photos/.cache` (today's location), which then **must** contain:
+**Primary requirement: the cache lives OUTSIDE the webroot.** A cache inside `photos/` is
+readable by anyone who requests a name, unless a deny file protects it — and a deny file is
+one forgotten FTP upload away from publishing every derivative, `download` rungs of private
+photos included. Outside-the-webroot is therefore the requirement, not the nicety; the
+in-webroot variant is a documented fallback with an explicit deny file.
 
-```apache
-# photos/.cache/.htaccess
-<IfModule mod_authz_core.c>
-  Require all denied
-</IfModule>
-<IfModule !mod_authz_core.c>
-  Deny from all
-</IfModule>
-```
+1. **Outside the webroot (required for a production deploy).**
+   `PHOTO_CACHE_DIR` constant or `ELSAPHOTO_CACHE_DIR` env set to a writable directory that
+   is not reachable over HTTP — **recommended value `../elsa-photo-cache`**
+   (`/kunden/homepages/…/elsa-photo-cache` on IONOS, one level above the document root).
+   `realpath(CACHE_DIR)` containment (§5.2) is checked against that path, and
+   `?capabilities=1` must report `"cache": { "inside_webroot": false }`.
+
+2. **Fallback only: `photos/.cache` inside the webroot, and only together with the deny
+   file.** Config B is accepted when the FTP account cannot create a sibling directory
+   above the document root. The cache then **must** contain:
+
+   ```apache
+   # photos/.cache/.htaccess  — tracked in git, uploaded with every deploy
+   <IfModule mod_authz_core.c>
+     Require all denied
+   </IfModule>
+   <IfModule !mod_authz_core.c>
+     Deny from all
+   </IfModule>
+   ```
+
+   This file is **committed** (`.gitignore` carries an explicit `!photos/.cache/.htaccess`
+   negation) and is uploaded by the normal FTP-from-repo deploy, so the fallback cannot be
+   silently missing from a deploy. Verification, both sides:
+
+   ```sh
+   git check-ignore -v photos/.cache/.htaccess   # prints the "!" negation rule
+   git check-ignore -q  photos/.cache/.htaccess  # exit 1 = NOT ignored
+   curl -s -o /dev/null -w '%{http_code}\n' https://HOST/photos/.cache/   # 403, never 200
+   ```
 
 3. Neither usable ⇒ `503 cache_unavailable`. **Fail closed.** Never degrade to
    per-request in-memory generation: unbounded CPU on a shared host is a worse failure
    than an honest 503, and it would silently bypass the ladder limits.
 
-`.cache/.gitkeep` stays so the directory exists after deploy. `photos/.cache` and
-`photos/converted` are removed from the repo once the new pipeline ships
-(`converted/` is superseded by the ladder).
+What the repo ships and what it does not: `.cache/.gitkeep`, `.cache/.htaccess`,
+`.cache/locks/.gitkeep` and one `.gitkeep` per shard directory (16, §8.2) are tracked —
+they are the deploy skeleton, because §8.8 forbids `mkdir()` on the request path and an FTP
+deploy has no shell. Everything else under `photos/.cache/` (derivatives, `.capabilities.json`,
+`.prune.*`, `locks/*.lock`) is ignored and never committed. The old cache *contents* and
+`photos/converted/` are deleted from the repo once the new pipeline ships (`converted/` is
+superseded by the ladder); the skeleton stays.
 
 ### 8.2 Layout
 
 ```
-<cache>/
-  .htaccess
+<cache>/                    # outside the webroot (primary, §8.1) or photos/.cache (fallback)
+  .htaccess                 # fallback only; tracked in git, uploaded on deploy
   .gitkeep
   .capabilities.json
   .prune.lock
   locks/<key>.lock
-  ab/<key>.jpg          # sharded by first two hex chars
-  cd/<key>.webp
+  <h>/<key>.jpg             # ONE hex char of the key ⇒ 16 shard dirs, both formats per shard
+  <h>/<key>.webp
   .tmp.<key>.<pid>.<rand>   # transient, same directory as its target
 ```
 
-Sharding keeps directory size bounded (≤ 4096 entries per shard at 4000 files × 16
-shards, worst case). Cache files are mode `0644`, directories `0755` — PHP runs as the
-FTP user on IONOS, so no group tricks are needed; do **not** create `0777`.
+Sharding: `h = substr($key, 0, 1)` — **16 shards** (one hex character). At the
+`PHOTO_CACHE_MAX_FILES` cap of 4 000 entries the worst case is `ceil(4000 / 16) = 250`
+entries per directory, which is far inside what ext4/IONOS handles; 256 shards
+(two hex chars) would bound it at 16 entries for no benefit and cost 240 extra directories
+that must all pre-exist. **Both formats of a key share one shard** (`a/<key>.jpg` and
+`a/<key>.webp`) — sharding is by key, not by extension.
+
+Shard width is a constant (`PHOTO_CACHE_SHARD_HEX = 1`); widening it later is safe but
+invalidates the whole cache (files land in new directories) — acceptable, it is derived
+data.
+
+**Every directory in this tree must exist before the first request.** §8.8 forbids
+`mkdir()` on the request path, so a missing shard directory is a `503 cache_unavailable`,
+not a silent `mkdir`. Creation is a deploy step, not a runtime behaviour; the repo tracks
+the 16 shard dirs plus `locks/` via `.gitkeep` (§8.1), and §16.1 step 0 has the command
+that (re)creates them for an out-of-webroot cache.
+
+Cache files are mode `0644`, directories `0755` — PHP runs as the FTP user on IONOS, so no
+group tricks are needed; do **not** create `0777`.
 
 ### 8.3 Key
 
@@ -559,7 +608,7 @@ Trigger: on a successful serve, with probability `1/64` (and always when
 `filecount > 4000`), attempt `<cache>/.prune.lock` with `LOCK_EX|LOCK_NB`. If not
 acquired, skip silently — a request must never wait for maintenance.
 
-Sweep (single pass over one shard per run, round-robin index stored in
+Sweep (single pass over one of the 16 shards per run, round-robin index stored in
 `.prune.state`; bounded to 200 `unlink` calls per run so no request does bulk I/O):
 
 1. `.tmp.*` older than 600 s ⇒ delete (crash leftovers).
@@ -574,7 +623,8 @@ after a bulk photo replacement. Always safe — it is derived data.
 
 Per request, once: `is_dir($dir) && is_writable($dir)`. Do **not** `mkdir` on the hot
 path (`photos.php:335-337` does today and silently half-fails); directory creation is a
-deploy step (`.gitkeep`) and the capability probe reports the truth. A failed
+deploy step — §16.1 step 0 for an out-of-webroot cache, the tracked `.gitkeep` skeleton
+(§8.1) for the in-webroot fallback — and the capability probe reports the truth. A failed
 `fopen`/`rename` still maps to `503 cache_unavailable` rather than a fatal.
 
 ---
@@ -611,7 +661,8 @@ const PHOTO_MAX_CONCURRENT     = 4;
 const PHOTO_CACHE_TTL_SECONDS  = 3888000;    // 45 days
 const PHOTO_CACHE_MAX_FILES    = 4000;
 const PHOTO_PRUNE_CHANCE       = 64;
-const PHOTO_MEMORY_FRACTION   = 0.6;         // of memory_limit
+const PHOTO_MEMORY_FRACTION    = 0.70;       // of memory_limit — see §10.3
+const PHOTO_CACHE_SHARD_HEX    = 1;          // 1 hex char ⇒ 16 shards (§8.2)
 ```
 
 All are `const` (or a `PhotoConfig` value object) so the capability probe, the tests and
@@ -628,28 +679,70 @@ The brief's target was "~24 MP". Measured inventory (`asset-audit`, `sips -g`):
 | `photos/IMG_*.jpeg` (×6) | 4032 × 3024 | 12.19 MP |
 | `photos/IMG_9949.jpeg` | 3024 × 4032 | 12.19 MP |
 
-A literal 24 000 000 cap would **reject the repo's own hero photo on day one**. The cap
-is therefore set to **32 MP**, which covers every current asset with margin, and the
-documented owner guidance is *export at ≤ 6000 px long edge*. iPhone 48 MP ProRAW
-(`8064 × 6048` = 48.8 MP) is rejected by both caps with `413` plus a message telling the
-owner to re-export — that is the correct outcome for a shared host, and it is better
-than a fatal OOM.
+A literal 24 000 000 cap would **reject the repo's own hero photo on day one**
+(24,470,208 px). The cap is therefore set to **32 MP**, which accepts every current asset
+with 31 % margin, and the documented owner guidance is *export at ≤ 6000 px long edge*.
+iPhone 48 MP ProRAW (`8064 × 6048` = 48.8 MP) is rejected by both caps with `413` plus a
+message telling the owner to re-export — that is the correct outcome for a shared host, and
+it is better than a fatal OOM.
+
+**32 MP is an input-acceptance cap, not a render promise.** What GD can actually render is
+decided by §10.3: at the required 512 MiB baseline the GD ceiling is **28.5 MP** in the
+worst case (orientation-rotated), so sources between 28.5 and 32 MP must take the Imagick
+path. Every current asset — max 24.47 MP — renders on GD alone, so the two sections agree:
+"covers every current asset" is true for acceptance (§10.2) *and* for rendering (§10.3).
 
 Byte cap 20 MiB likewise clears the largest current file (3.98 MB) with room for a
 48 MP JPEG that the owner later downscales.
 
 ### 10.3 Memory ceiling
 
+Policy, stated once so every section can point at it:
+
+| Quantity | Value | Derived from |
+|---|---|---|
+| Minimum host `memory_limit` for a production deploy | **512 MiB** | §16.3 checklist row; gives 49.69 MiB headroom over the hero (arithmetic below) |
+| Hard floor for the 24.47 MP hero on GD (no headroom) | **448 MiB** | needs 323,704,422 B / 0.70 = 462,434,889 B = 441 MiB, rounded up to a real `memory_limit` value |
+| Allowance used by the projection | **70 %** of `memory_limit` | `PHOTO_MEMORY_FRACTION` |
+| Largest source GD renders, worst-case orientation | **28.5 MP** | at 512 MiB, after the 8 MiB parse margin |
+| Largest accepted source | **32 MP** | `PHOTO_MAX_SOURCE_PIXELS`; 28.5–32 MP ⇒ Imagick |
+
 GD holds a full truecolor bitmap: `4 × w × h` bytes, plus a rotated copy on orientations
 5–8, plus the target. Projection:
 
 ```
-peakBytes = w*h*4 * (orientation ? 3.2 : 2.2) + 8 MiB      // parse margin
+peakBytes = w*h*4 * (orientation has a rotation ? 3.2 : 2.2) + 8 MiB   // parse margin
 allowed   = memory_limit_bytes * PHOTO_MEMORY_FRACTION - memory_get_usage(true)
 if peakBytes > allowed:
     if imagick available and imagick not yet tried → use Imagick (disk-backed pixel cache)
     else → 503 memory_ceiling
 ```
+
+**Exact arithmetic for the hero (the largest current asset, §10.2):**
+
+```
+w*h            = 5712 × 4284            = 24,470,208 px
+one bitmap     = 24,470,208 × 4 B       = 97,880,832 B   (93.34 MiB)
+peak, rotated  = 97,880,832 × 3.2       = 313,218,662 B
+               + 8 MiB parse margin     = 321,607,270 B  (306.71 MiB)   ← the worst case
+allowed @512M  = 536,870,912 × 0.70     = 375,809,638 B
+               − 2,097,152 B base use   = 373,712,486 B  (356.4 MiB)
+headroom       = 373,712,486 − 321,607,270 = 52,105,216 B (49.69 MiB)  ✅ passes
+allowed @256M  = 268,435,456 × 0.70 − 2,097,152 = 185,807,667 B
+               → GD ceiling (185,807,667 − 8,388,608) / 12.8 = 13.9 MP  ❌ hero rejected
+```
+
+So the earlier 256 MiB baseline was incoherent: it projected 306.71 MiB of bitmaps against
+a 153.6 MiB allowance and rejected the hero on a GD-only host. 512 MiB with a 70 % fraction
+is the requirement; **below 448 MiB the hero cannot render on GD at all**, and on an
+Imagick-less host that is a `503 memory_ceiling` with an owner-facing "re-export at
+≤ 6000 px" message.
+
+The GD pixel ceiling is computed, not guessed, so it follows the host:
+`gd_max_pixels = floor((memory_limit × 0.70 − memory_get_usage − 8 MiB) / (4 × 3.2))`.
+`?capabilities=1` publishes it (§6.4), so a 256 MiB host is told *which* photos will 503
+before a visitor finds out, and the owner's `download` rung keeps working through Imagick
+when Imagick exists.
 
 Read `memory_limit` with `ini_get`, parse `256M`/`-1` forms (`-1` ⇒ unlimited on paper,
 still apply the render budget). Never `ini_set` the limit upward — on shared hosting it
@@ -721,7 +814,7 @@ register_shutdown_function(...);            // last-resort: if a fatal escaped, 
 | Resource | Bound | Enforcement |
 |---|---|---|
 | Wall clock | 20 s hard, 15 s render budget | `set_time_limit`, `microtime` checks |
-| Memory | 60 % of `memory_limit` | pre-decode projection (§10.3) |
+| Memory | 70 % of `memory_limit`, projected | pre-decode projection (§10.3); requires `memory_limit` ≥ 512 MiB for GD-only rendering of the hero |
 | Source bytes | 20 MiB | `filesize` before decode |
 | Source pixels | 32 MP / 8000 px edge | header dims before decode |
 | Output bytes | per rendition | post-encode check |
@@ -746,6 +839,9 @@ release checklist (§16.3).
 curl -s -o /dev/null -w '%{http_code}\n' https://HOST/photos/elsa-01.jpg
 # cache must be unreachable
 curl -s -o /dev/null -w '%{http_code}\n' https://HOST/photos/.cache/
+# the fallback deny file must be deployed and effective (fallback config B only — in
+# config A the cache is outside the webroot and both of these 404, which is also a pass)
+curl -s -o /dev/null -w '%{http_code}\n' https://HOST/photos/.cache/.htaccess   # 403
 # the ladder must be exact
 curl -s https://HOST/photos.php?image=elsa-01.jpg\&size=tile | identify -format '%wx%h\n' -
 # arbitrary sizes must be rejected
@@ -904,11 +1000,15 @@ Rules:
 
 ### 13.5 Parity test (`npm run photos:parity`, CI)
 
-Fixture: `tests/fixtures/photos/` — 3 files (JPEG portrait with EXIF orientation 6,
-PNG with alpha, WebP) plus optionally a HEIC when libheif exists.
+Fixture: `tests/fixtures/images/generated/` — 3 files (JPEG portrait with EXIF orientation 6,
+PNG with alpha, WebP) plus optionally a HEIC when libheif exists. **Every one of them is
+generated by `tests/fixtures/images/make-fixtures.mjs` at test setup and is never a copy of
+an owner photo** (test plan §4.2: a committed personal photo is a permanent EXIF/GPS leak);
+the generated files live in a gitignored directory and the harness records their hashes in
+its own run, not in the repo.
 
 1. Run the sharp generator → capture dims/bytes/sha256 of every derivative.
-2. Run a PHP CLI harness (`php -d memory_limit=256M tests/php/render-fixture.php`) that
+2. Run a PHP CLI harness (`php -d memory_limit=512M tests/php/render-fixture.php`) that
    requires `photos.php`'s functions in a "no-dispatch" mode and renders the same
    fixtures into a temp cache.
 3. Assert: **dimensions equal, exactly**, for all 12 combinations (3 fixtures × 4 rungs);
@@ -994,7 +1094,7 @@ Playwright/curl assertion. Every row is a release gate item.
 | T13 | HEIC, no libheif | same fixture | `size=pack` | **415** `format_unsupported` | **not** the original HEIC; `renderable:false` in `?list=1` |
 | T14 | EXIF orientation 6 | 4032×3024 + Orientation 6 | `size=tile` | 200 | **270×360** (not 360×270), pixels upright vs a reference |
 | T15 | EXIF 1/3/8 | three fixtures | `size=pack` | 200 | dims + visual match reference; orientation tag absent |
-| T16 | GPS stripped | iPhone JPEG with GPS | `size=detail` | 200 | output contains no `Exif\0\0`, no GPS IFD, no XMP, no ICC |
+| T16 | GPS stripped | generated JPEG with a GPS EXIF + XMP payload (test plan §4.2 — never a committed personal photo) | `size=detail` | 200 | output contains no `Exif\0\0`, no GPS IFD, no XMP, no ICC |
 | T17 | same-name replacement | replace `a.jpg` (new mtime+size), keep cache | `size=tile&v=old` / no `v` | 200 new bytes | new cache key, old file pruned later; `ETag` differs; `v=old` still returns new bytes (URL is only a browser-cache buster) |
 | T18 | concurrent cold | wipe key, 10 parallel curls | `size=detail` | 10×200 | identical bytes, exactly one render (log count), no `.tmp.*` left, p99 < 6 s |
 | T19 | lock timeout | hold `flock` in a harness, request | any | **503** `busy` | `Retry-After: 1`, ≤ 3.5 s, no source bytes |
@@ -1013,8 +1113,9 @@ Playwright/curl assertion. Every row is a release gate item.
 | T32 | pruning | 4100 cache files seeded | 200 requests | 200 | file count converges ≤ 4000, no request > 500 ms p95 regression, `.prune.lock` respected |
 | T33 | static parity | §13.5 harness | — | pass | exact dims, pixel tolerance, metadata-free |
 | T34 | static build without libheif | sharp format probe false + a HEIC fixture | `npm run photos` | exit 0, warn | HEIC entry skipped with `renderable:false`, no dangling URL |
+| T35 | cache skeleton missing | delete one shard dir (e.g. `<cache>/7`) on a clean cache, cold request | `image=a.jpg&size=tile` | **503** `cache_unavailable` | **no `mkdir` attempt** (assert the dir is still absent), no fatal, no source bytes, one `error_log` line naming the shard |
 
-CI wiring: T01–T32 in the PHP harness job (PHP 8.6 CLI with GD+Imagick, plus a matrix run
+CI wiring: T01–T35 in the PHP harness job (PHP 8.6 CLI with GD+Imagick, plus a matrix run
 with GD only and with neither); T33–T34 in the Node job; T21/T22/T23/T27/T29/T31 as curl
 assertions against `php -S` in the same job (no Apache dependency for CI; the `.htaccess`
 rows are verified manually per §16.3).
@@ -1025,14 +1126,31 @@ rows are verified manually per §16.3).
 
 ### 16.1 Deploy order (no window where a client breaks)
 
+0. **Create the cache skeleton — once per deploy target, never on the request path
+   (§8.2, §8.8).** For the primary out-of-webroot cache, 16 shards from one hex char:
+
+   ```sh
+   cache="${ELSAPHOTO_CACHE_DIR:-../elsa-photo-cache}"
+   mkdir -p "$cache/locks"
+   for h in 0 1 2 3 4 5 6 7 8 9 a b c d e f; do mkdir -p "$cache/$h"; done
+   chmod 0755 "$cache" "$cache"/*/
+   ```
+
+   Idempotent, safe to re-run after a cache wipe, and it must run **before** the first
+   request: a missing shard dir is a `503 cache_unavailable`, by design. For the in-webroot
+   fallback the same 16 directories arrive with the repo upload (tracked `.gitkeep`,
+   §8.1) — no shell needed.
+
 1. **Ship the static ladder first.** `scripts/photos.mjs` (sharp) → `photos/derived/**` +
    `photos.json` v3. Old clients ignore the new keys; `thumb`/`view` now point at static
    derivatives. If this step fails, nothing is lost — PHP is untouched.
-2. **Ship `photos.php` v2** in the same FTP session as the new `photos/.htaccess`
-   (the deny rule and the code must land together, otherwise there is a window where
-   originals are blocked but `?view=` still serves them, or vice versa — either order is
-   safe *as a pair*).
-3. **Verify** with §12.2 + T29 on the live host.
+2. **Ship `photos.php` v2** in the same FTP session as the new `photos/.htaccess` and
+   `photos/.cache/.htaccess` (the deny rules and the code must land together, otherwise
+   there is a window where originals are blocked but `?view=` still serves them, or vice
+   versa — either order is safe *as a pair*). `photos/.cache/.htaccess` is committed
+   (`.gitignore` negation), so a normal "upload the tree" deploy carries it; do not
+   exclude `.cache/` from the upload in the FTP client's filters.
+3. **Verify** with §12.2 + T29 + T35 on the live host, and record `capabilities.cache.*`.
 4. **Ship the client** changes (§14.3), verify, then delete `photos/thumbs/` and
    `photos/converted/` in a later session.
 5. **Record** the capability JSON in the release checklist.
@@ -1059,11 +1177,14 @@ derived data and can be deleted at any time, so rollback never needs a schema st
 | Imagick present + version | `capabilities.imagick` | present `true`; version recorded | |
 | Imagick HEIC delegate | `&probe=1` → `probe.heic` | `ok` or `fail` — if `fail`, the owner must export JPEG (documented in README) | |
 | Imagick WebP delegate | `probe.webp` | `ok` | |
-| `memory_limit` | `capabilities.memory.limit_bytes` | ≥ 256 MiB; record exact → determines the practical MP ceiling (§10.3) | |
+| `memory_limit` | `capabilities.memory.limit_bytes` + `.gd_max_pixels` | **≥ 512 MiB** (baseline, §10.3); 448 MiB is the bare floor for the 24.47 MP hero on GD; below that the hero needs Imagick or a re-export | |
+| `memory.gd_max_pixels` | `?capabilities=1` | ≥ 24.47 MP, i.e. the hero renders on GD; record the exact MP ceiling | |
 | `max_execution_time` | temp `?capabilities=1` field or host panel | ≥ 30 s | |
 | `set_time_limit` allowed | probe with a deliberate slow request | no fatal | |
-| Cache dir writable | `capabilities.cache.writable` | `true`; if `.cache` is not writable, set `ELSAPHOTO_CACHE_DIR` outside the webroot | |
-| Cache inside webroot? | `capabilities.cache.inside_webroot` + §12.2 curl for `.cache/` | `403`/`404` | |
+| Cache dir writable | `capabilities.cache.writable` | `true`; if the cache is not writable, set `ELSAPHOTO_CACHE_DIR` outside the webroot | |
+| Cache outside the webroot (primary) | `capabilities.cache.inside_webroot == false` | `false`; `true` is accepted only if the two deny-file/skeleton rows below are recorded and verified | |
+| `.cache/.htaccess` uploaded (fallback only) | `git check-ignore -q photos/.cache/.htaccess` (exit 1) + §12.2 curl | tracked in git; `403` — never `200`/`404`-by-luck | |
+| Cache skeleton present | `capabilities.cache.shards == 16` and a cold request returns `200`, not `503 cache_unavailable` | 16 shard dirs + `locks/` exist before the first request (§8.2, §16.1 step 0) | |
 | Originals unreachable | §12.2 curl for `photos/*.jpg` | `403`/`404` | |
 | `mod_rewrite` available (config B) | the deny rule actually returns 403 | `403` | |
 | `flock` supported on the cache FS | T18 on the live host | one render, no 503 storm | |
@@ -1087,7 +1208,7 @@ derived data and can be deleted at any time, so rollback never needs a schema st
 | # | Risk / decision | Mitigation / status |
 |---|---|---|
 | R1 | IONOS may lack the Imagick HEIC delegate (common) → HEIC cards need a manual export | Handled honestly: `415` + `renderable:false` + placeholder + README instruction. Owner decision pending: export JPEG on drop (recommended) vs. accept a missing card. |
-| R2 | `memory_limit` below 256 MiB makes 20+ MP sources unrenderable on GD | Imagick disk-backed cache is tried second; otherwise `503 memory_ceiling` with an actionable message. Record the real limit in §16.3 before finalising the caps. |
+| R2 | `memory_limit` below 448 MiB makes the 24.47 MP hero unrenderable on GD, and below 512 MiB the GD ceiling drops under the documented 28.5 MP (§10.3) | Imagick disk-backed cache is tried second; otherwise `503 memory_ceiling` with an actionable "re-export at ≤ 6000 px" message. §16.3 requires the real limit **and** `memory.gd_max_pixels` recorded, so the caps are validated against the host, not assumed. |
 | R3 | 32 MP vs the brief's ~24 MP | Justified by measurement (§10.2). If the owner prefers a hard 24 MP, `photos/elsa-01.jpg` must be re-exported in the same session. **Owner decision required.** |
 | R4 | `photos/.htaccess` deny rule (config B) could 403 the derivatives if the regex is written wrong | Mitigated by the `^[^/]+` per-directory scoping and by T29/T12.2 running after every deploy; config A (outside webroot) removes the risk entirely. |
 | R5 | WebP-only delivery would shrink bytes ~25 %, but Safari < 14 lacks it | Not enabled by negotiation in this version; the client may opt in per `<picture>` once `renditions.webp` exists. Ladder already produces it. |
@@ -1106,10 +1227,13 @@ derived data and can be deleted at any time, so rollback never needs a schema st
 - [ ] `?thumb=` / `?view=` aliases behave per §3.1; ambiguity rejected.
 - [ ] `?capabilities=1[&probe=1]` returns the §6.4 shape with no absolute paths.
 - [ ] Ladder is byte-checked at 360/720/1200/1600 with `withoutEnlargement` semantics.
-- [ ] Cache: sharded, keyed by §8.3, `flock` + atomic rename, pruning bounded, unwritable
-      ⇒ `503` (never originals).
+- [ ] Cache: out-of-webroot default with a tracked in-webroot deny file as fallback,
+      16 pre-created shards (never `mkdir` on the request path), keyed by §8.3, `flock` +
+      atomic rename, pruning bounded, unwritable/missing skeleton ⇒ `503` (never originals).
+- [ ] `memory_limit` ≥ 512 MiB recorded together with `memory.gd_max_pixels` (§10.3, §16.3);
+      the hero renders on GD on the recorded host.
 - [ ] Orientation normalised on both renderers; GPS/EXIF/XMP/ICC stripped and asserted.
-- [ ] All T01–T34 green; T33/T34 in CI; T29 verified on the live host.
+- [ ] All T01–T35 green; T33/T34 in CI; T29 verified on the live host.
 - [ ] `scripts/photos.mjs` uses sharp only; `sips` gone; `photos.json` v3 per §13.4.
 - [ ] §16.3 checklist filled in with real values from `?capabilities=1&probe=1`.
 - [ ] ADR-0004 amended + new pipeline ADR accepted.

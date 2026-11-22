@@ -398,12 +398,12 @@ countdowns, nothing expires.
 | Text Element | English Baseline Length | Max Characters | Expansion Budget | RTL Behavior | Overflow Behavior | Risk |
 |--------------|------------------------|----------------|-----------------|--------------|-------------------|------|
 | Eyebrow "1st edition · five cards" / "1. Auflage · fünf Karten" | 24 | 34 | 40 % | n/a | Ellipsis in the head; the sachet copy duplicates it and wraps instead | Low |
-| Title "Your new arrival" / "Dein Neuzugang" | 10 | 15 | 40 % | n/a | Head is single-line flex; wraps only under 320px | Low |
+| Title "Your new arrival" / "Dein Neuzugang" | 10 | 17 | 40 % | n/a | Head is single-line flex; ceiling is 17, not 15 (D19 — the 15 was an arithmetic slip); wraps only under 320px | Low |
 | Hint "Pick a card. Swipe for the next." / "Wähle eine Karte. Wische für die nächste." | 34 | 48 | 40 % | n/a | Wraps to 2 lines; hides under 380px height | Low |
 | Pack announcement "{count} cards: {names}." / "{count} Karten: {names}." | 12 + names | 20 + 5×name | 40 % | n/a | Live region only — length uncapped by layout | Low (a11y only) |
 | Footer "Another pack" / "Noch ein Pack" | 12 | 17 | 40 % | n/a | Button grows; wraps to own row ≤380px | Low |
 | Footer "To the catalogue" / "Zum Katalog" | 16 | 22 | 40 % | n/a | same | Low |
-| Lap line "Starting over — every card comes around again. From now on with the 2nd-edition stamp." | ~75 | 106 | 40 % | n/a | Wraps to 3 lines above the row | Medium — longest new string |
+| Lap line "Starting over — every card comes around again. From now on with the second-edition stamp." (D8) | ~75 | 106 | 40 % | n/a | Wraps to 3 lines above the row | Medium — longest new string |
 | Card names (5 in the reveal) | catalog-driven | 24 per name | 40 % | n/a | Name clamps to plate zone (fixed proportions, see card-detail.md §14) — never paints over the photo | Medium |
 
 ---

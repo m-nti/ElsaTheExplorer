@@ -56,7 +56,7 @@ Master Index** plaque beside it as the stat card that says *you read all of
 her*. After
 that the relationship inverts, politely: the explorer becomes a reader of a
 finished library, waiting on its curator — the owner, whose next acquisition
-("Das Heft hat Zuwachs") reopens the Catalogue — and a second lap is walked
+("Das Heft hat Zuwachs: {n} neue Karten.") reopens the Catalogue — and a second lap is walked
 under "2. Auflage" stamps, the catalogue's way of stamping a repeat reader as
 a regular. What sustains it is not streaks or timers — it is that every new
 photo is an accession to a collection that people are actually reading.
@@ -110,17 +110,17 @@ to "what do I do here?" is a single object in the light.
 **Key experience the game must deliver**:
 The dark parlour does its one job, now with a clearer purpose: the room is
 night-dark, the pack is the only lit object, and the room reads as an
-*institution*, not a novelty — the wordmark (Elsa the Explorer, fixed), a
-series line in museum-plaque style (DE: *"Sammelwerk · Serie I"* / EN:
-*"The Collection · Series I"*), and a headline that answers the question
-before it is asked (proposed copy — DE: *"Fünf Karten. Ein Sammelwerk."* /
-EN: *"Five cards. One collection."*). German first (household language). The
-visitor must never see a loader as their first impression if it can be
+*institution*, not a novelty — the wordmark (Elsa the Explorer, fixed), an
+eyebrow in museum-plaque style (DE: *"Katalog I"* / EN: *"Catalogue I"* —
+copy-deck sync 2026-11-22, D1/D3), and a headline that answers the question
+before it is asked (DE: *"Was steckt im Katalog?"* / EN: *"What's in the
+catalogue?"*, D2). German first (household language). The visitor must
+never see a loader as their first impression if it can be
 avoided: entries resolve from `photos.php?list=1` → `photos.json` → samples,
 and the layout must not shift while any of this happens. The pack (labeled
 DE: *"Pack öffnen"* / EN: *"Open a pack"* — or explorer-register alternative:
 *"Auf Expedition gehen"* / *"Begin an expedition"*) and the secondary
-"Den Katalog ansehen / See the catalogue" text link give exactly two doors, not a
+"Zum Katalog / To the catalogue" text link (D4) give exactly two doors, not a
 menu. The `P` keyboard hint and the sound toggle are visible but quiet —
 affordances offered, not demands.
 
@@ -414,9 +414,10 @@ variants, `lucky-elsa.flags.v1` restores milestones (25/50/75 % catalogue
 outfits, Ehrenmensch claimed); `lucky-elsa.lang.v1` restores the language so an
 English-speaking reader never re-finds the toggle. The room must answer "what
 is new?" at a glance, in accession language: a new-photos line — DE: **"Das
-Heft hat Zuwachs."** / EN: **"New in the binder."** — appears only when the
-curator has actually added material since the last visit, turning a file drop
-into a player-facing acquisitions notice. The unseen-first guarantee makes
+Heft hat Zuwachs: {n} neue Karten."** / EN: **"New in the binder: {n} new
+cards."** (D5) — appears only when the curator has actually added material
+since the last visit, turning a file drop into a player-facing acquisitions
+notice. The unseen-first guarantee makes
 every return visit *consequential*: the next expedition always contains
 something they haven't read (until the deck rolls over, visibly announced).
 Second-lap finds carry the "2. Auflage / Second edition" stamp, which converts
@@ -439,7 +440,7 @@ once."
   claim continuity that isn't there. (First-party-only storage, PRD
   constraint: no accounts, so no cross-device sync is possible by design.)
 - **New photos after completion.** The highest-value edge in the game: the
-  completed catalogue reopens. "Das Heft hat Zuwachs." returns, the new
+  completed catalogue reopens. "Das Heft hat Zuwachs: {n} neue Karten." returns, the new
   entries' department lines show fresh frontiers, Elsas Ehrenmensch quietly shows its
   earned date while progress is again below 100 %, and the new entries *pull
   first* (unseen-first). The reader's frames and stamps stay — earned things
@@ -507,14 +508,13 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 - **"Von vorn" after completion.** Reset is the one destructive act in the
   product: it clears every `lucky-elsa.*` key (the Catalogue, set progress,
   milestones, Elsas Ehrenmensch — and sound/language preferences return to their
-  defaults), and its one-line confirmation must list exactly what is lost —
-  DE: *"Von vorn löscht den Katalog, die Set-Fortschritte, die Meilensteine
-  und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück. Einmal
-  bestätigen, dann ist alles leer."* / EN: *"Starting over clears the
-  Catalogue, set
-  progress, milestones and Elsa's Honorary Human — sound and language return to their
-  defaults. One confirmation, then everything is empty."* Focus defaults to
-  Cancel; the confirm button is labelled with the action, never "OK".
+  defaults), and its confirmation lists exactly what is lost —
+  DE: *"Das löscht den Katalog, die Set-Fortschritte, die Meilensteine und
+  Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN:
+  *"This clears the Catalogue, set progress, milestones and Elsa's Honorary
+  Human — sound and language return to their defaults."* (copy-deck sync
+  2026-11-22, D9). Focus defaults to Cancel; the confirm button is labelled with
+  the action ("Alles löschen" / "Delete everything"), never "Ja".
 - **Milestone parity across readers.** Two family members with different
   progress must both always have a visible next step (a department at 1 card,
   a milestone 5 % away); completion design must not assume one shared account
@@ -539,7 +539,7 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 | The foil catching light under the pointer | Studying an Exhibit | Material wonder — "this is a *thing*, not a page" | Foil reads as a static gradient; the parlour's one trick wasted |
 | The first share | Studying an Exhibit | Generosity — "you have to see this entry" | Sharing fails silently; the family loop never spins |
 | Returning to an intact catalogue | The Return Visit | Relief + possession — "it kept my things" | Progress loss (real or apparent) destroys all trust permanently |
-| "Das Heft hat Zuwachs." | The Return Visit | Anticipation — "there are new accessions for me" | New photos land silently; the curator's work has no reader-facing moment |
+| "Das Heft hat Zuwachs: {n} neue Karten." | The Return Visit | Anticipation — "there are new accessions for me" | New photos land silently; the curator's work has no reader-facing moment |
 | The "2. Auflage" stamp on a repeat | The Reveal | Regular's warmth — "read it, still mine" | Repeats feel like failure or broken randomness |
 | A department's permanent frame completing | Reading the Catalogue | Visible growth — "the catalogue got richer" | Department completion passes unnoticed; sets feel cosmetic |
 | The chase card surfacing | The Reveal | A private event worth telling someone | Chase card reads as any other holo; keystone moment wasted |
@@ -557,9 +557,9 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 
 | Hook Type | Hook Description | Systems That Deliver It |
 |-----------|-----------------|------------------------|
-| **Session Start** | "What's new in the Catalogue?" — the catalogue changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "Das Heft hat Zuwachs / New in the binder", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
+| **Session Start** | "What's new in the Catalogue?" — the catalogue changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "Das Heft hat Zuwachs: {n} neue Karten. / New in the binder: {n} new cards.", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
 | **Session End** | An expedition always ends with something unfinished: a department one card short, a milestone a few percent away, a chase card still out there | Department progress lines, 25/50/75 % milestones, chase card as long-tail goal, guaranteed ≥1 holo per pack keeping the next haul promising |
-| **Daily Return** | Not time-gated — event-gated: the curator's accession is the "new material" moment | "Das Heft hat Zuwachs", unseen-first guarantee making the first expedition after an upload fully fresh, 2. Auflage stamps rewarding returns even with nothing new |
+| **Daily Return** | Not time-gated — event-gated: the curator's accession is the "new material" moment | "Das Heft hat Zuwachs: {n} neue Karten.", unseen-first guarantee making the first expedition after an upload fully fresh, 2. Auflage stamps rewarding returns even with nothing new |
 | **Long-Term** | Completion as a keepsake, then the second lap as seniority | Department frame variants (permanent), catalogue outfits, Elsas Ehrenmensch + Das Gesamtverzeichnis, 2. Auflage stamps, the Ehrenmensch's earned date |
 
 ---
@@ -627,7 +627,7 @@ and its only competitor is the family member in the same chat thread.
   Ehrenmensch are permanent once earned (`flags.v1`). New accessions may reopen
   progress; they may never retroactively demote anything.
 - **The curator's work made invisible**: A file drop that produces no
-  reader-facing moment ("Das Heft hat Zuwachs") wastes the scarcest resource
+  reader-facing moment ("Das Heft hat Zuwachs: {n} neue Karten.") wastes the scarcest resource
   in the project (the owner's time) and the most valuable retention event.
 
 ---
@@ -679,5 +679,5 @@ and its only competitor is the family member in the same chat thread.
 | Do the explorer-register alternatives ("Auf Expedition gehen", "Nächste Expedition") beat the neutral register ("Pack öffnen", "Noch ein Pack") for German visitors — or do they read as costume? | ux-designer + owner | First copy pass before refactor merge | Unresolved |
 | Should Elsas Ehrenmensch be printable (browser print stylesheet) in addition to shareable? | ux-designer + ui-programmer | Before completion meta implementation | Unresolved |
 | Does the chase card need its own reveal beat (gold glint flourish) or does that break the "never announced" principle? | game-designer + ux-designer | Before Der Porträtsaal implementation | Unresolved |
-| Is "Das Heft hat Zuwachs." placed correctly — stage copy vs. masthead line — for it to be seen on return? | ux-designer | First returning-visit test | Unresolved |
+| Is "Das Heft hat Zuwachs: {n} neue Karten." placed correctly — stage copy vs. masthead line — for it to be seen on return? | ux-designer | First returning-visit test | Unresolved |
 | Above roughly how many entries does the completed-catalogue showcase need paging or virtualisation to stay fast on a phone? (PRD §9.2 puts the question at ~200.) | ui-programmer + ux-designer | Before any large upload | Unresolved |

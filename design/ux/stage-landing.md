@@ -136,11 +136,11 @@ Desktop (≥1120px wide viewport):
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ ┌── stage (#stage, entrance hall) ───────────────────────────────┐   │
 │ │  ┌── stage__copy ─────────────┐   ┌── stage__crate ─────────┐  │   │
-│ │  │ ELSA THE EXPLORER ·        │   │  ╔═══════════════════╗  │  │   │
-│ │  │ DAS KARTENWERK  (eyebrow)  │   │  ║ ╭─ foil frame ─╮  ║  │  │   │
+│ │  │ KATALOG I  (eyebrow)       │   │  ╔═══════════════════╗  │  │   │
+│ │  │                            │   │  ║ ╭─ foil frame ─╮  ║  │  │   │
 │ │  │                            │   │  ║ │ photo teaser  │  ║  │   │
 │ │  │ WAS STECKT                 │   │  ║ │   (cover)     │  ║  │   │
-│ │  │ IM REGAL?       (h1, 2 ln) │   │  ║ ╰───────────────╯  ║  │  │   │
+│ │  │ IM KATALOG?     (h1, 2 ln) │   │  ║ ╰───────────────╯  ║  │  │   │
 │ │  │                            │   │  ║  🐾  ELSA THE      ║  │  │   │
 │ │  │ Fünf Karten pro Pack, min- │   │  ║      EXPLORER      ║  │  │   │
 │ │  │ destens eine in Folie. Jede│   │  ║  1. Auflage        ║  │  │   │
@@ -194,7 +194,7 @@ scroll at 320px.
 | `.nav-link` ("Zum Katalog") | Link | Masthead | Anchor to the catalogue | Yes | Yes (relabelled) |
 | `.lang-switch` DE/EN | Button group (`aria-pressed`) | Masthead | Switch all copy instantly | Yes | Yes |
 | `.sound-toggle` | Toggle button (`aria-pressed`) | Masthead | Sound on/off, persists | Yes | Yes |
-| `.stage__eyebrow` | Text | Hall copy | "Elsa the Explorer · Das Kartenwerk" | Yes | Yes (copy updated) |
+| `.stage__eyebrow` | Text | Hall copy | "Katalog I" / "Catalogue I" (D1) | Yes | Yes (copy updated) |
 | `.display` H1 | Heading | Hall copy | "Was steckt im Katalog?" — the exploration invitation, two lines | Yes | Yes (copy updated) |
 | `.stage__lede` | Text | Hall copy | Loop rules in one sentence, library register | Yes | Yes (copy updated) |
 | `#open-pack` | Primary button | Hall copy | Text CTA, same action as the seal | Yes | Yes |
@@ -205,7 +205,7 @@ scroll at 320px.
 | `.pack__seal-art` (frame, top band, preview img, crest SVG, wordmark, edition label) | Composite visual | Inside seal | Makes the crate read as a foil-wrapped accession | Yes | Yes |
 | `.pack__seal-tear` | Decorative span | Inside seal | Pre-cut tear line affordance | Yes | Yes |
 | `#pack-preview` | Image | Inside seal | Photo teaser (cover of the catalogue) | Yes | Yes |
-| "Das Heft hat Zuwachs" accession line | Text | Above catalogue line, returning visitors only | "N neue Karten" since last visit | No (round 2) | No — new |
+| "Das Heft hat Zuwachs: {n} neue Karten." accession line | Text | Above catalogue line, returning visitors only | Cards added since last visit, stated as a count (EN "New in the binder: {n} new cards." — D5) | No (round 2) | No — new |
 | `#live` live region | Visually hidden status | Body end | Announcements | Yes | Yes |
 | `EntranceHall` | **Svelte 5 component** (one line: stage shell — masthead wiring, hero copy, catalogue line, seal, catalogue-state subscription) | all | The stage as one mount boundary | Yes | Refactor of the current stage DOM |
 
@@ -244,7 +244,7 @@ disabled CTA carries `aria-disabled` and an explanatory label.
 | Loading (catalogue) | Page load until `photos.php`/`photos.json` resolves (≤3s/≤4s timeouts) | Catalogue label "Karten werden gesucht"; seal shows crest with placeholder photo | CTA + seal disabled; `P` inert | Must resolve or fall through to Empty or Error within 4s; no spinner layer beyond the label text |
 | First visit (populated) | Catalogue loaded, `seen.v1` empty/missing | Catalogue line "0 von 24 gesammelt", bar 0; seal fully intact | All input active | The default state; German copy (F7) |
 | Returning | Catalogue loaded, `seen.v1` non-empty | Catalogue line shows real count + fill; seal identical (the crate never shows fake wear — the catalogue grows instead) | All input active | Masthead count mirrors the line |
-| New in the binder ("Das Heft hat Zuwachs") | Returning visitor; **mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids that were absent from the stamp of the visitor's previous visit | Line above catalogue: "Das Heft hat Zuwachs: N neue Karten." | Line disappears **once any new card is collected** (not on pack open); flag updated by persistence | **Vertical Slice (GDD R8)**; owner = persistence system |
+| New in the binder ("Das Heft hat Zuwachs: {n} neue Karten.") | Returning visitor; **mechanism = GDD R8 `lastManifestStamp`**: the manifest holds photo ids that were absent from the stamp of the visitor's previous visit | Line above catalogue: "Das Heft hat Zuwachs: N neue Karten." | Line disappears **once any new card is collected** (not on pack open); flag updated by persistence | **Vertical Slice (GDD R8)**; owner = persistence system |
 | Sample / Mixed | All or some catalogue entries flagged `demo` | Demo/mixed note line visible in the catalogue zone | Packs work normally | Copy per `demoNote`/`mixedNote`, updated to library register |
 | Empty | Catalogue resolves to 0 photos (both sources exhausted cleanly) | CTA label becomes "Noch keine Karten" and disabled; seal disabled (greyscale foil, no glow); catalogue line "Noch keine Karten" | `P`, CTA, seal inert; the catalogue shows the owner instruction ("npm run photos") | F14/F15 — owner-instruction copy lives **only** in the true-empty state, never in the failure state |
 | Error (load failure) | Both fetches fail (network/server fault, non-JSON, abort) — distinct from Empty | Catalogue label "Der Katalog lädt nicht gerade."; seal greyed; stage intact (masthead, hero, hint all normal) | `P`, CTA, seal inert; a [Nochmal versuchen] retry sits with the catalogue's Error state (`binder.md` §6), which is the same failure surfaced there | Never tells a visitor to run npm commands; **the stage governs during load failure** — the stage is the entry surface and shows the failure line, while the retry affordance lives in the catalogue section; both render from one failure state |
@@ -381,7 +381,7 @@ column is filled by the accessibility audit before Approved):
 | CTA label on pearl-gradient button | Button gradient (lightest stop governs) | 4.5:1 | verify — dark ink on light gradient | [ ] audit |
 | Keyboard hint + `<kbd>` | Page velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 | Masthead count | Masthead strip | 4.5:1 | ≈ 9:1 | [x] |
-| Seal edition label (decorative dup of eyebrow) | Seal art (dark) | 3:1 (large/graphical) | ≈ 6:1 | [x] |
+| Seal edition label ("1. Auflage" — the seal's own edition line, no longer a duplicate of the eyebrow after D1/D25) | Seal art (dark) | 3:1 (large/graphical) | ≈ 6:1 | [x] |
 
 **Colorblind-unsafe elements and mitigations**:
 
@@ -437,13 +437,16 @@ the museum register lives in the words, not in new required reading.
 - Layout budgets are set so **DE at +40 % over the EN baseline still fits**; DE
   strings longer than the EN baseline are the design driver.
 - No RTL language is targeted (de/en only); the layout is not mirrored.
-- Copy-deck updates required by the reframe (owner: writer, both languages in
-  the same edit): eyebrow → "Elsa the Explorer · Das Kartenwerk" /
-  "Elsa the Explorer · The Card Library"; H1 → "Was steckt im Katalog?" /
-  "What's in the catalogue?"; the binder is **Der Katalog / The Catalogue**
-  (owner canon 2026-11-22); the lede keeps the loop rules; "gesehen"-copy becomes
-  "gesammelt"-copy; document titles → "Elsa the Explorer — Das Kartenwerk" /
-  "Elsa the Explorer — The Card Library".
+- Copy mapping is now fixed in the deck: eyebrow → "Katalog I" / "Catalogue I"
+  (D1 — "Das Kartenwerk" survives only inside `meta.title`); H1 → "Was steckt im
+  Katalog?" / "What's in the catalogue?" (D2); the collection is **Der Katalog /
+  The Catalogue** (owner canon 2026-11-22); the lede keeps the loop rules;
+  "gesehen"-copy becomes "gesammelt"-copy; document titles → "Elsa the Explorer —
+  Das Kartenwerk" / "Elsa the Explorer — The Card Library" (D24).
+
+> *Copy-deck sync 2026-11-22 (D1, D2, D5):* the page eyebrow is "Katalog I" /
+> "Catalogue I"; the accession line always states the count; "1. Auflage" survives
+> only as the seal's edition label and the card credit.
 
 | Text Element | English Baseline Length | Max Characters | Expansion Budget | RTL Behavior | Overflow Behavior | Risk |
 |--------------|------------------------|----------------|-----------------|--------------|-------------------|------|
@@ -499,7 +502,7 @@ the museum register lives in the words, not in new required reading.
 
 | Question | Owner | Deadline | Resolution |
 |----------|-------|----------|-----------|
-| ~~Confirm the library-register copy rewrites~~ **RESOLVED 2026-11-22 (owner canon):** set names fixed to the archive-rooms register, binder = Der Katalog / The Catalogue, H1 "Was steckt im Katalog?", verb "gesammelt", accession line "Das Heft hat Zuwachs" | owner | 2026-11-22 | RESOLVED |
+| ~~Confirm the library-register copy rewrites~~ **RESOLVED 2026-11-22 (owner canon):** set names fixed to the archive-rooms register, binder = Der Katalog / The Catalogue, H1 "Was steckt im Katalog?", verb "gesammelt", accession line "Das Heft hat Zuwachs: {n} neue Karten." | owner | 2026-11-22 | RESOLVED |
 | Final DE/EN tone read of the revised copy (Katalog register) for drift before launch | writer + user | before launch | — |
 | Should the seal preview rotate through the visitor's uncollected cards (a "what's waiting" teaser), or stay the fixed catalogue cover? | game-designer + user | before pack-opening implementation | — |
 | Does the stage need a set selector in round 2 (choose which set an accession draws from), or is the draw always global across the catalogue? | game-designer | before the set view ships | — |

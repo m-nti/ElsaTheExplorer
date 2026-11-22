@@ -1,15 +1,16 @@
-# Karte des Tages / Card of the Day — Feature Spec
+# Der Aushang / The Bulletin — Feature Spec
 
+> **Filename**: `specs/karte-des-tages.md` is historical — kept to avoid churn; the surface is Der Aushang / The Bulletin.
 > **Status**: Draft · **Author**: systems-designer · **Last Updated**: 2026-11-22
 > **Implements / depends on**: `mechanics.md` §1 — the one surface that differs between two visits. Needs the manifest (`photos.php`), wing totals (`collection-meta.md` R-A/R-C), trait names (`archive-fiction.md` §4), copy deck. **Static, no server state, no new storage**; `lucky-elsa.seen.v1` is read-only here.
 > **Build phase**: Full Vision — build-order step 4 (ships with Wings; the forecast needs per-wing totals).
-> **Conflict on record**: `feature-slate.md` kills "Karte des Tages" *as a surface* and `archive-fiction.md` §6 bans the phrase as vocabulary. This spec keeps the mechanism only as a **non-expiring, display-only bulletin**; the player-facing title is an owner ruling (§6). Nothing here expires, is missable or is rewarded.
+> **Canonical decision (2026-11-22, resolved)**: the surface is **Der Aushang / The Bulletin** (`feature-slate.md` canonical decision 1). The slate's kill applies **only to calendar-driven retention** — no expiring content, no daily reward, no streak, no "you missed it". The **collects-nothing invariant stands**: no flip, no lightbox, no write, no draw from the unseen pool, no gate on a card, reward or milestone. **"Karte des Tages" is banned vocabulary** (`archive-fiction.md` §6); this filename is historical only.
 
 ## 1. Purpose
 
 A bulletin strip in the catalogue header: today's card, read-only, plus **Elsa-Prognose** over three trait groups. Ten seconds, dry, warm, no obligation. It is the only thing that differs between two identical visits.
 
-**It is not a reward.** The tile is display-only: it collects nothing, opens nothing, writes nothing, grants no stamp or milestone and never touches the pack's unseen-first pool (`mechanics.md` I2/I4, `collection-meta.md` R-K). Missing a day costs nothing and is never mentioned — the exact condition the slate's kill verdict demanded. No `lucky-elsa.*` key is written; refused storage (private window) changes nothing.
+**It is not a reward, and it is not a retention mechanism.** The tile is display-only: it collects nothing, opens nothing, writes nothing, grants no stamp or milestone and never touches the pack's unseen-first pool (`mechanics.md` I2/I4, `collection-meta.md` R-K). Missing a day costs nothing and is never mentioned — the exact condition the slate's kill verdict demanded. No `lucky-elsa.*` key is written; refused storage (private window) changes nothing.
 
 ## 2. Data Model (derived every render, never stored)
 
@@ -77,7 +78,7 @@ Wing unions (slugs from R-A): `sofa = nap-wing ∪ portrait-room` · `vigilance 
 - Empty, standard and capstone differ by **text**, never by colour, dimming or an icon; all text ≥ 4.5:1 on the catalogue surface.
 - Nothing is focusable inside, so no focus trap and a silent rollover cannot move the visitor's focus. Motion: none, or opacity-only ≤ 100 ms (`prefers-reduced-motion` removes even that). No sound.
 
-## 6. Copy Keys (DE/EN — all PROPOSED, no copy-deck entry exists yet)
+## 6. Copy Keys (DE/EN — PROPOSED except `tag:title`, which is canonical)
 
 | Key | DE | EN |
 |---|---|---|
@@ -90,7 +91,7 @@ Wing unions (slugs from R-A): `sofa = nap-wing ∪ portrait-room` · `vigilance 
 | `tag:note` | Wechselt mit dem Kalendertag. Nichts verfällt. | Changes with the calendar day. Nothing expires. |
 
 - Trait names are **not** new strings: reuse `lex:<trait>:term` (`archive-fiction.md` §4 — Sofakomfort/Sofa comfort, Wachsamkeit/Vigilance). **Reiselust has no Lexikon pair yet** — add one to §4 before build (its §6 rule 5 forbids first use without definition).
-- The date line reuses `print:date` ("Stand: {date}" / "As of: {date}") — one key, no duplicate. `tag:title` deliberately avoids "Karte des Tages" (allowed vocab only, `du`-register, zero exclamation marks); an owner ruling to the contrary is a copy-deck change, not a code change.
+- The date line reuses `print:date` ("Stand: {date}" / "As of: {date}") — one key, no duplicate. **`tag:title` is the canonical surface name** (Der Aushang / The Bulletin — canonical decision 1, not a proposal); the remaining keys above are proposals until a copy-deck entry exists. It deliberately avoids "Karte des Tages" (allowed vocab only, `du`-register, zero exclamation marks); renaming the surface would be an owner ruling and a copy-deck change, not a code change.
 
 ## 7. Acceptance Criteria (binary)
 

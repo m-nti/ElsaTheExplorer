@@ -384,7 +384,7 @@ there is no code path that streams the source file to a browser.
 | `photos.php?view=NAME` | **Retired as an image source**: `302` → `?download=NAME`. Exists only so pre-refactor clients do not break; it never returns source bytes. |
 
 **Measured baseline (2026-11-22), the reason this contract exists:** a 3.98 MB original
-(5712×3840) produced a 540×720 PHP thumbnail of **61.9 KB** — 1.6 % of the source — while
+(5712×4284, 24.47 MP) produced a 540×720 PHP thumbnail of **61.9 KB** — 1.6 % of the source — while
 `?view=` delivered the full **3.98 MB** on a UI request. That is a ~64× overdraw on the one
 request the card grid and the dialog both make. Worse, the old `sendThumbnail()` fell
 through to `serveFile($path)` on every failure branch (photos.php:346 / 352 / 361), so a

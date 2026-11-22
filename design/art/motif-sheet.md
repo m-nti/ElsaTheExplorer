@@ -28,7 +28,14 @@ One unit derived from the card, so ornament tracks size exactly as foil does (bi
 
 **LOD ladder.** Full verbosity at W ≥ 300 px. At 200–300 px silhouette only (pediment, amphora outline, pomegranate + seeds; olive leaves and flute grooves drop). Below 200 px — the 90 px shelf tile — the meander reduces to a double hairline and every other motif is removed: the tile keeps photo + pearl rim (bible §3's thumbnail rule).
 
-## 2 · The seven motifs
+**Print register.** Paper output drops the cqw unit and measures in mm at the sheet's own scale; minimums are physical, not responsive.
+
+| Asset | Geometry | Min | Design size | Ink |
+| --- | --- | --- | --- | --- |
+| `brand_seal_crest_print.svg` | 24-unit integer viewBox, same drawing as the 24 px mark | 12 mm (≈ 34 pt) | 30 mm (≈ 85 pt) header | 1 (`currentColor`) |
+| meander on paper (header rule) | module 2.5 mm, stroke 0.5 mm | module 2 mm / stroke 0.4 mm | header rule under the crest | 1 |
+
+## 2 · The motifs and the seal
 
 ### 1 · Mäander / Meander — the signature
 - **Where:** foil edge rim, one module strip inside the pearl band, running all four sides but *not* across the plate's text band; the card-back inset ring (replacing the plain 6 % ring); the plate header's lower rule; room/set plaque brackets; screen corners as a **diagonal pair only** (top-left + bottom-right; four would frame the viewport and fight the card).
@@ -68,6 +75,18 @@ One unit derived from the card, so ornament tracks size exactly as foil does (bi
 - **Rule:** a pomegranate here is a **seal, never fruit** — no cut-open illustration, no food joke (the dog's one food register is the Leckerli file and it stays hers).
 - **Foil:** print only, matte, identical tokens at every step (no step is colour-coded). Backup: seed count + "25 %" + the label — three carriers before colour.
 
+### 8 · Brandsiegel / The print crest — the document's seal
+**Not a motif.** It is the house's seal (paw crest in its circle, bible §3), and it exists in two weights from *one* geometry.
+- **Files:** `brand_seal_crest_24.svg` (screen/UI, 24 px) and `brand_seal_crest_print.svg` (paper). Same 24-unit integer viewBox — the print file is the same drawing scaled to mm, never a redrawn crest.
+- **Ink:** one colour, `currentColor` (the sheet's `--paper-ink #1c1a20`, ≈ 15.7:1 on `--paper #f7f4ee` — hand-computed, confirm in the contrast belt). No gradient, no foil, no pearl band, no holo spectrum (bible §4), no `mix-blend-mode`, no filter, no raster, and **no lettering**: a ring of type is mush at 12 mm, and invented lettering is banned (§6.2). The product name is real type in the sheet header.
+- **Where:** the Sammelbogen header, left of the title block, page 1 only — **one seal per document**, it is a stamp, not a pattern. And the 0-collected mark at 12 mm. Never on a card, never in the footer, never repeated per page.
+- **Scale:** 30 mm (≈ 85 pt) header, 12 mm (≈ 34 pt) floor — the smallest size at which the paw's toe gaps hold.
+- **600 dpi survival:** minimum stroke 0.6 unit = 0.3 mm at 12 mm (≈ 7 device px, at 23.6 px/mm); minimum counter/gap 0.5 unit = 0.25 mm (≈ 6 px). Nothing thinner at any size — no hairline under 0.25 pt reaches paper.
+- **Detail ladder:** 12 mm = ring + paw silhouette only; 20 mm = + one inner rule; 30 mm = + the second rule. The crest never carries the meander — the module would fall under the stroke floor.
+- **Redundancy:** the crest marks *the document*, never the state. At zero, `print:empty` ("Noch keine gesammelten Karten") carries the meaning and the crest stands beside it as `aria-hidden` ornament.
+- **Build:** inline the print SVG into the sheet markup (sammelbogen §4: no fetch between gesture and `window.print()`); verify it prints with "background graphics" off in Chrome and Safari.
+- **Doc flag:** `sammelbogen.md` §2/§3/AC1 say `n = 0` prints nothing — so at zero the crest has exactly one home, the **on-screen** empty state. A printed 0-sheet needs that spec changed first; this sheet does not overrule it.
+
 ## 3 · Ornament hierarchy
 
 Ranked by attention allowed, not by frequency:
@@ -80,7 +99,7 @@ Ranked by attention allowed, not by frequency:
 6. **Fluting** — texture. Felt at 340 px, invisible at 90 px — correct.
 7. **Olive** — quiet register. The asymmetry is the point: the archive relaxes only where nothing is being claimed.
 
-Rule: any surface shows the meander (always or never) plus **at most one** of 2–7.
+Rule: any surface shows the meander (always or never) plus **at most one** of 2–7. **Above the ranking:** the print crest is not a motif but the seal — on paper it outranks the meander, because a document carries one seal and only one.
 
 ## 4 · Foil, motion, photograph
 
@@ -93,13 +112,14 @@ Rule: any surface shows the meander (always or never) plus **at most one** of 2�
 
 ## 5 · Non-colour redundancy
 
-Only three motifs may carry meaning. The rest are `aria-hidden` decoration.
+Only four marks may carry meaning — three motifs and the seal. Everything else is `aria-hidden` decoration.
 
 | Motif | Means | Shape backup | Text backup | Fails if |
 | --- | --- | --- | --- | --- |
 | meander | "a plate of this archive" | frame geometry, present/absent | number + name already say it | it is the only identifier |
 | laurel | complete vs in progress | open arc vs closed wreath | "Flügel komplett", "Katalog I · abgeschlossen" | only the arc distinguishes |
 | pomegranate | which milestone | seed count 1 / 2 / 3 | "25 %" + its label | seeds are colour-coded |
+| print crest | "this sheet is the archive's" | the seal itself, one ink | header title + `print:count` | it is the only mark of a state |
 
 Ornament is never text and never a control, so SC 1.4.11 does not bind it; **SC 1.4.3 does wherever it sits behind or beside text** — hence the amphora's 12 % cap and the rule that no motif goes under a caption.
 

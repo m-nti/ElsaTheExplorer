@@ -18,7 +18,7 @@ the owner's side.
 
 Measured on 2026-11-22, from the real photo store:
 
-- one original is **3.98 MB** (5712×3840);
+- one original is **3.98 MB** (5712×4284, 24.47 MP);
 - the PHP thumbnail path produced a **540×720, 61.9 KB** image — **1.6 %** of the source;
 - `?view=` served the **full 3.98 MB**, and that endpoint is what the card grid and the
   detail dialog were using. That is a **~64× overdraw** on the single most frequent image

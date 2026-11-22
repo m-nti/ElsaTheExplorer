@@ -103,6 +103,8 @@ implementation change.
 | Card Tilt & Foil Material | Game-Specific | Holo-as-material: pointer tilt + layered foil response | Card Lightbox (exhibit card); static foil on tiles/drop cards | Draft |
 | Card Flip | Game-Specific | Exhibit card flips over like a physical object | Card Lightbox | Draft |
 | Card Browsing (Arrows / Swipe) | Navigation | Walk the catalogue from inside the lightbox | Card Lightbox | Draft |
+| Pack Roving Arrows | Navigation | `←`/`→` focus roving over the five dealt cards (pack dialog only) | Pack Dialog | Draft |
+| Pack Scroll-Snap Swipe | Navigation / Layout | ≤ 760 px scroll-snap carousel for the dealt cards | Pack Dialog (mobile) | Draft |
 | Share Button | Input | Native share sheet with clipboard fallback | Card Lightbox, (later: Elsas Ehrenmensch) | Draft |
 | Save / Download Link | Input | Download the original photo | Card Lightbox | Draft |
 | Reset with Confirmation | Input / Feedback | Destructive "Von vorn" behind a one-line confirmation | Binder header | Draft |
@@ -113,6 +115,7 @@ implementation change.
 | Zuwachs Accession Line | Feedback | The "Das Heft hat Zuwachs / New in the binder" acquisitions notice | Stage, Catalogue header | Draft |
 | View Toggle | Input / Navigation | Segmented Alle Karten ↔ Nach Räumen view switch | The Catalogue (header) | Draft |
 | Collection Grid Tile | Game-Specific | Button tile in the catalogue grid, all states | The Catalogue | Draft |
+| Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Catalogue (flat + grouped) | Draft |
 | Keyboard Shortcut | Input | Global single-key actions (`P`, `F`, arrows) | Global (page + lightbox) | Draft |
 | Close Button | Input | Icon-only dialog dismissal | Pack Dialog, Card Lightbox | Draft |
 | Live Region Announcement | Feedback | `role="status"` line for non-focus events | Global (`#live`), share status | Draft |
@@ -185,7 +188,7 @@ implementation change.
 - `Escape` always closes an open dialog (native) — including mid-reveal, where it is the keyboard path for the deliberate skip.
 - On close, focus returns to the trigger context — see Focus Trap (Dialog).
 - Deep-link open (`?photo=<id>`): the lightbox opens on load without a prior trigger; closing it returns focus to the stage trigger.
-- URL behavior: opening a card writes `?photo=<id>` (via `replaceState`); closing removes it. The pack dialog does not touch the URL.
+- URL behavior: opening a card writes `?photo=<id>` (via `replaceState`); closing removes it. The pack dialog does not touch the URL. One-line rule: patch only the `photo` param on a URL built from `location.href` — `location.hash` is never assigned, so a `#ausstellung/…` fragment survives (full rule: Card Browsing → URL & fragment preservation).
 
 **Animation spec** (reduced-motion fallback): scale transitions are replaced by a plain fade at 50 % duration (100 ms open / 75 ms close).
 
@@ -353,9 +356,72 @@ implementation change.
 - Swipe is a redundant input: every swipe destination is reachable by keyboard **and** by the chevron buttons — three inputs, one code path.
 - Chevron buttons are real `<button>`s with visible focus rings; on narrow viewports they sit below the exhibit, never overlapping the action row.
 
+**URL & fragment preservation (shared exhibition links — binding)**:
+- The lightbox writes/removes **only the `photo` search param**, on a `URL` built from `location.href` (`url.searchParams.set("photo", id)` / `url.searchParams.delete("photo")`, then `history.replaceState(null, "", url)`). It must **never** assign `location.hash` and must **never** rebuild the URL from scratch.
+- A `#ausstellung/…` fragment must therefore survive opening and closing a work, language switches, and card navigation (`←`/`→`, chevrons, swipe) — the URL is *patched*, never replaced.
+- Only the exhibition view's own dismiss action clears the fragment; no other pattern (Dialog Open / Close, Card Browsing, Language Toggle, Pack flow) may touch it.
+- **Acceptance**: the hash is byte-identical before and after opening and closing a work (Playwright: capture `location.hash` before `openCard`, compare after dialog close).
+
 **Animation spec** (reduced-motion fallback): in-table.
 
 **Implementation Notes** (Svelte 5): `lib/catalog.ts` derives the ordered collection (set-aware); navigation is a store method. Swipe uses pointer events with pointerdown/up deltas on the dialog (no touch library). Keep `history.replaceState` in step so browser Back always points at the last studied exhibit — Back closes nothing.
+
+---
+
+#### Pack Roving Arrows
+
+**Category**: Navigation
+**Status**: Draft
+**When to Use**: Inside the **pack dialog** only: `←`/`→` move keyboard focus across the five dealt cards of the drop row (wrapping at both ends); `Enter`/`Space` opens the focused card in the lightbox. This is the pack dialog's own keyboard model — deliberately distinct from Card Browsing, which is lightbox-only.
+**When NOT to Use**: In the card lightbox (that is Card Browsing's decided `←`/`→` scope — they do nothing in the pack dialog's content when the lightbox is closed… and are swallowed by the lightbox when it is open); on the catalogue grid (Catalogue Grid Roving Arrows); never page-scope.
+
+**Interaction Specification**:
+
+| State | Visual | Input trigger | Response | Duration | Audio |
+|-------|--------|---------------|----------|----------|-------|
+| Roving focus | Focused dealt card shows the standard focus ring (≥3:1, ≥2 px offset) | `←` / `→` (wrap at both ends of the drop row) | Focus moves card to card; scroll-into-view if clipped | 80 ms ring transition | none |
+| Open focused card | — | `Enter` / `Space` on the focused card | Card Lightbox opens for that exhibit (URL gains `?photo=`) | per Dialog Open / Close | soft tick |
+| During reveal | Reveal lock: cards land progressively; arrows ignored while `opening === true` | `←` / `→` | Ignored (input lock matches the trigger/seal; **✕ and `Escape` stay live per the dismissal canon**) | — | — |
+| Second lap | Same roving model over stamped ("2. Auflage") cards | same | same | as above | as above |
+
+**Accessibility**:
+- Roving `tabindex` model: exactly one dealt card carries `tabindex="0"`, the rest `tabindex="-1"`; focus entering the drop row lands on the roving card. Cards remain real `<button>`s in the `<ol>` — no `role="grid"` (the list semantic carries collection order; a grid role would misstate a 1-D row).
+- Each focus move is self-announced: the card's own accessible name (number, name, rarity — e.g. *"Karte 04 öffnen: Hüterin der verlorenen Socken"*) is what the screen reader reads on focus; no extra announcements.
+- `Escape` closes the dialog at any time (dismissal canon); arrow roving never traps `Tab` — `Tab` still moves out of the dialog's controls normally.
+- Dealt cards are the targets (far larger than 44 × 44 CSS px).
+
+**Animation spec**: focus movement is instant (ring transition only); reduced motion: n/a — no motion to reduce.
+
+**Implementation Notes** (Svelte 5): one `on:keydown` handler on the drop `<ol>`; roving index is `$state`, the per-card `tabindex` derives from it; disabled while `opening === true`. `{#each}` keyed by photo id so the roving index survives the language re-render (re-anchor to the same id, not the same array position).
+
+---
+
+#### Pack Scroll-Snap Swipe
+
+**Category**: Navigation / Layout
+**Status**: Draft
+**When to Use**: The pack dialog's drop row at **≤ 760 px viewport width**: the five dealt cards become a horizontal scroll-snap carousel; a horizontal swipe moves card to card; the **8 px tap-vs-drag threshold** (craft-study value, same as the tilt pattern) separates "open this card" taps from drags that scroll the row.
+**When NOT to Use**: Above 760 px (the row is fully visible — no carousel); in the card lightbox (its swipe is Card Browsing's ≥ ~40 px threshold over the whole catalogue, with chevrons as the visible affordance); never as the only path — keyboard parity via Pack Roving Arrows is mandatory.
+
+**Interaction Specification**:
+
+| State | Visual | Input trigger | Response | Duration | Audio |
+|-------|--------|---------------|----------|----------|-------|
+| Carousel (mobile) | Drop row: `overflow-x: auto`, `scroll-snap-type: x mandatory`; each slot `scroll-snap-align: center`; `touch-action: pan-x` on the row | — | — | — | — |
+| Swipe / drag | Card tracks the finger; the row snaps to the nearest slot on release | horizontal swipe / drag (drag ≥ 8 px) | Native scroll-snap physics; roving focus syncs to the snapped card | native scroll | none |
+| Tap | — | tap with drag < 8 px | Opens the tapped card in the lightbox | per Dialog Open / Close | soft tick |
+| Keyboard parity | — | `←` / `→` (Pack Roving Arrows) | Focus moves and the row scrolls to keep the focused card snapped in view | 150 ms smooth scroll (reduced motion: instant jump) | none |
+| Reduced motion | Snap behavior is user-driven scroll and stays; the keyboard-parity smooth scroll becomes an instant jump | — | — | 0 ms | none |
+
+**Accessibility**:
+- The row keeps its `<ol>` accessible name ("Die Karten aus diesem Pack / The cards in this pack"); scrolling conveys no state that isn't already in the cards' accessible names.
+- `pan-x` is scoped to the row only — vertical page scroll is never hijacked; the dialog itself still scrolls vertically where needed.
+- Tap (open) and drag (scroll) are distinct gestures with distinct thresholds (8 px, ref) — a swipe must never accidentally open a card, and a tap must never accidentally scroll.
+- Keyboard parity is the Pack Roving Arrows model; the carousel adds no keyboard burden.
+
+**Animation spec**: snapping is native scroll physics (not a keyframed animation); the keyboard-parity scroll is 150 ms, instant under reduced motion.
+
+**Implementation Notes** (Svelte 5): CSS-only snapping (`scroll-snap-*` + `overflow-x` under a `@media (max-width: 760px)` or container query — container queries preferred so the dialog's own width decides). JS only for: the 8 px tap-vs-drag pointer threshold, and focus↔scroll sync (`scrollIntoView({ inline: 'center', behavior: reduceMotion ? 'instant' : 'smooth' })` on roving focus).
 
 ---
 
@@ -698,6 +764,37 @@ implementation change.
 **Animation spec**: hover lift and static-foil brightening per table; entrance animation for newly accessioned tiles ("Das Heft hat Zuwachs") is a light 300 ms fade-in stagger, **capped at ~2 s total** so 50 new tiles don't animate for 15 s; reduced motion: none of it, tiles appear instantly.
 
 **Implementation Notes** (Svelte 5): `<BinderTile>` per entry in a keyed `{#each}`; the "gesammelt" marker derives from the collection store. One delegated click handler on the grid (`closest('[data-photo-id]')` semantics via a wrapper or per-tile handlers — Svelte's cheap listeners make per-tile fine). Focus management uses `scrollIntoView({ block: 'nearest' })` on focus. Re-visit rendering strategy only above ~200 entries (PRD §9.2).
+
+---
+
+#### Catalogue Grid Roving Arrows
+
+**Category**: Navigation
+**Status**: Draft
+**When to Use**: On the catalogue grid (flat **and** grouped views): `←→↑↓` move keyboard focus tile-to-tile in the visual two-dimensional order; `Home`/`End` jump to the first/last tile; `Enter`/`Space` open the focused entry in the lightbox.
+**When NOT to Use**: Inside any dialog (dialogs own their own focus loops); in the pack dialog (Pack Roving Arrows over the dealt row); never as a `Tab` trap — **`Tab` still leaves the grid**: the grid is one tab stop, arrows move inside it.
+
+**Interaction Specification**:
+
+| State | Visual | Input trigger | Response | Duration | Audio |
+|-------|--------|---------------|----------|----------|-------|
+| Roving focus | Focused tile shows the standard focus ring (≥3:1, ≥2 px offset) | `←` / `→` / `↑` / `↓` | Focus moves tile-to-tile in the visual grid order; stops at the grid's edge (no wrap — `Home`/`End` cover the jumps); scroll-into-view on every move | 80 ms ring transition | none |
+| Jump to ends | — | `Home` / `End` | Focus to first / last tile, scrolled into view | instant | none |
+| Open focused tile | — | `Enter` / `Space` on the focused tile | Card Lightbox opens (URL gains `?photo=<id>`, entry marked "gesammelt") | per Dialog Open / Close | soft tick |
+| Grouped view ("Nach Räumen") | Same roving model; arrows follow the visual order **across department sections** (tile-to-tile, not department-to-department) | same | same | as above | none |
+| Single-card catalogue | Grid is one tile; arrows no-op | — | — | — | — |
+| Reduced motion | Focus movement is instant (it always was); scroll-into-view jumps without smoothing | — | — | 0 ms scroll | none |
+
+**Accessibility**:
+- Single-tab-stop composite: the grid container is one `Tab` stop (`tabindex="0"` with an accessible name — the existing "Alle Karten von Elsa / All cards of Elsa"); arrow keys move focus among the tiles via roving `tabindex`. `Tab` moves past the grid unchanged — arrows never trap keyboard users.
+- Tiles stay real `<button>`s inside the `<ul>` (list semantics carry collection order); **no `role="grid"`** — a 2-D grid role would promise cell semantics the content doesn't have. The roving model is announced naturally: focusing a tile reads its full accessible name, state included ("…, gesammelt" / "…, collected").
+- `Enter`/`Space` activate the focused tile (native button behavior); nothing is activation-locked to arrows.
+- Every focus move scrolls the focused tile into view (`block: 'nearest'`).
+- Tile targets are far larger than 44 × 44 CSS px.
+
+**Animation spec**: focus movement is instant; scroll-into-view is smooth by default and instant under reduced motion.
+
+**Implementation Notes** (Svelte 5): a `use:rovingGrid` Svelte action on the grid container; navigation is **geometry-based** (nearest-tile lookup from the current tile's center) rather than index math, so it survives both the flat layout and the grouped "Nach Räumen" render without knowing column counts. Roving `tabindex` derives from a `$state` focus id (keyed by photo id, so language re-renders re-anchor correctly). Vitest: geometry mapping on synthetic layouts; Playwright: arrows move focus, `Tab` exits the grid, `Enter` opens.
 
 ---
 

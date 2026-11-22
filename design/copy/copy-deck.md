@@ -32,6 +32,9 @@
 - Strings marked **PROPOSED** are written by this deck because no source document supplies
   them; they need an owner yes/no before build. Strings marked **NO STRING** are recorded
   as a deliberate silence so nobody "helpfully" adds an error message later.
+- Strings marked **re-voiced 2026-11-22** were rewritten under the owner voice ruling
+  (playful, warm, tongue-in-cheek). Their before/after pairs are collected in §15 so a
+  propagation pass can follow one table instead of diffing the whole deck.
 
 ### 0.2 Source legend
 
@@ -48,6 +51,7 @@
 | **A11Y** | `design/accessibility-requirements.md` |
 | **EN new** | English written here because the source gives only German; same meaning, same register |
 | **PROPOSED** | New string, no source; needs owner sign-off |
+| **VOICE** | Owner voice ruling 2026-11-22 (playful/warm register; supersedes the zero-exclamation rule, §0.4) |
 
 ### 0.3 Verb and badge canon (binding)
 
@@ -57,24 +61,57 @@
 | Collected tile state | **gesammelt** | **collected** | ~~gesehen / seen~~ |
 | Unseen tile state | **noch nicht gesammelt** | **not yet collected** | ~~ungesehen / unseen~~ |
 | Location badge (not a state) | **Im Katalog** | **In the catalogue** | used as a state verb |
-| Collection | **Der Katalog** | **The Catalogue** | ~~Sammelheft / binder~~ (only the Zuwachs line says "Heft", §3) |
+| Collection | **Der Katalog** | **The Catalogue** | ~~Sammelheft / binder / Heft~~ — no exception anywhere, including the Zuwachs line (§13) |
 | Second-lap stamp | **2. Auflage** | **Second edition** | ~~2nd printing~~ |
 | Brand | **Elsa the Explorer** | **Elsa the Explorer** | translated in either language |
 
-### 0.4 Voice rules (checked line by line)
+### 0.4 Voice law (checked line by line)
 
-1. Museum-catalogue register — plaques, entries, acquisitions, wings. Warm, dry, specific.
-2. German is **du** throughout. No "Sie".
-3. **Zero exclamation marks**, in both languages. (Grep gate: `!` must not appear in either
-   table column. The only permitted glyph is the typographic em dash and the middot.)
-4. No marketing voice, no "surprise", no gift framing — the collection is the product, the
-   visitor is its reader.
-5. No gambling flavour: no odds, no "ultra rare", no urgency, no countdown. The deck-walk
-   guarantee is stated plainly and once.
-6. **No water content.** Elsa hates water: no wet-dog, rain, mud or bathing string exists
-   anywhere, and the retired card-bank water jokes stay retired (§13).
-7. Every state change has a text carrier; decoration (foil, frames, stamps, outfits) never
-   carries meaning alone.
+**Supersedes the 2026-11-22 zero-exclamation rule** (owner voice ruling, 2026-11-22). The
+archive is not a solemn institution. It is the voice of a household that has decided its
+rescued dog deserves a museum — and says so out loud, at the door, to anyone passing. The
+museum apparatus stays exactly as it is *because* the household takes it far too seriously;
+that is the joke, and it is a fond one.
+
+1. **Playful, warm, tongue-in-cheek.** Fondness first: the house is devoted to Elsa and
+   slightly ridiculous about her. Dry wit is the default setting. Open delight is allowed —
+   an arrival may be announced with pleasure (that is what the Zuwachs line is for).
+2. **Never corporate-cheerful, never sarcastic at Elsa's expense.** No motivational uplift,
+   no "Juhu", no exclamation-stacked UI, no emoji — and no joke whose butt is the dog. The
+   reader laughs *with* the household's devotion, never at the animal.
+3. German is **du** throughout. No "Sie". English mirrors the **playfulness**, not the words:
+   same warmth, same wink; idioms are re-made, never translated word for word.
+4. **Exclamation marks: allowed sparingly — at most one per surface, and never in an error
+   string, a destructive confirmation, or an accessibility string** (alt text, aria label or
+   accessible name, live-region announcement). This **supersedes** the earlier zero-exclamation
+   rule, which is retired (§13). The grep gate now checks ≤ 1 per string, not = 0.
+5. **No water content** (canon, owner ruling 2026-11-22). Elsa hates water: no wet dog, rain,
+   mud, bathing, puddles, towelling, "nass" — not in a card, a copy line, or a joke. The
+   retired card-bank water jokes stay retired (§13).
+6. **No fake Greek.** The Antiquity apparatus is fiction, not texture: no transliterated
+   Greek, no invented inscriptions, no "ancient" lettering used as ornament
+   (`design/narrative/greek-origin.md`).
+7. **Rescue honored, never mocked.** Elsa was chosen; the copy may be proud of her and
+   absurdly devoted to her, but it never jokes about where she was before, never pities her,
+   and never treats her as damaged.
+8. **The museum is a game, not an institution.** Plaques, wings, accessions, editions and the
+   catalogue all stay — the household is in earnest about them, which is the joke — but the
+   deck never scolds, never sounds like a compliance notice, and never charges admission.
+9. **No marketing voice, no gift framing.** The collection is the product, the visitor is its
+   reader. Nothing is "for you" (in the gifting sense) and nothing is a surprise.
+10. **No gambling flavour.** No odds, "ultra rare", "luck", urgency, countdown or streak. The
+    deck-walk guarantee is stated plainly and once.
+11. **Every state change has a text carrier;** decoration (foil, frames, stamps, outfits)
+    never carries meaning alone.
+
+**Register anchors** — one noun per job. The propagation pass should not swap these:
+
+| Noun | DE / EN | Used for | Never for |
+| --- | --- | --- | --- |
+| The object | Karte / card | mechanics, counts, summaries (`pack.summary`), alt text | celebration lines |
+| The arrival | Schmuckstück / treasure | arrivals, the empty catalogue, the catalogue lede — the affectionate noun | a rarity, a stat, a price |
+| The collection | Der Katalog / The Catalogue | the whole, always this name (§0.3) | "Heft", "binder", a second name |
+| The institution | das Haus / the house | the fiction's voice — plaques, rules, admissions | the brand name |
 
 ### 0.5 Character budget policy
 
@@ -85,6 +122,9 @@
   from the EN baseline, and German usually spends it. Space-critical rows carry the check.
 - Two source budgets were too small for their own canon string and are raised here with
   the reason recorded (§11, D19 and D20).
+- Rows re-voiced 2026-11-22 re-derive their cap from the **new** EN baseline (same
+  `ceil(len(EN) × 1.4)` rule). Where a cap moved, the row records old → new: a cap that no
+  longer matches its own string stops catching anything.
 - Casing: sentence case in prose; CSS supplies the small-caps tracking on eyebrows. Never
   bake `text-transform` casing into a string.
 
@@ -116,9 +156,9 @@ No string may be assembled by concatenating a noun with a count.
 | Key | DE | EN | Max | 40 % / space | Source |
 | --- | --- | --- | --- | --- | --- |
 | `brand.name` | Elsa the Explorer | Elsa the Explorer | 40 | n/a — untranslated in both, owner canon | BR |
-| `brand.tagline` | Das Archiv eines Hundelebens. | The archive of a dog's life. | 60 | page-hero line, wraps freely | BR (EN new) |
+| `brand.tagline` | Das Leben einer Hündin, die weiß, dass sie wichtig ist. | The life of a dog who knows she is important. | 60 | page-hero line, wraps freely; DE 55 / EN 47. **re-voiced 2026-11-22** · VOICE | BR (EN new) |
 | `meta.title` | Elsa the Explorer — Das Kartenwerk | Elsa the Explorer — The Card Library | 60 | browser tab truncates ≈ 55; brand first so the cut is safe | STG §13 |
-| `meta.description` | Ein Kartenarchiv über Elsa: Pack öffnen, fünf Karten lesen, den Katalog vervollständigen. Sechs Säle, ein Hauptporträt. Ohne Konto, ohne Tracking. | A card archive of one dog: open a pack, read five cards, complete the catalogue. Six rooms, one Portrait of Record. No account, no tracking. | 155 | search/social snippet; DE 144, EN 140 — 11 spare | PROPOSED (STG requires OG tags but supplies no prose) |
+| `meta.description` | Ein Kartenarchiv für eine sehr wichtige Hündin: Pack öffnen, fünf Karten lesen, den Katalog füllen. Sechs Säle, ein Hauptporträt. Ohne Konto, ohne Tracking. | A card archive for a very important dog: open a pack, read five cards, fill the catalogue. Six rooms, one Portrait of Record. No account, no tracking. | 155 | search/social snippet; DE 152 / EN 151 — 3-4 spare, so no further growth. **re-voiced 2026-11-22** · VOICE | PROPOSED (STG requires OG tags but supplies no prose) |
 | `meta.og.site_name` | Elsa the Explorer | Elsa the Explorer | 40 | reuses `brand.name` | BR |
 | `meta.og.locale` | de_DE | en_GB | 5 | machine value, not prose | STG |
 | `meta.html.lang` | de | en | 2 | machine value; drives pronunciation | A11Y |
@@ -164,7 +204,7 @@ No string may be assembled by concatenating a noun with a count.
 | `stage.h1.line1` | Was steckt | What's in | 13 | **space-critical** — fixed two-line H1; DE 10, +40 % of EN (9) = 13 = cap | STG §13 |
 | `stage.h1.line2` | im Katalog? | the catalogue? | 19 | **space-critical** — DE 11, +40 % of EN (14) = 19.6 → 19; the cap is the EN string itself, a third wrapped line is the fallback | STG §13 |
 | `stage.tagline` | see `brand.tagline` | see `brand.tagline` | — | same key, no duplicate | BR |
-| `stage.lede` | Fünf Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt. | Five cards per pack, at least one shines. Every card comes up before any repeats. | 120 | DE 93 / EN 81; wraps to 4 lines max | PROPOSED from BR hooks + PL progress note |
+| `stage.lede` | Fünf Karten pro Pack, mindestens eine glänzt. Jede kommt einmal dran, bevor eine wiederkommt — Ordnung muss sein. | Five cards per pack, at least one shines. Every card comes up before any repeats — as is only proper. | 120 | DE 114 / EN 103; wraps to 4 lines max. **re-voiced 2026-11-22** · VOICE | PROPOSED from BR hooks + PL progress note |
 | `stage.cta` | Pack öffnen | Open a pack | 16 | **space-critical** — DE 11 / EN 11; button grows horizontally, min-height fixed | STG, PL |
 | `stage.cta.busy` | Pack wird geöffnet | Opening the pack | 20 | **space-critical** — DE 18 exceeds the 16 budget of the idle label; the button grows, never truncates | PL |
 | `stage.cta.empty` | Noch keine Karten | No cards yet | 18 | **space-critical** — disabled state must change text, not only opacity | PL |
@@ -174,7 +214,7 @@ No string may be assembled by concatenating a noun with a count.
 | `progress.overall` | Du hast {n} von {total} gesammelt. | You have collected {n} of {total}. | 36 + digits | **space-critical** — DE 28 with two-digit n/total; wraps to 2 lines max, number never truncates | PL, STG |
 | `progress.masthead` | see `progress.overall` | see `progress.overall` | 18 + ellipsis | **space-critical** — same key, truncated by CSS inside the masthead span, full string in `title` | STG §5.3 |
 | `progress.note` | Jede Karte kommt dran, bevor eine wieder auftaucht. | Every card gets a turn before any come back around. | 82 | DE 51 / EN 51; wraps to 3 lines | PL |
-| `zuwachs.line` | Das Heft hat Zuwachs: {n} neue Karten. | New in the binder: {n} new cards. | 47 | **space-critical** — DE 37 with two-digit n; wraps to 2 lines. Plain count-free variant is retired (D5) | GDD R8 |
+| `zuwachs.line` | {n} neue Schmuckstücke sind da! | {n} new treasures have arrived! | 44 | **space-critical** — DE 30 / EN 31; wraps to 2 lines. Cap **47 → 44**, re-derived from the new EN baseline (31 × 1.4); the old 47 described the retired string. The count-free variants and both "… hat Zuwachs" forms are retired (D5). The single `!` is this row's one exclamation; §8 renders it neutralised on the announcement path (D26). **re-voiced 2026-11-22** · VOICE | GDD R8, superseded by the owner voice ruling (D5) |
 | `demo.note` | Das hier sind Beispielkarten. Die echten Fotos fehlen noch. | These are sample cards. The real photos are not in yet. | 100 | DE 58 / EN 55 | PL, STG |
 | `demo.mixed` | **PROPOSED** Manche Karten sind noch Beispielkarten. | **PROPOSED** Some cards are still samples. | 60 | one line above the grid; needs owner sign-off (no source string exists) | PROPOSED |
 
@@ -185,8 +225,8 @@ No string may be assembled by concatenating a noun with a count.
 | Key | DE | EN | Max | 40 % / space | Source |
 | --- | --- | --- | --- | --- | --- |
 | `pack.dialog.title` | Dein Neuzugang | Your new arrival | 17 | **space-critical** — `aria-labelledby` target, single-line flex head; cap raised from 15 (D19) | PL, PCK |
-| `pack.eyebrow` | 1. Auflage · fünf Karten | 1st edition · five cards | 34 | **space-critical** — ellipsis in the head; the sachet art repeats it and wraps instead | PCK §13 |
-| `pack.hint` | Wähle eine Karte. Wische für die nächste. | Pick a card. Swipe to see the next one. | 48 | **space-critical** — DE 40 is the driver; hides under 380px height rather than shrink | PL, PCK |
+| `pack.eyebrow` | 1. Auflage · fünf frische Karten | 1st edition · five fresh cards | 34 | **space-critical** — DE 32 / EN 30; ellipsis in the head; the sachet art repeats it and wraps instead. "1. Auflage" is untouched canon; only the tail is re-voiced. **re-voiced 2026-11-22** · VOICE | PCK §13 |
+| `pack.hint` | Tippe eine Karte an, wisch zur nächsten. | Tap a card, swipe to the next. | 48 | **space-critical** — DE 41 is the driver; hides under 380px height rather than shrink. Both gestures still taught. **re-voiced 2026-11-22** · VOICE | PL, PCK |
 | `pack.btn.another` | Noch ein Pack | Another pack | 17 | **space-critical** — DE 13 / EN 12; wraps to its own row ≤380px | PL (also the lightbox primary action) |
 | `pack.btn.catalogue` | see `nav.catalogue` | see `nav.catalogue` | — | same key | PCK |
 | `pack.list.aria` | Die Karten aus diesem Pack | The cards in this pack | 30 | `<ol>` label | PL |
@@ -194,7 +234,7 @@ No string may be assembled by concatenating a noun with a count.
 | `pack.summary` | {n} Karten: {names}. | {n} cards: {names}. | dynamic | live region only, uncapped by layout; ≤ ~2 sentences | PL |
 | `pack.summary.one` | Eine Karte: {names}. | One card: {names}. | dynamic | singleton haul (catalogue of 1) | PROPOSED (plural rule) |
 | `pack.stamp.label` | 2. Auflage | Second edition | 17 | **space-critical** — rotated corner stamp, small text; must clear 4.5:1 at 9px | GDD R-H, PL (EN per D8) |
-| `pack.lap.line` | Von vorn — alle Karten kommen wieder. Ab jetzt mit 2.-Auflage-Stempel. | Starting over — every card comes around again. From now on with the second-edition stamp. | 106 | **space-critical, longest new string** — DE 69 / EN 89; wraps to 3 lines above the drop row | PCK §13 |
+| `pack.lap.line` | Von vorn — jede Karte kommt wieder, jetzt mit 2.-Auflage-Stempel. Das Archiv vergisst nichts. | Starting over — every card comes again, now with the second-edition stamp. The archive forgets nothing. | 106 | **space-critical, longest new string** — DE 93 / EN 103; wraps to 3 lines above the drop row. **re-voiced 2026-11-22** · VOICE | PCK §13 |
 | `pack.btn.another.busy` | see `stage.cta.busy` | see `stage.cta.busy` | — | one busy string for every open-trigger | PL |
 
 > Chase card: **no string**. Das Hauptporträt / The Portrait of Record carries its own
@@ -215,7 +255,7 @@ No string may be assembled by concatenating a noun with a count.
 | `card.stars.aria` | {n} von 5 Sternen | {n} of 5 stars | 20 | stars are decorative to sighted users, count spoken | PL |
 | `card.moment.label` | Elsa-Moment | The Elsa moment | 16 | band 4 keyword; small caps by CSS | CRD §5.3 |
 | `card.moment.imageNote` | Im Bild: {note} | In the picture: {note} | 44 | **space-critical** — first thing to yield when band 4 is full, never the sentence | CRD §13 |
-| `card.stats.label` | Fantasiewerte · nur zum Spaß | Imaginary stats · just for fun | 42 | **space-critical** — DE 27 / EN 30; wraps to 2 short lines above the chips. Must precede the values in the accessible name | BR, GDD R-I, CRD |
+| `card.stats.label` | Fantasiewerte · mit voller Überzeugung | Imaginary stats · held with conviction | 42 | **space-critical** — DE 39 / EN 38; wraps to 2 short lines above the chips. "Fantasiewerte / Imaginary" still leads, so the values can never read as data. Must precede the values in the accessible name. Also `plaque.caption`. **re-voiced 2026-11-22** · VOICE | BR, GDD R-I, CRD |
 | `card.stats.chip` | {key} {value}/10 | {key} {value}/10 | 12 + 4 | value box reserved so nothing clips (L4) | GDD Formulas |
 | `card.credit` | Elsa the Explorer · 1. Auflage | Elsa the Explorer · 1st edition | 40 | **space-critical, the defect band** — DE 30 / EN 31; fixed band, never over the photo; letter-spacing steps down, then 2 short lines | CRD §13, L3 |
 | `card.serial` | {n}/{total} | {n}/{total} | 12 | zero-padded to the width of `{total}` (e.g. `04/24`); formatting, not a string | CRD §5.1 |

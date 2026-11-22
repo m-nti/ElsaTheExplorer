@@ -1,0 +1,10 @@
+# Derived image cache — docs/photo-pipeline-implementation.md §8.1 (fallback config B).
+# This file is the ONLY reason an in-webroot cache is acceptable. It is tracked in git
+# (.gitignore has an explicit negation) and MUST be uploaded with every deploy.
+# Preferred production setup keeps the cache outside the webroot entirely.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>

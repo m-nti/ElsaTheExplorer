@@ -1,10 +1,10 @@
 # The Greek Origin — A Pantheon of One
 
 > **Status**: Draft · **Author**: world-builder · **Last Updated**: 2026-11-22
-> **Canon Level**: **Provisional** — the fact underneath (Elsa was rescued from a shelter in Greece) is **Established** owner canon; this myth layer is Provisional pending `narrative-director` sign-off.
+> **Canon Level**: **Provisional** — the facts underneath (shelter rescue in Greece; picked up on the night of 14 May at 02:00 at a petrol station near Dortmund, the last station of a three-day journey) are **Established** owner canon; this myth layer is Provisional pending `narrative-director` sign-off.
 > **Visible To Player**: **Discoverable** — four quiet surfaces, never front-loaded, never explained.
 > **Cross-References**: `design/features/archive-fiction.md` (§0 house, §2 rooms, §3 voices, §4 Lexikon, §6 naming) · `design/game-brief.md` · `design/gdd/collection-meta.md` (R-I capstone) · `design/art/art-bible.md` (§1–2) · `design/copy/copy-deck.md` (§0.4 voice)
-> **Source**: owner fact, 2026-11-22 (rescue, Greece) + this document for the myth layer. Nothing here is quoted as established by an earlier narrative document.
+> **Source**: owner facts, 2026-11-22 (rescue in Greece; three-day journey; pickup 14 May, 02:00, petrol station near Dortmund) + this document for the myth layer. Nothing here is quoted as established by an earlier narrative document.
 > **Purpose**: the household's affectionate mythology — a pantheon of one — layered *over* the archive, never replacing it. The catalogue stays the product; the myth is a margin note for a reader who looks twice.
 
 ---
@@ -26,18 +26,17 @@
 
 ## 1 · Die Ankunft / The Arrival
 
-Told in one place only: the record of the card the curator designates as the first (never the card face, never the pack). It has no sea in it, though it comes from the south. The journey is a road and a door; it is endured, not enjoyed, and the shelter is a building, not a congregation.
+Told in one place only: the record of the card the curator designates as the first (never the card face, never the pack). Three days of road, a last stop, a time — and no sea, no ferry, no harbour anywhere in it. The journey is endured, not enjoyed, and the shelter is a building, not a congregation.
 
 | Key | DE | EN | Space |
 | --- | --- | --- | --- |
 | `myth:origin:title` | Die Ankunft | The Arrival | ▸SC(16) |
-| `myth:origin:lede` | Sie kam aus dem Süden, über eine Straße, die niemand mehr genau benennen kann. | She came from the south, along a road nobody can name precisely any more. | ▸SC(96) |
 | `myth:origin:found` | Gefunden wurde sie in einem Haus voller Türen, in dem sie zu niemandem gehörte. | She was found in a house full of doors, where she belonged to no one. | ▸SC(96) |
-| `myth:origin:journey` | Die Reise war lang und wurde nicht genossen. Erinnert wird die Ankunft, nicht die Fahrt. | The journey was long and was not enjoyed. What is remembered is the arrival, not the ride. | ▸SC(110) |
-| `myth:origin:claimed` | Dann wurde sie beansprucht — mit einer Decke, einer Leine und einem Napf. | Then she was claimed — with a blanket, a leash and a bowl. | ▸SC(90) |
+| `myth:origin:aktion` | Eine klammheimliche Aktion: drei Tage Fahrt, letzte Station, eine Tankstelle bei Dortmund, 14. Mai, zwei Uhr nachts. | A hush-hush operation: three days on the road, last stop, a petrol station near Dortmund, 14 May, two in the morning. | ▸SC(120) |
+| `myth:origin:claimed` | Dort wurde sie beansprucht — mit einer Decke, einer Leine und einem Napf. | There she was claimed — with a blanket, a leash and a bowl. | ▸SC(84) |
 | `myth:origin:close` | Das ist die ganze Legende. Sie ist kurz, weil sie geprüft wurde. | That is the whole legend. It is short because it has been checked. | ▸SC(80) |
 
-**What the legend must not do:** pity her, praise the rescuers, name the shelter or any person, imply she was adored there, or make the crossing an adventure. She was found, she travelled, she was claimed. Flat facts, warm because they are true.
+**What the legend must not do:** pity her, praise the rescuers, name the shelter or any person, imply she was adored there, inflate the pickup into a raid, or make the journey an adventure. She was found, she travelled, she was claimed at a petrol station at two in the morning. Flat facts, warm because they are true; the operation is a household word, the record stays flat.
 
 ---
 
@@ -47,8 +46,8 @@ Seven, no more. Each replaces a sentence; none is a slogan. An epithet may sit i
 
 | Key | DE | EN | Meaning | Used at |
 | --- | --- | --- | --- | --- |
-| `myth:epithet:rescued` | Die Gerettete | The Rescued | the first fact, not an achievement; rescue named plainly, once | founding plaque, accession note |
-| `myth:epithet:arrived` | Die Angekommene | She Who Arrived | the second fact, the one that stuck | Abfahrtsaal, Adoptionstag, capstone |
+| `myth:epithet:rescued` | Die Gerettete | The Rescued | the first fact, not an achievement; rescue named plainly, once | founding plaque, provenance line |
+| `myth:epithet:arrived` | Die Angekommene | She Who Arrived | the second fact, the one that stuck | Abfahrtsaal, Ankunftstag, capstone |
 | `myth:epithet:nap` | Herrin des Ruhesaals | Lady of the Nap Wing | jurisdiction over sleep; work done lying down | Ruhesaal cards, solstice ritual |
 | `myth:epithet:departure` | Herrin des Abfahrtsaals | Lady of the Departure Hall | departures, window noses, the door that opens | Abfahrtsaal cards |
 | `myth:epithet:guard` | Wächterin des Wachsaals | Warden of the Guard Room | vigilance; the eyebrow that reports | Wachsaal cards |
@@ -97,9 +96,10 @@ Two dates, both display-only. **No festival creates state:** nothing is stored, 
 
 | Key | DE | EN | Note |
 | --- | --- | --- | --- |
-| `myth:fest:gotcha:name` | Der Adoptionstag | Gotcha Day | the day she arrived |
-| `myth:fest:gotcha:line` | Am Adoptionstag wird nicht gefeiert; es wird verzeichnet, dass sie da ist. | On Gotcha Day the house does not celebrate; it records that she is here. | one sentence, no thanks |
-| `myth:fest:gotcha:note` | Ein Tag im Jahr, kein Zähler. Das Datum steht im Zugangsvermerk. | One day a year, no counter. The date is in the accession note. | the anti-streak clause |
+| `myth:fest:arrival:name` | Der Ankunftstag | Arrival Day | 14 May, the end of the operation |
+| `myth:fest:arrival:line` | Am 14. Mai wird nicht gefeiert; es wird verzeichnet, dass sie da ist. | On 14 May the house does not celebrate; it records that she is here. | one sentence, no thanks |
+| `myth:fest:arrival:time` | Um zwei wird eine Kerze angezündet — die Stunde der klammheimlichen Aktion, sonst nichts. | At two a candle is lit — the hour of the hush-hush operation, nothing else. | the pickup hour, kept small |
+| `myth:fest:arrival:note` | Ein Tag im Jahr, kein Zähler. Das Datum steht im Herkunftsvermerk. | One day a year, no counter. The date is in the provenance note. | the anti-streak clause |
 | `myth:fest:solstice:name` | Die Sonnenwende | The Solstice | longest day |
 | `myth:fest:solstice:line` | Die Sonnenwende wird im Liegen begangen: der längste Tag, der wärmste Fleck, keine Verpflichtung. | The solstice is observed lying down: the longest day, the warmest patch, no obligations. | ties to *Sonnenplatz* |
 | `myth:fest:solstice:note` | Die Vorhänge bleiben offen, bis sie wandert. | The curtains stay open until she moves. | the spot moves, not her |

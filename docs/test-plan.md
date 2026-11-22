@@ -199,8 +199,10 @@ not done.
 
 ## 4. Test data
 
-All fixtures live in `tests/fixtures/` and are committed. Production `photos/` is never
-read by tests and never modified.
+All fixtures live in `tests/fixtures/`. Committed fixtures are the deterministic text/JSON
+ones; **binary image fixtures are generated at setup** into a gitignored directory (§4.2),
+because a committed copy of a production photo is a permanent EXIF/GPS leak. Production
+`photos/` is never read by tests and never modified.
 
 ### 4.1 Deterministic fixture manifest
 
@@ -231,34 +233,52 @@ Additional fixtures:
 
 ### 4.2 Fixture images
 
-| File | Spec | Purpose |
+**No fixture is a copy of a production photo.** A byte-identical copy of
+`photos/elsa-01.jpg` would commit a personal image with its EXIF/XMP payload (GPS, device
+model, capture time) into git history — permanent, and not revertable by deleting the file
+later — and it would tie the passthrough canary to a file the owner may re-export at any
+time. Diffable text fixtures stay committed (§4.1); **binary image fixtures are generated**
+by `tests/fixtures/images/make-fixtures.mjs` into the gitignored
+`tests/fixtures/images/generated/` at test setup (or via `npm run fixtures`). The generator
+writes `tests/fixtures/image-sources.json` (also gitignored) with
+`{file, bytes, sha256, width, height}` for everything it produced, and the suite reads the
+source hashes and byte lengths from that ledger — never from a constant in the test file.
+
+| File (`tests/fixtures/images/generated/`) | Spec | Purpose |
 | --- | --- | --- |
-| `tests/fixtures/images/portrait.jpg` | 1200×1600, 3:4, mid-key | Crop anchor `focus`, portrait frames |
-| `tests/fixtures/images/landscape.jpg` | 1600×1067, 3:2, normal key | Standard tile/pack card |
-| `tests/fixtures/images/high-key.jpg` | 1600×1200, 4:3, near-white background | Contrast/legibility of card plate over bright art |
-| `tests/fixtures/images/stress-elsa-01.jpg` | **copy of `photos/elsa-01.jpg` — 3,983,035 bytes (3.98 MB)**, 5712×3840 | Source-passthrough detection, byte ceiling, HEIC-adjacent stress |
+| `portrait.jpg` | 1200×1600, 3:4, mid-key | Crop anchor `focus`, portrait frames |
+| `landscape.jpg` | 1600×1067, 3:2, normal key | Standard tile/pack card |
+| `high-key.jpg` | 1600×1200, 4:3, near-white background | Contrast/legibility of card plate over bright art |
+| `stress-24mp.jpg` | **generated** 5712×4284 = **24,470,208 px (24.47 MP)**, EXIF Orientation 1, EXIF + XMP + GPS payload embedded, ~1.5–4 MB | Source-passthrough detection, byte ceiling, metadata-stripping stress, memory-ceiling case (`docs/photo-pipeline-implementation.md` §10.3) |
+| `stress-24mp-orient6.jpg` | same 24,470,208 px, EXIF Orientation 6 | Rotation path at the hero pixel count (the 3.2× worst-case bitmap projection) |
 
-The stress image is a byte-for-byte copy of the real 3.98 MB original, not a
-downscaled stand-in. It is the canary: any UI response whose SHA-256 matches it, or
-whose byte length equals 3,983,035, is a failed delivery assertion.
-
-Fixture source hashes are recorded in `tests/fixtures/image-budgets.json` at fixture
-creation time.
+The stress fixtures are the canaries: any UI response whose SHA-256 matches a recorded
+source SHA-256, or whose byte length equals a recorded source length, is a failed delivery
+assertion. The recorded value is the assertion — not a literal size copied from a photo,
+which is why the old `3,983,035` constant is gone.
 
 ### 4.3 Image budget constants
 
-`tests/fixtures/image-budgets.json` is the single place budgets are tuned.
+`tests/fixtures/image-budgets.json` is the single place budgets are tuned. It is committed
+and carries budgets only; the source byte lengths and hashes it is compared against come
+from the generated `image-sources.json` (§4.2).
 
 | Tier | Consumer | Max long edge | Max bytes | Rationale |
 | --- | --- | --- | --- | --- |
 | `tile` | BinderShelf / catalogue grid | 360 px | 49,152 B (48 KiB) | 2–3 column mobile grid; doubles at DPR 2 within a 360 CSS-px cell |
 | `pack` | PackTheatre drop row | 720 px | 163,840 B (160 KiB) | PRD §5 display-copy cap; one card fills a phone viewport |
-| `detail` | CardDetail exhibit | 1200 px | 409,600 B (400 KiB) | Full-screen study table; still 10× smaller than the 3.98 MB original |
-| `global` | Any UI image | 1200 px | 409,600 B | Hard ceiling for every non-download image response |
+| `detail` | CardDetail exhibit | 1200 px | 409,600 B (400 KiB) | Full-screen study table; still an order of magnitude below the 24.5 MP stress source |
+| `download` | "Foto speichern" — **explicit click only** | 1600 px | 512,000 B (500 KiB) | The only tier allowed above the UI ceiling: it is a download, never a rendered image |
+| `global` | Any UI image response (render path) | 1200 px | 409,600 B | Hard ceiling for every non-download image response |
 
-Ceilings are **starting values** calibrated against the three fixture images at
+Ceilings are **starting values** calibrated against the generated base fixtures at
 JPEG quality 80–82. Tightening is a one-line fixture edit; loosening requires an ADR
 amendment. A tier ceiling must never be loosened to make a test pass.
+
+`download` is not a UI tier: nothing requests it on render (§7.3), and its 512,000 B budget
+is asserted only after an explicit activation. The pipeline's 4 MiB per-rendition discard
+cap (`docs/photo-pipeline-implementation.md` §9) is a safety valve for a pathological
+render, not a delivery budget — the 500 KiB figure is the contract.
 
 ### 4.4 Deterministic copy fixture
 
@@ -576,7 +596,7 @@ net for the refactor, because v1 passed focus checks only by accident.
 | --- | --- | --- |
 | E-IMG-01 | Thumb 404, `src` OK | Element falls back to `src`; no broken-image icon; layout unchanged |
 | E-IMG-02 | Thumb and `src` 404 | Card frame stays fully readable (name, mood, rarity, caption); no empty hole; no error modal |
-| E-IMG-03 | HEIC source, converter chunk fails | Frame readable, no visitor-facing error text, no crash; save link still offers the original |
+| E-IMG-03 | HEIC source, converter chunk fails | Frame readable, no visitor-facing error text, no crash; save link still offers the 1600 px download derivative (never the HEIC original) |
 | E-IMG-04 | HEIC source, converter OK | Image renders; `heic2any` chunk requested **only** when a HEIC photo is actually opened |
 | E-IMG-05 | Mixed: 3 of 8 images fail | Only failing items degrade; the rest render |
 | E-IMG-06 | No image response ever triggers an error dialog or a toast | Error State pattern: no modal errors |
@@ -675,8 +695,10 @@ UX spec; the architecture text is the stale document.
 ## 7. Image delivery assertions
 
 This is a **contract gate**, not a smoke test. It enforces the three-tier delivery
-model (tile 360 / pack 720 / detail 1200) and the "never ship the original into the
-UI" rule.
+model (tile 360 / pack 720 / detail 1200), the 1600 px `download` rung as the *only*
+savable asset, and the "never ship the original into the UI" rule. **No assertion in this
+section names the original as a download target** — the download target is a derivative
+(§7.3).
 
 ### 7.1 Harness
 
@@ -713,14 +735,14 @@ styling hook.
 | E-DLV-02 | Every tile response: long edge ≤ 360 px and `bytes <= 49,152` |
 | E-DLV-03 | Every pack response: long edge ≤ 720 px and `bytes <= 163,840` |
 | E-DLV-04 | Every detail response: long edge ≤ 1200 px and `bytes <= 409,600` |
-| E-DLV-05 | **No response's SHA-256 equals a source fixture hash** (all four fixture images, including the 3.98 MB stress image) |
-| E-DLV-06 | **No response's byte length equals 3,983,035** (cheap secondary canary) |
+| E-DLV-05 | **No response's SHA-256 equals a recorded source SHA-256** (every generated fixture, from `image-sources.json`) |
+| E-DLV-06 | **No response's byte length equals a recorded source byte length** (cheap secondary canary) |
 | E-DLV-07 | Aspect ratio preserved within 0.5 % of the source; no stretching |
 | E-DLV-08 | Response `Content-Type` is `image/jpeg` (or `image/webp` if the pipeline adopts it); never `image/heic` in the UI |
 | E-DLV-09 | Decoded pixel dimensions match the declared `width`/`height` attributes (no CLS surprise) |
 | E-DLV-10 | Each element requests exactly one image URL (no duplicate fetches, no 404 retry storm) |
 | E-DLV-11 | Off-screen binder tiles are not requested on first paint (`loading="lazy"` respected); request count ≤ visible tiles + 1 |
-| E-DLV-12 | The stress image's three tiers are all materially smaller than the source (each ≤ 10 % of 3,983,035 B) |
+| E-DLV-12 | The 24.47 MP stress fixture's three display tiers are all materially smaller than its source (each ≤ 10 % of the recorded source byte length) |
 | E-DLV-13 | A 500-entry manifest stays under a request cap on first paint (e.g. ≤ 20 image requests) |
 | E-DLV-14 | Images carry cache-validating headers (`ETag` or `Last-Modified`) and are not re-fetched on same-session navigation |
 | E-DLV-15 | Binder image elements carry `loading="lazy"`, `decoding="async"`, `width`, `height` |
@@ -731,20 +753,22 @@ styling hook.
 
 | ID | Assertion |
 | --- | --- |
-| E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/|converted/|\.cache/)` — assert the set is empty for the whole journey |
+| E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/|converted/|\.cache/|derived/)` — assert the set is empty for the whole journey |
 | E-ORG-02 | No `<img src>`, `<source srcset>`, CSS `url()`, or `fetch()` targets a bare `/photos/<original>` path |
-| E-ORG-03 | The save/download affordance may reference the original, but only as an anchor `href`; **no request is issued until the user activates it** |
-| E-ORG-04 | After an explicit download click, exactly one request to the original/view endpoint is allowed and is exempt from E-DLV-01..07 |
+| E-ORG-03 | The save/download affordance points at the **1600 px download derivative** — static: `photos/derived/download/<id>.jpg`; runtime: `photos.php?image=…&size=detail&download=1` — and **never** at `/photos/<original>`; no request is issued until the user activates it |
+| E-ORG-04 | After an explicit download click: exactly one request to the download URL, `200`, `Content-Disposition: attachment`, long edge **1600 px** (or the source's long edge when smaller — never upscaled), **response SHA-256 ≠ the source fixture's recorded SHA-256**, **response bytes ≠ the source's recorded byte length**, and **bytes ≤ 512,000 (500 KiB)**. Exempt from E-DLV-01..04 only |
 | E-ORG-05 | `?view=` is never used for an `<img>` in any render context (detail included) |
-| E-ORG-06 | A heuristic backstop: any response > 409,600 B that is not the explicit download fails the run with the URL printed |
+| E-ORG-06 | A heuristic backstop: any response > 409,600 B that is not the explicit download (itself capped at 512,000 B and asserted in E-ORG-04) fails the run with the URL printed |
+| E-ORG-07 | **The download is a derivative, not a passthrough**: fetch it twice (warm cache) and assert identical bytes, `Content-Length` == body length, and decoded pixels at the download rung (1600 px long edge for the 5712×4284 stress fixture) — never 5712×4284 themselves |
 
 > **Contract conflict C1 (blocking):** `docs/architecture.md` currently states
 > "CardDetail uses `view`, never `thumb`" and "Originals: detail dialog + save".
-> A ≤1200 px detail tier contradicts that. This plan enforces the three-tier contract
-> from the owner brief. The delivery endpoint must gain a width/clamp parameter (or a
-> `view&w=1200` variant) and the architecture + ADR must be amended. Until the pipeline
-> lands, E-DLV-04 and E-ORG-05 are expected red; they are not to be skipped or
-> deleted.
+> A ≤1200 px detail tier contradicts that, and the save action now serves a 1600 px
+> derivative rather than the original. This plan enforces the three-tier + download
+> contract from the owner brief. The delivery endpoint must gain a width/clamp parameter
+> (or a `view&w=1200` variant) and the architecture + ADR must be amended. Until the
+> pipeline lands, E-DLV-04, E-ORG-03 and E-ORG-05 are expected red; they are not to be
+> skipped or deleted.
 
 ---
 
@@ -765,7 +789,7 @@ any step stops the pipeline.
 | 6 | Build | `vite build` | Build error; also emits `reports/size.json` |
 | 7 | Playwright | `playwright test --project=chromium --project=webkit --project=mobile-chrome --project=mobile-safari` | Any journey, keyboard, motion, focus, error, overflow, browse or reset failure |
 | 8 | axe | `playwright test tests/e2e/a11y.axe.spec.ts` (dedicated stage, reuses the build) | Any critical/serious violation; any new moderate outside the dated baseline |
-| 9 | Bundle + byte budget | `node scripts/budget-check.mjs` reading `reports/size.json` + the image ledger | JS gzip > 100 KB hard cap (60 KB target reported); CSS gzip > 30 KB including `styled-system/`; any image over a §4.3 ceiling; any original in the UI ledger |
+| 9 | Bundle + byte budget | `node scripts/budget-check.mjs` reading `reports/size.json` + the image ledger | JS gzip > 100 KB hard cap (60 KB target reported); CSS gzip > 30 KB including `styled-system/`; any render response over a §4.3 ceiling; any download response over 512,000 B; any original in the UI ledger |
 
 Notes:
 
@@ -937,7 +961,7 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 - [ ] Chevrons, arrows and swipe all navigate and wrap
 - [ ] `F`/Enter flips; flip state is announced
 - [ ] Share: native → clipboard → visible failure; cancel is silent
-- [ ] Save link offers the original without fetching it on render
+- [ ] Save link offers the 1600 px download derivative without fetching it on render
 
 ### Keyboard and focus
 
@@ -975,7 +999,8 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 ### Delivery and privacy
 
 - [ ] Every tile ≤ 360 px / 48 KiB; pack ≤ 720 px / 160 KiB; detail ≤ 1200 px / 400 KiB
-- [ ] No UI response matches a source hash (including the 3.98 MB stress image)
+- [ ] Download is the 1600 px derivative: ≤ 500 KiB, not byte-identical to the source, `attachment`
+- [ ] No UI response matches a recorded source hash (generated 24.47 MP stress fixture)
 - [ ] No request for a bare `/photos/<original>` during the journey
 - [ ] Off-screen binder images are lazy-loaded
 - [ ] Zero third-party requests, zero cookies, no non-`lucky-elsa` storage
@@ -1043,7 +1068,7 @@ These are findings from writing the plan. Test code must not silently choose a s
 
 | ID | Conflict | Impact | Resolution needed |
 | --- | --- | --- | --- |
-| **C1** | `docs/architecture.md` says CardDetail uses the **original** (`view`), while the plan's delivery contract caps detail at 1200 px and forbids UI requests for originals | Blocks E-DLV-04, E-ORG-01..05 | Owner + technical-director: add a clamped width to the view endpoint, amend architecture + ADR-0004. Until then those tests are expected red. |
+| **C1** | `docs/architecture.md` says CardDetail uses the **original** (`view`), while the plan's delivery contract caps detail at 1200 px, serves a 1600 px derivative as the download, and forbids UI requests for originals | Blocks E-DLV-04, E-ORG-01..07 | Owner + technical-director: add a clamped width to the view endpoint and a `download=1` rung, amend architecture + ADR-0004. Until then those tests are expected red. |
 | **C2** | `architecture.md` says "No swipe gestures"; interaction-patterns v2 specifies swipe **and** chevrons as three redundant inputs | Blocks E-BRW-05..07 | UX spec v2 wins (later, owner ruling on chevrons). Architecture text must be corrected. |
 | **C3** | Architecture renders the pack as inline `PackTheatre`; UX v2 specifies a **pack dialog** with backdrop rules and skip semantics | Focus/backdrop tests need one surface definition | Behaviour tests are role-first; E-FOC-04/05 assume dialog semantics. Confirm the surface before implementing focus tests. |
 | **C4** | Progress copy: PRD F13 and architecture say "gesehen/seen"; interaction-patterns v2 declares **"gesammelt/collected"** canon | `copy-canon.json` cannot be pinned both ways | Owner/UX: ratify one string. The plan pins the ratified key, not the literal, until decided. |
@@ -1061,8 +1086,10 @@ These are findings from writing the plan. Test code must not silently choose a s
    response dimensions.
 4. Playwright's clock API can drive the 3 s/4 s fetch timeouts deterministically.
 5. `fast-check` may be added as a dev dependency (property tests are mandated here).
-6. The 3.98 MB stress image may be committed as a fixture (it is 3.8 MB; repository
-   size is acceptable given the project already ships it in `photos/`).
+6. Binary image fixtures are **generated** at setup (§4.2), not committed: a checked-in copy
+   of a production photo would leak its EXIF/GPS payload into git history for good. The
+   generator's ledger (`tests/fixtures/image-sources.json`) is gitignored too, because its
+   hashes move with the sharp/libvips build.
 
 ### Open questions
 

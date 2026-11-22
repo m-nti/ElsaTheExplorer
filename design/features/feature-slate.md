@@ -1,10 +1,38 @@
 # Feature Slate — Elsa the Explorer
 
-> **Status**: Proposal (pre-decision) · **Author**: creative-director · **Date**: 2026-11-22
+> **Status**: **Decided** — scope plus the five canonical rulings of 2026-11-22 · **Author**: creative-director · **Date**: 2026-11-22 · **Last Updated**: 2026-11-22
 > **Basis**: `design/game-brief.md`, `design/gdd/collection-meta.md`, `design/player-journey.md`,
 > `design/accessibility-requirements.md`, `AGENTS.md`
 > **Horizon**: post-refactor (after build step 6). Nothing here may delay steps 1–6, and nothing here
 > replaces a card, a caption or a wing the owner has not yet curated.
+
+## Canonical decisions (2026-11-22)
+
+Binding on every affected document. This slate wins on **scope and naming**; `mechanics.md` wins on
+**mechanical detail**. Both, and the two feature specs, were reconciled to the rulings below — no
+document in `design/features/` may contradict them without an owner ruling.
+
+1. **Daily surface — *Der Aushang / The Bulletin*.** The surface is **kept** and renamed; "Karte des
+   Tages" stays dead as vocabulary (`archive-fiction.md` §6) and the spec's filename is historical
+   (`specs/karte-des-tages.md`). The invariant that survives every verdict: **it collects nothing** — no
+   flip, no lightbox, no write, no draw from the unseen pool, and the calendar never gates a card, a
+   reward or a milestone. What remains **killed** is *calendar-driven retention*: no expiring content, no
+   daily reward, no streak, no "you missed it".
+2. **Card backs — identity, not reward.** Kept as **identity / information surfaces unlocked by milestone
+   state**: a back names what the collection is. Never a currency, never a cosmetic economy, never a
+   reward ladder, and no locked back is listed, counted, greyed or teased anywhere.
+3. **Sammelbogen — one variant, one default.** Collected-only by default with an **off-by-default**
+   "Noch nicht gesammelte als Platzhalter / Include not-yet-collected as placeholders" toggle;
+   **16 cards per A4 page (4 × 4)**; **flat catalogue order**, the room name as each card's label (no
+   per-wing sections); **0 collected** prints the archive crest + the instruction line — never an empty
+   grid.
+4. **Sonderausstellung — one codec, one shape.** Fragment
+   `#ausstellung/1/<comma-joined encodeURIComponent(ids)>`; storage `lucky-elsa.exhibition.v1` holding
+   **ordered photo ids only** (no envelope, no timestamp — `.v1` in the key is the version); **1–5
+   cards**; unknown ids dropped with an honest count; **opening a work from a shared view must not drop
+   the `#ausstellung` fragment**.
+5. **Scope — six core, Chronik gated, PWA deferred.** The six in *Scope decision (current)* are the
+   current decision; everything else is deferred or killed as recorded below.
 
 ## How this slate was filtered
 
@@ -40,7 +68,7 @@ cancelled — the answer would be more photos, not more surfaces.
 **Fiction** — A museum with wings and plaques mounts *Sonderausstellungen*. The visitor graduates from reader to guest curator — the promotion the Ehrenmensch promises and never lets them perform.
 **Effort / risk** — **M**. Risk: a five-card link is a thin object if the wall label is generic — the label is the feature, not the cards. Second risk: nothing forces a recipient to care; mitigated by pack symmetry (five cards) and the sender's name on the wall.
 **A11y** — Selection is an `aria-pressed` toggle on existing tiles, never drag-and-drop; the exhibition renders in catalogue order, so there is no ordering mechanic to be keyboard-hostile. Mounted view = ordered list of existing card components + heading; focus to the title on open, back to the trigger on close; live region announces "Ausstellung geöffnet: fünf Karten, kuratiert von …"; stale ids are named in text ("Drei Karten dieser Ausstellung sind nicht mehr im Katalog"), never silently dropped.
-**Constraints / sharpened** — Clean, and unusually so: fragments are never sent to the server, so sharing tells IONOS nothing — not even which cards. Shared cards are already public in the catalogue (no new exposure); no public feed means no moderation, no live ops. Five cards exactly; wall label **auto-composed** from the dominant wing and card copy with an optional one-line override (owner cost ≈ 8 templates/language, visitor effort zero); a local shelf of up to eight saved exhibitions (`lucky-elsa.exhibitions.v1`) so it is a thing they own, not a one-off link; recipients walk it with `←`/`→` using the Reveal Theatre components.
+**Constraints / sharpened** — Clean, and unusually so: fragments are never sent to the server, so sharing tells IONOS nothing — not even which cards. Shared cards are already public in the catalogue (no new exposure); no public feed means no moderation, no live ops. **One to five cards**, in the visitor's own order — the arrangement *is* the exhibition and travels in the link (canonical decision 4); the wall label is **auto-composed** from the dominant wing and card copy with a derived number ("Sonderausstellung Nr. {nr}"), no free-text input and therefore no empty-title or moderation state — **title override retired 2026-11-22: derived exhibition number only**; a single local draft (`lucky-elsa.exhibition.v1`, ordered ids only) so it is a thing they own, not a one-off link — *no shelf of saved exhibitions* (retired 2026-11-22: a shelf is a second collection axis); recipients walk it with `←`/`→` using the Reveal Theatre components.
 
 ### 02 · Das Elsa-Lexikon — **KEEP (sharpened to a motif glossary)** · *seeds 5 + 3 + 4*
 
@@ -49,7 +77,7 @@ cancelled — the answer would be more photos, not more surfaces.
 **Fiction** — Every serious catalogue has an index and a glossary; the glossary is where an institution admits what it cares about. *"Deckenbindung, die — der Zustand, in dem eine Decke nicht mehr dem Menschen gehört."*
 **Effort / risk** — **M** (one view + one optional manifest field + copy). Risk: copy cost — 20 terms × 4 strings is one honest sitting that competes with the owner's scarcest resource. Mitigation: ship with 8 terms seeded from the existing card-bank jokes; terms appear only when a `terms` entry exists, so a half-curated glossary is a smaller glossary, never a broken room. Second risk: overlap with *Das Gesamtverzeichnis* — clean split, the Verzeichnis is numbers, the Lexikon is vocabulary.
 **A11y** — Real `<dl>` semantics, an alphabetical in-page index as a list of links, no hover reveals, no colour-only "belegt durch" state (it reads "belegt durch 2 von 3 Karten"); card-back content extends the existing flip announcements.
-**Constraints / sharpened** — Clean: one optional `terms` field passed through by `photos.php`, no new state beyond the seen-set. **Kills the per-card definition** (60 entries is admin the owner will not pay) in favour of motifs. **Absorbs seed 3's forecast**: the card back becomes an information surface — number, the card's term, and *Elsa-Prognose*, a deterministic one-liner seeded by (date, card id): *"Heute günstig für Sofa. Ungünstig für Staubsauger."* Nothing expires and nothing is rewarded when you look. **Absorbs seed 4**: the back is content, not a cosmetic unlock.
+**Constraints / sharpened** — Clean: one optional `terms` field passed through by `photos.php`, no new state beyond the seen-set. **Kills the per-card definition** (60 entries is admin the owner will not pay) in favour of motifs. **Absorbs seed 3's forecast** as one line of the card back's information surface — number, the card's term, and *Elsa-Prognose*, a deterministic one-liner seeded by (date, card id): *"Heute günstig für Sofa. Ungünstig für Staubsauger."* Nothing expires and nothing is rewarded when you look. **Absorbs seed 4 as identity, not as a reward** (canonical decision 2): the back is an *identity / information* surface, its variants unlocked by milestone state — never a cosmetic economy, and no locked back is ever teased.
 
 ### 03 · Der Katalogausweis — **KEEP (reframed)** · *seed 9*
 
@@ -62,10 +90,10 @@ cancelled — the answer would be more photos, not more surfaces.
 
 ### 04 · Der Sammelbogen — **KEEP (sharpened to a sticker sheet)** · *seed 2*
 
-**Pitch** — A printable sheet, one page per wing: collected cards as filled slots, missing ones as numbered empty slots with their names — the sticker album the collection descends from.
+**Pitch** — A printable sheet, sixteen cards to an A4 page: collected cards as filled slots, in catalogue order, each labelled with its room — the sticker album the collection descends from. An off-by-default toggle adds the not-yet-collected as labelled placeholders.
 **MDA / loop** — *Sensation*, *Expression*. The loop is offline: print → fridge → fill in by hand → come back to see what's still missing. The only feature that leaves the browser and the only one Oma can hold.
 **Fiction** — A Sammelwerk with a Sammelbogen is the genre's own ancestor; an archive issuing a printed sheet is nineteenth-century museum behaviour, not marketing.
-**Effort / risk** — **S/M** (one print route, `@media print`, a paper palette). Risk: mixed aspect ratios and print resolution (2× thumbnails suffice at A4); risk it reads as homework — mitigated by printing only what is *collected*, with missing slots honestly numbered.
+**Effort / risk** — **S/M** (one print route, `@media print`, a paper palette). Risk: mixed aspect ratios and print resolution (2× thumbnails suffice at A4); risk it reads as homework — mitigated by the default printing only what is *collected* (canonical decision 3), with placeholders a toggle nobody is nudged into, and **0 collected printing the crest + one instruction line instead of a grid of holes**.
 **A11y** — The on-screen sheet is the accessible artefact; print is an additional route, never the only one. Print CSS must invert to ink-on-paper (the parlour palette prints blank), carry a real document title, use card names as alt text, and mark collected state with a word or drawn tick — never a colour fill. Answers the open question "should the Ehrenmensch be printable?" — one route serves both.
 **Constraints / sharpened** — Clean: pure CSS print, no dependency, nothing to approve per print. One page per wing (6–10 slots is the album unit) plus the Ehrenmensch diploma as the final page — not a design-your-own-poster tool.
 
@@ -107,12 +135,40 @@ cancelled — the answer would be more photos, not more surfaces.
 
 ---
 
+## Sanctioned surfaces (inside the six, not additional features)
+
+Two things ship alongside the six without being features of their own: they add no loop and no verb, so
+they are not a seventh and eighth item on any ranking. Neither may be cut to "simplify" the build, and
+neither may grow into a surface with its own progression.
+
+### Der Aushang / The Bulletin — *the daily reading surface* · `specs/karte-des-tages.md`, `mechanics.md` §1
+
+A read-only bulletin in the Katalog header: today's card, plus *Elsa-Prognose* over three trait groups.
+Ten seconds, dry, warm, no obligation. **It collects nothing** — the tile has no button, no link, no flip,
+no lightbox; it writes no key and never draws from the pack's unseen-first pool. Its only variation is the
+calendar day, and that variation is *for reading*, never for retention: nothing is missed by not looking,
+nothing expires, and the calendar gates no card, reward or milestone. **What the kill verdict still
+enforces** (canonical decision 1): no expiring content, no daily reward, no streak, no "come back
+tomorrow", and no placement that competes with the pack for the stage's one primary action. Ships with
+Wings (build-order step 4); files as `karte-des-tages.md` for historical reasons only.
+
+### Kartenrücken / Card backs — *the identity surface* · `mechanics.md` §4
+
+The back of a card is a small private museum object: a door sign, a reading lamp, a velvet rope, a wing
+seal. Variants unlock from **milestone state** and are chosen in a picker that lists **unlocked backs only**
+(canonical decision 2). They are identity and information — a back says what the collection *is* — and
+explicitly **not** a reward economy: no currency, no unlock currency, no "next back" bar, no locked back
+listed, counted, greyed or teased anywhere, no badge, no auto-switch on unlock, and no gameplay effect
+whatsoever. Ships with the milestone wing seals in build-order step 5.
+
+---
+
 ## Killed, explicitly
 
 | Seed | Verdict | Why |
 |---|---|---|
-| **3 · Karte des Tages** | **KILLED as a surface** | A daily card is an *expiring* card; the brief forbids expiring content and daily rewards, and it makes the calendar the retention driver instead of the curator's accessions — the exact inversion the design refuses. The deterministic mechanism survives as *Elsa-Prognose* on the card back (02), where nothing is missed by not looking. |
-| **4 · Card-back unlocks** | **KILLED as a reward** | A cosmetic you only see when you flip is a reward most visitors never see, and it splits the cosmetic grammar ("rarity changes the foil, never the photo"). Milestones already pay out in furniture, and the Grundriss now hosts it. The back survives as an information surface. |
+| **3 · Karte des Tages** | **SURFACE REINSTATED 2026-11-22** (the *retention* kill stands) | The original verdict killed the wrong thing. A daily card as *a reason to return* is an expiring card, a daily reward and a calendar in the retention seat — all still forbidden, and the **kill of calendar-driven retention is unchanged**. But the museum has a noticeboard, and a read-only one costs nothing: the surface lives on as **Der Aushang / The Bulletin** (canonical decision 1, `specs/karte-des-tages.md`), which collects nothing, expires nothing and gates nothing. |
+| **4 · Card-back unlocks** | **KEPT, reframed — identity, not reward** (2026-11-22) | The kill was aimed at a **cosmetic reward economy**: cosmetics you only see when you flip, a second reward grammar, a checklist of unlocks. That framing stays dead. The backs themselves are kept as **identity / information surfaces unlocked by milestone state** (canonical decision 2, `mechanics.md` §4): the picker lists unlocked backs only, locked ones are never teased, and no back changes gameplay. The back was already the archive's information surface (02) — this makes the material part of the same idea. |
 | **6 · Vermisste Karte** | **KILLED outright** | It cannot coexist with the honest walk: a card the deck must deliver cannot be hidden, and a card hidden from the catalogue makes "64 von 64" a lie. It invents a fact about Elsa and hands the solo curator an obligation on a schedule they never agreed to. A secret contradicts this product's whole trust contract. |
 | **9 · Tauschcode as dupe sheet** | **FRAMING KILLED** | Dupe counting is an R-K violation; there is no dupe economy and no tradeable scarcity — repeats are *stamps*, not inventory. Mechanism kept as a save pass (03). |
 | **12 · Katalogbrief** (own addition) | **MERGED** | Not enough for its own surface; as the Lesetagebuch's share payload it costs nearly nothing and gives the diary a reason to exist. |
@@ -133,6 +189,30 @@ cancelled — the answer would be more photos, not more surfaces.
 | — | *Offline-PWA* | — | — | M | **Deferred**: infrastructure with the worst operational risk and the least delight. |
 
 **If only one ships, ship #1.** If only two, #1 and #3 — one to make the visitor an author, one to make sure they don't lose what they authored.
+
+### Scope decision (current)
+
+The recommendation above **is the decision** as of 2026-11-22, not a menu. The committed scope is
+**six core features**:
+
+1. **Die Sonderausstellung** — curated, shareable exhibition (`specs/sonderausstellung.md`)
+2. **Das Elsa-Lexikon** — motif glossary, seeded with 8 terms
+3. **Der Katalogausweis** — copy-paste save pass
+4. **Der Sammelbogen** — printable collector's sheet (`specs/sammelbogen.md`)
+5. **Der Grundriss** — floor plan of the seven rooms
+6. **Das Lesetagebuch** — notable-events reading diary + Katalogbrief
+
+Shipping *inside* that scope and not counted as features: the two sanctioned surfaces above — **Der
+Aushang** (build-order step 4) and **Kartenrücken** (step 5). They add no loop; Der Aushang adds no
+storage, Kartenrücken adds one preference key.
+
+**Gated:** *Die Chronik* — ships only if at least ~70 % of the manifest gets dated; otherwise cancelled,
+not deferred, and the name is freed.
+**Deferred:** *Offline-PWA* (revisit trigger: two independent reports of failed loads on mobile data), the
+1–3 card shelf of saved exhibitions, and every "nice" seed that
+failed a filter.
+**Killed:** Vermisste Karte; the Tauschcode-as-dupe-sheet framing; the daily-reward framing of the card of
+the day; the card-back reward-economy framing.
 
 ---
 
@@ -177,14 +257,19 @@ the family chat unasked, and someone replies with a card of their own. We ask; w
 5. **Lesetagebuch** — with the R7 reset-copy change in the same PR.
 6. **Chronik** only on an explicit dating commitment; **PWA** only on its named trigger.
 
+The two surfaces ride along: **Der Aushang** with step 2's Sammelbogen (both are read-only projections that
+need nothing but wings and the seen-set), **Kartenrücken** with step 4's Sonderausstellung (both are the
+Phase-5 keys that must ship with the reset-scope change). They are not extra steps and may not be used to
+justify reordering the six.
+
 **What must not happen:** no second completion axis, no second currency-shaped number, no reason to visit on
 a schedule, no new thing the owner must maintain weekly. This slate is additive to the *archive*, never to
 the *chore* — and none of it ships before the refactor's six steps are done.
 
 ## If approved, these cascade
 
-- **`collection-meta.md` R-E / R-J / R7** — `journal.v1` and `exhibitions.v1` join the storage contract and
-  the reset list; the confirmation copy must name them.
+- **`collection-meta.md` R-E / R-J / R7** — `journal.v1`, `exhibition.v1` and `cardback.v1` join the storage
+  contract and the reset list; the confirmation copy must name them.
 - **Photos pipeline** — optional `terms` (and `date`, if Chronik is greenlit) passed through by
   `photos.php`; `sharp` untouched.
 - **Copy deck** — ~8 exhibition templates, 8–20 terms × 4 strings, ~40 forecast lines, revised reset copy;
@@ -200,6 +285,6 @@ the *chore* — and none of it ships before the refactor's six steps are done.
    accession — the glossary should arrive the way the wings did.)*
 2. **Names in exhibition links** — "Kuratiert von Oma" travels in the URL. Acceptable? *(Recommendation:
    optional field, with copy that says plainly the name travels in the link.)*
-3. **Sammelbogen unit** — one page per wing, or one for the whole catalogue? *(Recommendation: per wing;
-   6–10 slots is the album, 64 is a wall chart.)*
+3. **Sammelbogen unit** — **Resolved 2026-11-22** (canonical decision 3): flat catalogue order, 16 per A4
+   page, room name as the card's label. Per-wing sections and a single 64-slot wall chart are both retired.
 4. **Chronik gate** — will photos get dates at upload? If no, the feature is cancelled, not deferred.
