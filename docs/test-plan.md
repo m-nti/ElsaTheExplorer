@@ -397,18 +397,18 @@ File paths below are contractual. Test IDs are stable and referenced by story Do
 | ID | Assertion |
 | --- | --- |
 | U-RAR-01 | `intrinsicRarity` is a pure function of `id` + `rarityOverride` (F3) |
-| U-RAR-02 | Same id ⇒ same rarity across 10,000 calls and across a simulated module reload | **F3/M3 regression** |
-| U-RAR-03 | Threshold boundaries: roll 63→common, 64→rare, 87→rare, 88→holo, 99→holo | Pin `fnv1a` and thresholds 64/88 |
+| U-RAR-02 | Same id ⇒ same rarity across 10,000 calls and across a simulated module reload (**F3/M3 regression**) |
+| U-RAR-03 | Threshold boundaries: roll 63→common, 64→rare, 87→rare, 88→holo, 99→holo (Pin `fnv1a` and thresholds 64/88) |
 | U-RAR-04 | `rarityOverride` wins for `common`, `rare`, `holo` |
 | U-RAR-05 | `rarityOverride: ''`, `null`, `undefined`, or invalid string falls back to the hash |
 | U-RAR-06 | `presentedRarity(photo, null) === intrinsicRarity(photo)` |
 | U-RAR-07 | `presentedRarity(photo, {promoted:true}) === 'holo'` |
 | U-RAR-08 | `presentedRarity(photo, {promoted:false}) === intrinsicRarity(photo)` |
 | U-RAR-09 | Promotion of a rare card (defensive) never downgrades it |
-| U-RAR-10 | **Single-source invariant**: for every pack draw, for every photo, `binderCardView(photo).rarity === intrinsicRarity(photo)` | The v1 copy-bug test |
+| U-RAR-10 | **Single-source invariant**: for every pack draw, for every photo, `binderCardView(photo).rarity === intrinsicRarity(photo)` (The v1 copy-bug test) |
 | U-RAR-11 | Promotion cannot survive the pack: after `packs.clear()`, no binder view reports holo from promotion |
 | U-RAR-12 | `PhotoRecord` is frozen: `Object.isFrozen(record)` and `Reflect.set` returns `false` |
-| U-RAR-13 | Snapshot hash of the whole `photos` array is identical before and after 1,000 draws | No mutation anywhere in the draw path |
+| U-RAR-13 | Snapshot hash of the whole `photos` array is identical before and after 1,000 draws (No mutation anywhere in the draw path) |
 | U-RAR-14 | A pack slot has exactly the keys `photoId`, `promoted` (no embedded record, no `rarity`) |
 | U-RAR-15 | `packCardView(slot, i)` resolves the photo by id from the collection; it does not clone the record |
 | U-RAR-16 | Rarity labels (DE/EN) come from the dictionary keyed by the enum; no string literals in `rarity.ts` |
@@ -432,7 +432,7 @@ Storage is a fake in-memory adapter; no jsdom required.
 | U-PST-10 | `pruneSeen(manifest)`: ids absent from the manifest are removed; present ids survive; order-insensitive |
 | U-PST-11 | `pruneSeen` on an empty manifest clears `seen` (owner deleted all photos) |
 | U-PST-12 | Pruned ids do not resurrect on the next boot |
-| U-PST-13 | **Reset clears every `lucky-elsa.*` key** — asserted by enumerating the adapter after seeding 3 known + 4 stale keys | AGENTS.md binding |
+| U-PST-13 | **Reset clears every `lucky-elsa.*` key** — asserted by enumerating the adapter after seeding 3 known + 4 stale keys (AGENTS.md binding) |
 | U-PST-14 | Reset restores `lang: 'de'`, `sound: true`, `seen: []` and announces the restart |
 | U-PST-15 | Reset with storage unavailable does not throw; in-memory state still resets |
 | U-PST-16 | `setItem` throwing `QuotaExceededError` degrades to in-memory defaults, app keeps running, reset is disabled with explanation (store state, not UI) |
@@ -460,11 +460,11 @@ The gate computes WCAG 2.2 relative luminance and contrast ratio **from
 | U-CON-06 | No token is exempt without an entry in `contrastExemptions` naming the WCAG clause and a reason; the exemption list is empty at gate start |
 | U-CON-07 | Alpha tokens are composited against their declared background before ratio computation |
 | U-CON-08 | Failure output names token, pair, computed ratio, threshold, and the file/line of the token |
-| U-CON-09 | **Negative test**: the gate REJECTS a fixture token set containing the v1 `--quiet` `#756e7d` on `--bg` `#111017` | Computed 3.86:1 |
+| U-CON-09 | **Negative test**: the gate REJECTS a fixture token set containing the v1 `--quiet` `#756e7d` on `--bg` `#111017` (Computed 3.86:1) |
 | U-CON-10 | **Negative test**: same token on `--surface` `#211d2a` (3.36:1) and `--bg-raised` `#1b1823` (3.56:1) also rejected |
 | U-CON-11 | **Negative test**: a token at exactly 4.49:1 fails; 4.50:1 passes (boundary) |
-| U-CON-12 | The production token set passes with the corrected `--quiet` value | Gate must be trusted to pass |
-| U-CON-13 | No hex/rgb literal exists outside `design/tokens/` in TS/CSS sources | Pairs with Stylelint; catches bypasses |
+| U-CON-12 | The production token set passes with the corrected `--quiet` value (Gate must be trusted to pass) |
+| U-CON-13 | No hex/rgb literal exists outside `design/tokens/` in TS/CSS sources (Pairs with Stylelint; catches bypasses) |
 
 > The negative test is a hard requirement from ADR-0002's build-phase checklist: the
 > gate must demonstrably reject the known-bad v1 value before it is trusted to pass
@@ -482,13 +482,13 @@ The gate computes WCAG 2.2 relative luminance and contrast ratio **from
 | U-I18N-06 | Plural/count forms: 0, 1, 2, 24 produce grammatical strings in both languages |
 | U-I18N-07 | Every key passed to `announcer.say` exists in both languages (static scan of `t('…')` call sites + runtime sweep) |
 | U-I18N-08 | Every state-taxonomy copy key exists: `loading`, `empty`, `network-error`, `invalid`, `thumb-failed`, `image-failed`, `share-*`, `storage-unavailable` |
-| U-I18N-09 | **Interaction-copy audit**: every interaction verb/affordance in copy maps to an entry in the interaction matrix. The audit term list covers "swipe/wischen", "press/drück", "click/klick", "scroll", "drag", "tap/tippen", "reset/von vorn" | Kills the v1 "promises swiping" class |
-| U-I18N-10 | The audit fails on a seeded positive control (a string promising an unimplemented `R` reset shortcut) | Proves the audit can fail |
+| U-I18N-09 | **Interaction-copy audit**: every interaction verb/affordance in copy maps to an entry in the interaction matrix. The audit term list covers "swipe/wischen", "press/drück", "click/klick", "scroll", "drag", "tap/tippen", "reset/von vorn" (Kills the v1 "promises swiping" class) |
+| U-I18N-10 | The audit fails on a seeded positive control (a string promising an unimplemented `R` reset shortcut) (Proves the audit can fail) |
 | U-I18N-11 | Language resolution: `?lang=en` beats stored `de`; `?lang=de` beats stored `en`; invalid/absent param falls back to stored, then `de` |
 | U-I18N-12 | `?lang=` is persisted after use (F9) |
 | U-I18N-13 | No dictionary value contains a hardcoded brand alternate (the brand name is fixed; taglines localize) |
 | U-I18N-14 | Copy canon fixture: reset confirmation body is the ratified `reset.body` — DE "Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück." / EN twin, cap 140 |
-| U-I18N-15 | No water vocabulary in either dictionary (rain, mud, bath, wet, nass, Regen, Schlamm, Bad) | AGENTS.md canon, content audit |
+| U-I18N-15 | No water vocabulary in either dictionary (rain, mud, bath, wet, nass, Regen, Schlamm, Bad) (AGENTS.md canon, content audit) |
 | U-I18N-16 | Departments are exactly the six canon rooms + `Neuzugänge`, in fixed order, in both languages (C7) |
 | U-I18N-17 | At most one `!` per string; none in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region |
 
@@ -894,7 +894,7 @@ styling hook.
 
 | ID | Assertion |
 | --- | --- |
-| E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/|converted/|\.cache/|derived/)` — assert the set is empty for the whole journey |
+| E-ORG-01 | Collect **all** requests whose path matches a direct photo file: `^/photos/(?!thumbs/\|converted/\|\.cache/\|derived/)` — assert the set is empty for the whole journey |
 | E-ORG-02 | No `<img src>`, `<source srcset>`, CSS `url()`, or `fetch()` targets a bare `/photos/<original>` path |
 | E-ORG-03 | The save/download affordance points at the **1600 px download derivative** — static: `photos/derived/download/<id>.jpg`; runtime: `photos.php?download=<name>` — and **never** at `/photos/<original>`; no request is issued until the user activates it |
 | E-ORG-04 | After an explicit download click: exactly one request to the download URL, `200`, `Content-Disposition: attachment`, long edge **1600 px** (or the source's long edge when smaller — never upscaled), **response SHA-256 ≠ the source fixture's recorded SHA-256**, **response bytes ≠ the source's recorded byte length**, and **bytes ≤ 500,000 (JPEG) / ≤ 350,000 (WebP)**. Exempt from E-DLV-02..04 only |
@@ -925,7 +925,8 @@ any step stops the pipeline.
 
 | # | Gate | Command (contract) | Fails when |
 | --- | --- | --- | --- |
-| 1a | Canon / vocabulary | `node scripts/canon-check.mjs` | Any live copy uses the retired collection name or the retired progress verb (canon: `docs/decisions.md` D-04b; vocabulary SSOT: `design/copy/copy-deck.md` §0); any retired binder noun; any water vocabulary from the canon list (`AGENTS.md` — water); any `!` in error, announcement, reset or aria copy; a stale, ambiguous or unreasoned entry in `scripts/canon-allowlist.json`; a baseline entry beyond the recorded `maxBaseline` |
+| 1a | Canon / vocabulary, then its self-tests | `node scripts/canon-check.mjs` → `vitest run --project canon` | Any live copy uses the retired collection name or the retired progress verb (canon: `docs/decisions.md` D-04b; vocabulary SSOT: `design/copy/copy-deck.md` §0); any retired binder noun; any water vocabulary from the canon list (`AGENTS.md` — water); any `!` in error, announcement, reset or aria copy; a stale, ambiguous or unreasoned entry in `scripts/canon-allowlist.json`; a baseline entry beyond the recorded `maxBaseline` |
+| 1b | Markdown table integrity | `node scripts/table-integrity.mjs` | Any table row in `docs/` or `design/` whose field count differs from its header row (GFM renders the surplus cell as a phantom column, or absorbs it into the last one); a `\|` that is not escaped inside a cell counts as a boundary. No allowlist: fix the row |
 | 1 | Typecheck | `tsc --noEmit` then `svelte-check --tsgo` | Any type error in `src/` or tests; TS 7 fallback per ADR-0001 is applied only by the documented alias |
 | 2 | Stylelint + selector diff + unused CSS | `stylelint "src/**/*.{css,svelte}"` → `node scripts/selector-diff.mjs` → Svelte compiler warnings escalated | Raw value where `var()` is required; duplicate selector in a file; duplicate selector **across** files; unused scoped CSS |
 | 3 | ESLint | `eslint .` | Lint error, including `no-restricted-syntax` for `page.waitForTimeout` in `tests/e2e/` |
@@ -989,8 +990,12 @@ bytes.
 
 ### 8.3 Branch protection
 
-Required checks: all eleven gates. No `continue-on-error`, no `|| true`, no
-`--passWithNoTests`. Gate 10 runs on every PR (the `pwa` project plus two byte checks —
+Required checks: every gate `.github/gates.json` declares **enforced** — thirteen today
+(canon, canon self-tests, table integrity, typecheck, svelte-check, stylelint, selector
+diff, unused CSS, ESLint, knip, jscpd, Vitest, build). `npm run ci:gates` fails when that
+list, the `npm run` scripts and the `ci.yml` steps disagree, so the count cannot drift
+again. No `continue-on-error`, no `|| true`, no `--passWithNoTests`. Gate 10 runs on every
+PR (the `pwa` project plus two byte checks —
 minutes, not tens of minutes); the manual iOS rows in §6.12 stay release-checklist items,
 because a real device install is not a CI assertion. Nightly job adds the full
 four-project Playwright matrix plus gate 10's `pwa` project across two Chromium versions
@@ -1087,7 +1092,8 @@ default checklist because the project is a full refactor with a committed a11y t
       (`U-PWA-07` parity), an eviction path covered by `U-PWA-06`, and an `E-PWA-05/06`
       assertion. An unbounded cache is a NOT-done condition, not a follow-up ticket.
 - [ ] Bundle budgets unchanged, or the increase is documented and approved in the PR.
-- [ ] All eleven CI gates green on the merged commit.
+- [ ] All thirteen CI gates green on the merged commit (the enforced list in
+      `.github/gates.json`; `npm run verify` mirrors it locally).
 - [ ] Screenshots of every touched screen captured to
       `qa-shots/<story-slug>/<viewport>.png` (UI and Visual/Feel stories).
 - [ ] Code reviewed; the reviewer confirms the test IDs actually assert the AC.
