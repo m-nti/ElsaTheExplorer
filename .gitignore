@@ -42,6 +42,8 @@ reports/
 # Playwright artifacts (traces, videos, failure screenshots)
 test-results/
 playwright-report/
+# Playwright run artifacts (traces, videos, failure screenshots)
+test-results/
 
 # svelte-check artifacts
 .svelte-check/

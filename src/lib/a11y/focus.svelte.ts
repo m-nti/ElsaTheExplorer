@@ -1,59 +1,49 @@
+import { restoreFocus } from "./focus";
+
+/** The surfaces that own a focus-return contract (ADR-0010 §3). */
+export type FocusSurface = "pack" | "card" | "reset";
+
 /**
- * Focus ownership for modal surfaces (ADR-0010 §3).
+ * One opener per surface, last intent wins.
  *
- * One opener map and one return function. A surface captures the control that
- * opened it *at intent* (not when the dialog finally opens, when
- * `document.activeElement` is already the dialog), and restores in a microtask
- * after the native `close` event — `<dialog>`'s own focus reset runs on close
- * and wins otherwise.
+ * Capture at intent, not at open (ADR-0010 §3): by the time a dialog is shown
+ * the focused element is the dialog itself, so the caller records the control
+ * that asked for the surface. The DOM validity of the recorded element is
+ * judged at restore time, because the tile may have been re-rendered by then.
  *
- * The ladder is fixed and shallow, because `<body>` is never a legal target:
- * the captured opener → `#open-pack` → `#stage` (which keeps `tabindex="-1"`
- * for exactly this rung). A candidate that is disconnected, disabled, inside
- * `[inert]` or not rendered drops to the next rung.
+ * A plain record, not a reactive Map: nothing renders from this store, and a
+ * rune would make the module untestable in the node project.
  */
+export class FocusReturnStore {
+  readonly #openers: Partial<Record<FocusSurface, HTMLElement>> = {};
 
-export type SurfaceId = "reset";
-
-// A plain Map is the point: nothing reads this reactively — it is a one-slot
-// breadcrumb read once, inside a microtask, on close.
-// eslint-disable-next-line svelte/prefer-svelte-reactivity
-const openers = new Map<SurfaceId, HTMLElement>();
-
-const LADDER: readonly (() => HTMLElement | null)[] = [
-  () => byId("open-pack"),
-  () => byId("stage"),
-];
-
-function byId(id: string): HTMLElement | null {
-  if (typeof document === "undefined") return null;
-  return document.getElementById(id);
-}
-
-function isFocusable(candidate: HTMLElement | null): candidate is HTMLElement {
-  if (candidate === null || !candidate.isConnected) return false;
-  if (candidate.hasAttribute("disabled")) return false;
-  if (candidate.closest("[inert]") !== null) return false;
-  return candidate.getClientRects().length > 0;
-}
-
-/** Capture at intent: call before `showModal()`. */
-export function captureOpener(surface: SurfaceId, opener: HTMLElement | null): void {
-  if (opener === null) openers.delete(surface);
-  else openers.set(surface, opener);
-}
-
-/** Call from the dialog's `close` event, whichever mechanism closed it. */
-export function restoreFocus(surface: SurfaceId): void {
-  const opener = openers.get(surface) ?? null;
-  openers.delete(surface);
-
-  queueMicrotask(() => {
-    for (const candidate of [opener, ...LADDER.map((find) => find())]) {
-      if (isFocusable(candidate)) {
-        candidate.focus();
-        return;
-      }
+  /** A `null`/`undefined` opener is the deep-link case and clears any stale one. */
+  capture(surface: FocusSurface, opener: Element | null | undefined): void {
+    if (opener) {
+      this.#openers[surface] = opener as HTMLElement;
+      return;
     }
-  });
+    delete this.#openers[surface];
+  }
+
+  peek(surface: FocusSurface): HTMLElement | undefined {
+    return this.#openers[surface];
+  }
+
+  forget(surface: FocusSurface): void {
+    delete this.#openers[surface];
+  }
+
+  /**
+   * Consume the opener and run the ladder. Call from a microtask after the
+   * dialog's native `close` event, so the platform's own focus reset does not
+   * win (ADR-0010 §3, E-FOC-15).
+   */
+  restore(surface: FocusSurface, doc: Document = document): HTMLElement | null {
+    const opener = this.#openers[surface] ?? null;
+    delete this.#openers[surface];
+    return restoreFocus(opener, doc);
+  }
 }
+
+export const focusReturn = new FocusReturnStore();

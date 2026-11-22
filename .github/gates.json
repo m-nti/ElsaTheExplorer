@@ -1,5 +1,6 @@
 {
   "enforced": [
+    { "id": "gate-manifest", "script": "ci:gates" },
     { "id": "canon", "script": "canon" },
     { "id": "canon-self-test", "script": "test:canon" },
     { "id": "table-integrity", "script": "gate:tables" },

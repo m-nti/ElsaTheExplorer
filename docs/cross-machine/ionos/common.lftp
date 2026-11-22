@@ -1,0 +1,7 @@
+# Shared lftp settings for the IONOS setup.
+# No credentials here: lftp reads ~/.netrc for the password.
+
+set sftp:auto-confirm no
+set sftp:connect-program "ssh -a -x -o BatchMode=yes -o StrictHostKeyChecking=yes"
+set net:timeout 20
+set net:max-retries 2

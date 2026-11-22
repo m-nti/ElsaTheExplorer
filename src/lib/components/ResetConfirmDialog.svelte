@@ -1,6 +1,6 @@
 <script lang="ts">
   import { announcer } from "$lib/a11y/announcer.svelte";
-  import { captureOpener, restoreFocus } from "$lib/a11y/focus.svelte";
+  import { focusReturn } from "$lib/a11y/focus.svelte";
   import { persistence } from "$lib/io/persistence.svelte";
   import { audio } from "$lib/stores/audio.svelte";
   import { collection } from "$lib/stores/collection.svelte";
@@ -24,7 +24,7 @@
   const available = persistence.available;
 
   function open(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }): void {
-    captureOpener("reset", event.currentTarget);
+    focusReturn.capture("reset", event.currentTarget);
     sheet?.showModal();
     cancelButton?.focus();
   }
@@ -38,7 +38,8 @@
   }
 
   function onClose(): void {
-    restoreFocus("reset");
+    // After the native close reset (ADR-0010 §3, E-FOC-15), as the card dialog does.
+    queueMicrotask(() => focusReturn.restore("reset"));
   }
 
   function onConfirm(): void {
