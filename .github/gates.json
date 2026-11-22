@@ -4,6 +4,7 @@
     { "id": "canon", "script": "canon" },
     { "id": "canon-self-test", "script": "test:canon" },
     { "id": "table-integrity", "script": "gate:tables" },
+    { "id": "bible-tokens-parity", "script": "gate:parity" },
     { "id": "internal-paths", "script": "check:paths" },
     { "id": "plan-status", "script": "gate:plan-status" },
     { "id": "typecheck", "script": "check:ts" },
@@ -15,7 +16,8 @@
     { "id": "knip", "script": "knip" },
     { "id": "jscpd", "script": "jscpd" },
     { "id": "unit", "script": "test:unit" },
-    { "id": "build", "script": "build" }
+    { "id": "build", "script": "build" },
+    { "id": "font-budget", "script": "gate:fonts" }
   ],
   "pending": [
     { "id": "e2e", "issue": 24 },

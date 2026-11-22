@@ -71,11 +71,11 @@ Diacritics specimen — rendered in a browser from the shipped file, not from a 
 
 ## 4. The gate (the ticket's third acceptance criterion)
 
-`npm run gate:fonts` → `scripts/font-budget.mjs`. It is enforced in CI through the existing
-`test:unit` gate: `tests/unit/font-budget.test.ts` spawns the script against the real tree, so a
-regression turns the unit gate red — the same mechanism the contrast gate uses. A dedicated
-`font-budget` step in `.github/gates.json` / `ci.yml` is filed as **#99**: this session's push token
-lacks the `workflow` scope, so the workflow file cannot be edited here. It fails when:
+`npm run gate:fonts` → `scripts/font-budget.mjs`. It is enforced in CI as its own named step —
+`name: Font byte budget` · `run: npm run gate:fonts` — with its own `font-budget` entry in
+`.github/gates.json` (**#99**, landed with #105 once the push token carried the `workflow` scope).
+`tests/unit/font-budget.test.ts` keeps spawning the script against the real tree, so a regression is
+red even in a run that skips the named step, the same mechanism the contrast gate uses. It fails when:
 
 1. a shipped file is over the ceiling — **before** this ticket:
    `font-budget: public/fonts/chivo-latin.woff2 is 33,252 B — 3,252 B (10.8 %) over the 30,000 B ceiling`

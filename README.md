@@ -104,9 +104,10 @@ pull request; a red CI run on work pushed with the hook skipped is attributed, n
 
 ## Gates
 
-Twelve gates are enforced and run by `npm run verify`: `canon` · `canon-self-test` · `typecheck`
-· `svelte-check` · `stylelint` · `selector-diff` · `unused-css` · `eslint` · `knip` · `jscpd` ·
-`unit` · `build`.
+Eighteen gates are enforced and run by `npm run verify`: `gate-manifest` · `canon` ·
+`canon-self-test` · `table-integrity` · `bible-tokens-parity` · `internal-paths` ·
+`plan-status` · `typecheck` · `svelte-check` · `stylelint` · `selector-diff` ·
+`unused-css` · `eslint` · `knip` · `jscpd` · `unit` · `build` · `font-budget`.
 
 Four are **pending** in `.github/gates.json` with their ticket, and cannot report success:
 `e2e` and `axe` (#24), `budget` (#25), `pwa` (#19). Nothing in this README claims them.
