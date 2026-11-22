@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { findPosixShell, gitEnv, makeRepo, runGit, type GitOutput } from "./support/git-fixture";
 
@@ -34,7 +34,7 @@ function fixture(): { dir: string; git: (...args: string[]) => GitOutput } {
   const { dir, git } = makeRepo("precommit-");
   dirs.push(dir);
   writeFileSync(join(dir, "package.json"), '{"type":"module"}\n');
-  writeFileSync(join(dir, "eslint.config.js"), `export { default } from ${JSON.stringify(installedConfig)};\n`);
+  writeFileSync(join(dir, "eslint.config.js"), `export { default } from ${JSON.stringify(pathToFileURL(installedConfig).href)};\n`);
   symlinkSync(installedNodeModules, join(dir, "node_modules"), "junction");
   return { dir, git };
 }
@@ -70,7 +70,7 @@ function runHook(dir: string) {
 
 /** The hook may spell a path `./src/a.ts`; compare the path it was given, not its prefix. */
 function paths(passed: string[]): string[] {
-  return passed.map((path) => path.replace(/^\.\//, ""));
+  return passed.filter((argument) => !argument.startsWith("--")).map((path) => path.replace(/^\.\//, ""));
 }
 
 afterEach(() => {
