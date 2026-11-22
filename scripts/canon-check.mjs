@@ -20,8 +20,12 @@
  *   keeps the archival concept alive ("catalogue number", "the catalogue as an
  *   index"), and the design corpus uses that concept in prose throughout. The
  *   ban applies where a string can reach a visitor: string literals in `src/**`,
- *   quoted copy in specs, the DE/EN value cells of the copy deck, and the
- *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes).
+ *   quoted copy in specs, the DE/EN value cells of the copy deck, the
+ *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes),
+ *   and every Svelte template (`src` tree: text between tags and its
+ *   copy-bearing attributes, #49). A Svelte `<script>`/`<style>`/comment body is
+ *   code, not copy, exactly as `index.html`'s is — copy that belongs in code
+ *   lives in a `.ts` module, which the `src/**` literal reader still scans.
  *
  * Scanned roots are the whole gated corpus, not a sample: every document the
  * phase owns plus the page shell. `README.md` and `index.html` are listed for
@@ -582,11 +586,6 @@ function loadAllowlist(path) {
 }
 
 /**
- * Apply the allowlist. An entry covers every hit on the single line it matches
- * (or only its named rule when `rule` is set). Stale and ambiguous entries are
- * configuration errors: the allowlist must not outlive the text it excuses.
- */
-/**
  * Report paths are POSIX on every host. `relative()` yields `design\art\art-bible.md`
  * on Windows while every allowlist entry is written `design/art/art-bible.md`; without
  * this the allowlist covers nothing and a clean tree reports 128 violations. The gate's
@@ -596,6 +595,11 @@ function posixPath(path) {
   return path.split(sep).join("/");
 }
 
+/**
+ * Apply the allowlist. An entry covers every hit on the single line it matches
+ * (or only its named rule when `rule` is set). Stale and ambiguous entries are
+ * configuration errors: the allowlist must not outlive the text it excuses.
+ */
 function applyAllowlist(violations, sources, entries, root) {
   const byFile = new Map();
   for (const entry of entries) {
