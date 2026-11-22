@@ -24,6 +24,14 @@
  * There is no allowlist and no ignore list on purpose: an exemption is how a
  * table gate dies. Fix the row instead.
  *
+ * A table inside a blockquote (`> | a | b |`) is a table: GFM renders it in the
+ * quote, so its header is the contract just as it is outside one. Each line is
+ * reduced to its container content first, and the marker depth is carried with
+ * it: a delimiter row only opens a table at the header's depth, a row only
+ * continues one at that depth, and a fence only closes at the depth it opened.
+ * A quoted header followed by an unquoted delimiter is therefore text, not a
+ * half-read table (#102).
+ *
  * Usage:
  *   node scripts/table-integrity.mjs                 # gate docs/ and design/
  *   node scripts/table-integrity.mjs --root <dir>    # gate one root (tests)
@@ -42,10 +50,29 @@ const FENCE = /^\s*(```|~~~)/;
 const DELIMITER = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/;
 const HEADING = /^\s{0,3}#{1,6}(?:\s|$)/;
 const INDENTED_CODE = /^(?:\t| {4})/;
+const QUOTE = /^\s{0,3}>[ \t]?/;
 
 
 /** Directories that hold build output, dependencies or archived sources. */
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", "styled-system", "reports"]);
+
+/**
+ * Reduce a line to its blockquote content, counting the markers removed. A line
+ * without a marker returns depth 0 and the line unchanged, so the unquoted path
+ * is the same line the gate has always read.
+ *
+ * @param {string} line
+ * @returns {{ depth: number, content: string }}
+ */
+function unquote(line) {
+  let depth = 0;
+  let content = line;
+  for (let match = QUOTE.exec(content); match !== null; match = QUOTE.exec(content)) {
+    content = content.slice(match[0].length);
+    depth += 1;
+  }
+  return { depth, content };
+}
 
 /**
  * Split a table row into fields the way GFM does: on pipes that are not
@@ -86,7 +113,9 @@ function markdownFiles(root) {
  * is not a table row; fenced and four-space-indented code blocks are skipped, so
  * a Markdown example is not mistaken for the document's own table. A row-looking
  * line outside any table, in a section that already showed one, is an orphan:
- * prose ended the table, so its cells render as plain text.
+ * prose ended the table, so its cells render as plain text. Blockquote markers
+ * are stripped before every one of those decisions, with the depth carried so a
+ * table is never assembled from two containers (#102).
  *
  * @param {string} file absolute path
  * @param {string} root for a repo-relative label
@@ -97,22 +126,29 @@ function audit(file, root) {
   const lines = readFileSync(file, "utf8").split(/\r?\n/);
   const violations = [];
   let tables = 0;
-  let fenced = false;
+  let fenceDepth = null;
   let sectionHasTable = false;
 
   for (let i = 0; i < lines.length; i++) {
-    if (FENCE.test(lines[i])) {
-      fenced = !fenced;
+    const { depth, content } = unquote(lines[i]);
+    if (fenceDepth === null) {
+      if (FENCE.test(content)) {
+        fenceDepth = depth;
+        continue;
+      }
+    } else {
+      if (depth === fenceDepth && FENCE.test(content)) fenceDepth = null;
       continue;
     }
-    if (fenced) continue;
-    if (INDENTED_CODE.test(lines[i])) continue;
-    if (HEADING.test(lines[i])) {
+    if (INDENTED_CODE.test(content)) continue;
+    if (HEADING.test(content)) {
       sectionHasTable = false;
       continue;
     }
-    if (!lines[i].trimStart().startsWith("|")) continue;
-    if (i + 1 >= lines.length || !DELIMITER.test(lines[i + 1])) {
+    if (!content.trimStart().startsWith("|")) continue;
+
+    const delimiter = i + 1 < lines.length ? unquote(lines[i + 1]) : null;
+    if (delimiter === null || delimiter.depth !== depth || !DELIMITER.test(delimiter.content)) {
       if (sectionHasTable) {
         violations.push({
           file: label,
@@ -126,10 +162,12 @@ function audit(file, root) {
 
     tables += 1;
     sectionHasTable = true;
-    const header = fields(lines[i]);
+    const header = fields(content);
     let row = i + 2;
-    for (; row < lines.length && !INDENTED_CODE.test(lines[row]) && lines[row].trimStart().startsWith("|"); row++) {
-      const actual = fields(lines[row]).length;
+    for (; row < lines.length; row++) {
+      const next = unquote(lines[row]);
+      if (next.depth !== depth || INDENTED_CODE.test(next.content) || !next.content.trimStart().startsWith("|")) break;
+      const actual = fields(next.content).length;
       if (actual !== header.length) {
         violations.push({
           file: label,
