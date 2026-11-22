@@ -8,8 +8,9 @@
  * fails CI.
  */
 import { spawnSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,19 @@ function run(argv) {
 
 function fixture(name, extra = []) {
   return run(["--root", join(here, "fixtures", name), ...extra]);
+}
+
+/** Every `.svelte` file under `src/`, as sorted POSIX repo-relative paths. */
+function svelteTemplatesOnDisk(dir = join(repoRoot, "src")) {
+  const found = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...svelteTemplatesOnDisk(full));
+    else if (entry.name.endsWith(".svelte")) {
+      found.push(relative(repoRoot, full).split(sep).join("/"));
+    }
+  }
+  return found.sort();
 }
 
 describe("canon-check: seeded failure", () => {
@@ -266,5 +280,93 @@ describe("canon-check: baseline ratchet", () => {
     const { code, report } = fixture("overcap");
     expect(code).toBe(1);
     expect(report.violations.some((violation) => violation.rule === "baseline")).toBe(true);
+  });
+});
+
+describe("canon-check: report paths", () => {
+  it("reports POSIX paths on every host", () => {
+    // The allowlist is written `design/art/art-bible.md`; a host that reported
+    // `design\art\art-bible.md` would match no entry and a clean tree would read
+    // as 128 violations. The report is the gate's contract, so it is host-neutral.
+    const { report } = run([]);
+    expect(report.scanned.filter((path) => path.includes("\\"))).toEqual([]);
+  });
+});
+
+describe("canon-check: Svelte template surface (D12b)", () => {
+  const svelteHits = () => {
+    const { report } = fixture("svelte-template");
+    return report.violations.filter((violation) => violation.file === "src/App.svelte");
+  };
+
+  it("flags template text for the German and the English entity rule", () => {
+    const { code } = fixture("svelte-template");
+    expect(code).toBe(1);
+    const rules = svelteHits()
+      .filter((violation) => violation.line === 7 || violation.line === 8)
+      .map((violation) => `${violation.line}:${violation.rule}`);
+    expect(rules).toEqual(["7:entity-de", "8:entity-en"]);
+  });
+
+  it("flags copy-bearing attributes: alt, aria-label, title, placeholder", () => {
+    const lines = svelteHits()
+      .filter((violation) => violation.line > 8 && violation.line < 16)
+      .map((violation) => violation.line);
+    expect(lines).toEqual([11, 13, 14, 15]);
+  });
+
+  it("never reads a <script>, <style> or comment body as copy", () => {
+    // Line 3 (script literal) and line 20 (stylesheet content) are the ones a
+    // string-literal reader would flag; a hit on them is the false positive this
+    // masks. Line 25 proves the state closes.
+    expect(svelteHits().map((violation) => violation.line)).toEqual([
+      7, 8, 11, 13, 14, 15, 25,
+    ]);
+  });
+
+  it("leaves class/id hooks alone", () => {
+    const terms = svelteHits().map((violation) => violation.term);
+    expect(terms).not.toContain("katalog-grid");
+    expect(terms).not.toContain("katalog-liste");
+    expect(svelteHits().some((violation) => violation.line === 6)).toBe(false);
+  });
+
+  it("keeps the archival concept legal in Svelte markup", () => {
+    const { code, report } = fixture("clean");
+    expect(code).toBe(0);
+    expect(report.scanned).toContain("src/Clean.svelte");
+  });
+});
+
+describe("canon-check: the real tree (D12b)", () => {
+  it("names every Svelte template whose text it read", () => {
+    // `scanned` is the surface the gate walked; `templates` is what it read as a
+    // template. Deriving the expectation from both means a new component grows the
+    // two lists together (green), while a regression to markup-only drops entries
+    // from `templates` only (red) — a literal list rotted on #80 instead (#90).
+    const { report } = run([]);
+    expect(report.templates).toEqual(
+      report.scanned.filter((file) => file.endsWith(".svelte")).sort(),
+    );
+  });
+
+  it("reads every Svelte template on disk under src/", () => {
+    // Independent second opinion: if the gate stopped scanning `src/` altogether,
+    // both reported lists would shrink together and the assertion above would pass
+    // vacuously. The on-disk walk cannot shrink.
+    const { report } = run([]);
+    const onDisk = svelteTemplatesOnDisk();
+    expect(onDisk.length).toBeGreaterThan(0);
+    expect(
+      report.templates.filter((file) => file.startsWith("src/")),
+    ).toEqual(onDisk);
+  });
+
+  it("keeps the real tree clean and the baseline empty", () => {
+    const { code, report } = run([]);
+    expect(code).toBe(0);
+    // main after #72: the #31 baseline burned down to zero; this ticket adds no entry.
+    expect(report.allowlist.maxBaseline).toBe(0);
+    expect(report.allowlist.baseline).toBe(0);
   });
 });

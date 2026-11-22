@@ -1,7 +1,7 @@
 # Archive Fiction: The House, Its Rooms, and Its Register
 
 > **Status**: Draft (fiction layer for the refactor) · **Author**: narrative-director · **Last Updated**: 2026-11-22
-> **Links To**: `design/game-brief.md` · `design/gdd/collection-meta.md` (R-A, R-E, R-G, R-H, R-I) · `design/player-journey.md` · `design/ux/binder.md` (§6 states) · `design/ux/card-detail.md` · `design/art/art-bible.md` (§1–2) · `assets/js/card-bank.js` (voice of the card copy) · `photos/captions.json`
+> **Links To**: `design/game-brief.md` · `design/gdd/collection-meta.md` (R-A, R-E, R-G, R-H, R-I) · `design/player-journey.md` · `design/ux/binder.md` (§6 states) · `design/ux/card-detail.md` · `design/art/art-bible.md` (§1–2) · `legacy/assets/js/card-bank.js` (voice of the card copy) · `photos/captions.json`
 > **Purpose**: the fiction that makes accession, rooms, progress and failure read as a world instead of a UI. This document owns *what the house is*; screen specs own *where a line appears*; the copy deck owns *the pair*. Strings marked **SSOT** are restated here only to be quoted, never changed — where this document would change one, it is listed as a decision in §7.
 > **Markers**: `▸SC(n)` = space-critical, maximum characters in German (English may run ~10 % longer). Key grammar: `arch:<slot>`, `room:<slug>:<slot>`, `lex:<slug>:<term|def>`, `curator:<slot>`; `card:<id>:*` already exists. Every string is one copy-deck entry in DE and EN at one index.
 

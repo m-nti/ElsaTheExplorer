@@ -3,7 +3,7 @@
 > **Status**: Draft (v2 — explorer reframe; supersedes the v1 gift-framing draft)
 > **Author**: ux-designer
 > **Last Updated**: 2026-11-22
-> **Links To**: `PRD.md` (product problem, personas, functional requirements), `design/ux/interaction-patterns.md` (every interaction named below is specified there), `design/accessibility-requirements.md` (Standard tier: keyboard-complete, visible focus, 4.5:1 contrast, reduced motion, screen-reader announcements, no color-only information), `assets/js/card-bank.js` (voice of the card copy)
+> **Links To**: `PRD.md` (product problem, personas, functional requirements), `design/ux/interaction-patterns.md` (every interaction named below is specified there), `design/accessibility-requirements.md` (Standard tier: keyboard-complete, visible focus, 4.5:1 contrast, reduced motion, screen-reader announcements, no color-only information), `legacy/assets/js/card-bank.js` (voice of the card copy)
 
 ---
 
@@ -88,7 +88,7 @@ having read a wonderful book, not like finishing a chore.
 > Seven phases tailored to Elsa the Explorer (the template's standard six are
 > merged and renamed into the explorer register where natural: Orientation and
 > First Mastery collapse into First Expedition / The Reveal; Habitual Play and
-> Long-Term Engagement become The Return Visit and Completing the Catalogue).
+> Long-Term Engagement become The Return Visit and Completing the Collection).
 > No placeholder phases are kept.
 
 ---
@@ -270,7 +270,7 @@ system (and later, the departments) never becomes meaningful.
 
 ---
 
-### Phase 4: Reading the Catalogue (the collection grid, 2–15 minutes) · *In der Sammlung blättern*
+### Phase 4: Reading the Collection (the collection grid, 2–15 minutes) · *In der Sammlung blättern*
 
 **Emotional state on arrival**: Holding four finds and a question: "how big is
 this library?"
@@ -403,7 +403,7 @@ the family-sharing loop that defines the project never spins.
 what's new." Mild possessive anticipation — the library owes them their
 reading progress.
 
-**Primary question the player is asking**: "What's new in the Catalogue since I
+**Primary question the player is asking**: "What's new in the Collection since I
 was here — and how far along am I?"
 
 **Goal**: Within one screenful, see their progress intact, spot what changed
@@ -459,7 +459,7 @@ once."
 
 ---
 
-### Phase 7: Completing the Catalogue (100 %, Elsas Ehrenmensch) · *Das Gesamtverzeichnis*
+### Phase 7: Completing the Collection (100 %, Elsas Ehrenmensch) · *Das Gesamtverzeichnis*
 
 **Emotional state on arrival**: A reader who has been circling the last two
 entries for days. Anticipation with a deadline they set themselves.
@@ -506,13 +506,13 @@ nothing else; the reader's last emotional beat with the product is a shrug.
   department lines open. The honour's permanence is the trust contract: the
   library never retroactively takes a certificate back.
 - **"Von vorn" after completion.** Reset is the one destructive act in the
-  product: it clears every `lucky-elsa.*` key (the Catalogue, room progress,
+  product: it clears every `lucky-elsa.*` key (the Collection, room progress,
   milestones, Elsas Ehrenmensch — and sound/language preferences return to their
   defaults), and its confirmation lists exactly what is lost —
   DE: *"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und
   Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN:
-  *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary
-  Human — sound and language return to their defaults."* (copy-deck sync
+  *"This clears the Collection, room progress, the milestones and Elsa's Honorary
+  Human — sound and language go back to default."* (copy-deck sync
   2026-11-22, D9). Focus defaults to Cancel; the confirm button is labelled with
   the action ("Alles löschen" / "Delete everything"), never "Ja".
 - **Milestone parity across readers.** Two family members with different
@@ -534,18 +534,18 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 | The first pack tear | First Expedition | Delight — "oh, this is a *place*" | Visitor reads the site as a plain gallery; second expedition unlikely |
 | The shiny card landing 4th/5th | The Reveal | Anticipation paid off — "it saved the best for late" | Reveal reads as random image shuffle; rarity never becomes meaningful |
 | The guaranteed shine kept (promotion) | The Reveal | Trust — "this collection keeps its promises" | An all-common pack breaks the stage copy; player suspects broken randomness |
-| Discovering the departments in the Catalogue | Reading the Catalogue | Recognition — "her life has departments" | Grid stays a flat thumbnail wall; meta layer never engages |
+| Discovering the departments in the Collection | Reading the Collection | Recognition — "her life has departments" | Grid stays a flat thumbnail wall; meta layer never engages |
 | First "gesammelt" tick after studying an entry | Studying an Exhibit | Ownership — "that one's collected now" | Seen-state invisible; progress feels disconnected from actions |
 | The foil catching light under the pointer | Studying an Exhibit | Material wonder — "this is a *thing*, not a page" | Foil reads as a static gradient; the parlour's one trick wasted |
 | The first share | Studying an Exhibit | Generosity — "you have to see this entry" | Sharing fails silently; the family loop never spins |
 | Returning to an intact catalogue | The Return Visit | Relief + possession — "it kept my things" | Progress loss (real or apparent) destroys all trust permanently |
 | "{n} neue Schmuckstücke sind da!" | The Return Visit | Anticipation — "there are new accessions for me" | New photos land silently; the curator's work has no reader-facing moment |
 | The "2. Auflage" stamp on a repeat | The Reveal | Regular's warmth — "read it, still mine" | Repeats feel like failure or broken randomness |
-| A department's permanent frame completing | Reading the Catalogue | Visible growth — "the collection got richer" | Department completion passes unnoticed; sets feel cosmetic |
+| A department's permanent frame completing | Reading the Collection | Visible growth — "the collection got richer" | Department completion passes unnoticed; sets feel cosmetic |
 | The chase card surfacing | The Reveal | A private event worth telling someone | Chase card reads as any other holo; keystone moment wasted |
 | Milestone outfit at 25/50/75 % | The Return Visit | Earned honour — "the collection dresses up for its readers" | Milestones arrive as noise (banners) or not at all |
-| Elsas Ehrenmensch | Completing the Catalogue | Pride with an artefact — "I read all of her" | 100 % is a filled bar and a shrug; the last beat fails |
-| Das Gesamtverzeichnis revealed | Completing the Catalogue | Awe at the collection itself — "look at all of it" | Capstone card feels like any other entry |
+| Elsas Ehrenmensch | Completing the Collection | Pride with an artefact — "I read all of her" | 100 % is a filled bar and a shrug; the last beat fails |
+| Das Gesamtverzeichnis revealed | Completing the Collection | Awe at the collection itself — "look at all of it" | Capstone card feels like any other entry |
 
 ---
 
@@ -557,7 +557,7 @@ nothing else; the reader's last emotional beat with the product is a shrug.
 
 | Hook Type | Hook Description | Systems That Deliver It |
 |-----------|-----------------|------------------------|
-| **Session Start** | "What's new in the Catalogue?" — the collection changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "{n} neue Schmuckstücke sind da! / {n} new treasures have arrived!", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
+| **Session Start** | "What's new in the Collection?" — the collection changed since last visit, and the room says so in one line | Unseen-first deck walk, acquisitions line "{n} neue Schmuckstücke sind da! / {n} new treasures have arrived!", department lines with fresh frontiers, `lucky-elsa.sets.v1` / `lucky-elsa.flags.v1` restoring earned state |
 | **Session End** | An expedition always ends with something unfinished: a department one card short, a milestone a few percent away, a chase card still out there | Department progress lines, 25/50/75 % milestones, chase card as long-tail goal, guaranteed ≥1 holo per pack keeping the next haul promising |
 | **Daily Return** | Not time-gated — event-gated: the curator's accession is the "new material" moment | "{n} neue Schmuckstücke sind da!", unseen-first guarantee making the first expedition after an upload fully fresh, 2. Auflage stamps rewarding returns even with nothing new |
 | **Long-Term** | Completion as a keepsake, then the second lap as seniority | Department frame variants (permanent), catalogue outfits, Elsas Ehrenmensch + Das Gesamtverzeichnis, 2. Auflage stamps, the Ehrenmensch's earned date |
@@ -647,7 +647,7 @@ and its only competitor is the family member in the same chat thread.
 - [ ] "Did anything feel random in a way you didn't trust?"
 - [ ] (Reduced-motion tester) "Did the expedition still feel like an event?"
 
-**Reading the Catalogue (10–30 min)**
+**Reading the Collection (10–30 min)**
 - [ ] "Point to something you haven't read yet. How did you know?"
 - [ ] "Do the departments mean anything to you? Which one do you care about?"
 - [ ] "What does 'gesammelt' mean to you, in your own words?"
@@ -662,7 +662,7 @@ and its only competitor is the family member in the same chat thread.
 - [ ] "Is there anything you were looking forward to pulling?"
 - [ ] "Have you told anyone about this? What did you say?" (PRD M6 proxy)
 
-**Completing the Catalogue / General**
+**Completing the Collection / General**
 - [ ] "If you finished everything, what would you want the site to give you?"
 - [ ] "If you had to stop right now, what would you come back for?"
 - [ ] "Is there anything the library isn't letting you do that you wish it would?"

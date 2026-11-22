@@ -18,11 +18,15 @@ jobs:
   verify:
     name: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           # Newest major, matching .nvmrc and package.json engines. Node 26
           # ships npm 11, the version that generates package-lock.json; npm 10
@@ -64,6 +68,24 @@ jobs:
       - name: Markdown table integrity
         run: npm run gate:tables
 
+      # The bible is a document, so its palette can go stale while the tokens
+      # pass every contrast check (#30: --quiet and credit were quoted retired).
+      # Each palette row and each inline `--token #value` must equal tokens.ts.
+      - name: Art bible <-> token parity
+        run: npm run gate:parity
+
+      # An internal link or a backticked path that no longer resolves is invisible
+      # to every other gate: `canon` reads the words, `gate:tables` reads the rows.
+      # Issue #61: a moved file left three README links pointing at nothing.
+      - name: Internal paths (links and backticked repo paths)
+        run: npm run check:paths
+
+      # A plan that calls a merged PR "in review" tells the reader to wait for
+      # work that is done. Degrades to a warning without `gh` or a token, so this
+      # step can never be the reason a tokenless CI run is red.
+      - name: Plan status vs. merged PRs
+        run: npm run gate:plan-status
+
       - name: Typecheck (tsc)
         run: npm run check:ts
 
@@ -94,14 +116,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Pending gate e2e/#24: skipped only while no spec exists, and the skip
-      # is declared in .github/gates.json. Once a spec lands, this step runs
-      # the full matrix and is fail-closed.
-      - name: E2E (Playwright)
-        run: |
-          if compgen -G "tests/e2e/*.spec.ts" > /dev/null; then
-            npx playwright install --with-deps chromium webkit
-            npm run test:e2e
-          else
-            echo "pending gate e2e (#24) — no specs yet"
-          fi
+      # #99: the 30,000 B per-woff2 ceiling in art bible §8, measured on the
+      # files that actually ship. It ran only inside test:unit before, so a
+      # breach was red but unnamed; now it is its own step and its own gate.
+      - name: Font byte budget
+        run: npm run gate:fonts

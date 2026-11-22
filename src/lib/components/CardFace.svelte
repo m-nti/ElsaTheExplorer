@@ -104,6 +104,8 @@
             alt={model.photo.alt}
             width={model.photo.width}
             height={model.photo.height}
+            loading="eager"
+            fetchpriority="high"
             style:object-position={focusToObjectPosition(model.photo.focus)}
             decoding="async"
           />

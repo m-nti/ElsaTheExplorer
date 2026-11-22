@@ -39,7 +39,7 @@ tests/fixtures/image-sources.json
 # duplicate-code reports
 reports/
 
-# Playwright run artefacts
+# Playwright artifacts (traces, videos, failure screenshots)
 test-results/
 playwright-report/
 
@@ -53,3 +53,6 @@ coverage/
 
 # Subagent-driven-development workspace (per-plan ledgers, briefs, reports).
 .superpowers/
+
+# Playwright run artifacts (traces, videos, failure screenshots)
+test-results/

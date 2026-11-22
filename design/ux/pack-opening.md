@@ -119,7 +119,7 @@ here; the reveal is short (≈3.1 s from the first card, ≈4.1 s including the
 
 | Exit Action | Destination | Transition Type | Data Returned / Saved | Notes |
 |-------------|------------|-----------------|----------------------|-------|
-| Escape / ✕ (backdrop **only outside the reveal**) | StageLanding (or CardDetail if it is open beneath) | Modal close (`--elsa-dur-dialog-out`, 160 ms; instant reduced-motion) | Focus returns to `#open-pack` | **Mid-reveal skip catalogues only the cards already revealed; the remainder stay uncollected** (Ruling 1b); the pack can be reopened immediately; nothing is lost |
+| Escape / ✕ (backdrop **only outside the reveal**) | StageLanding (or CardDetail if it is open beneath) | Modal close (`--elsa-dur-dialog-out`, 160 ms; instant reduced-motion) | Focus returns to the **trigger**: the lightbox's "Noch ein Pack" when this dialog opened from CardDetail, else `#open-pack` (Focus Trap ladder) | **Mid-reveal skip catalogues only the cards already revealed; the remainder stay uncollected** (Ruling 1b); the pack can be reopened immediately; nothing is lost |
 | Tap a revealed card | CardDetail (child modal on top) | Modal open | photo id | Parent dialog stays open underneath |
 | "Noch ein Pack" (footer) | Itself (new accession) | Close-and-reopen via `pack:open-request` | — | Disabled until reveal completes |
 | "Zur Sammlung" (footer) | Binder section | Close + anchor scroll | — | Round-2 footer link; gives the pulled cards a destination |
@@ -395,7 +395,7 @@ extra one.
 | Closed | Default | Dialog not rendered in a11y tree | n/a | |
 | Theatre (opening) | Dialog opened, reveal pending | Sachet sequence, 900 ms: arrive from below (0–18%), flex (18–42%), lift (50%), flap tears + jagged tear line + flash (46–61%), wrapper gone (100%). Stage empty apart from the light pool; counter at `0 von 4` | Card selection + footer input locked; **✕ and `Escape` stay live** (they skip the theatre); backdrop clicks ignored | 900 ms is the one duration the motion sheet does not token — inherited from v1 and outside the reveal clock |
 | Revealing (focus staging) | Theatre ends (or dialog opens with reduced motion off) | Camera at `c = 1` on card 1; each card enters the focus frame in turn (`--elsa-dur-cardin` 300 ms); the previous card is left where it stands and never animates out; counter `1 von 4` → `4 von 4` | Stage is **`inert`**: cards are not buttons yet, `Tab` reaches only ✕; ✕/`Escape` skip; backdrop clicks ignored | Holo is revealed in slot 3 or 4 (canon). No tilt, no parallax, no foil drift |
-| Pulling back | Last card settled (t ≈ 2.98 s) | Camera `c: 1 → 0` over `--elsa-dur-pullback` (760 ms): the 2 × 2 / 1 × 4 becomes visible, the light pool fades out over `--elsa-dur-fade` (140 ms), each card gets one ≤ 8 px settle (`--elsa-dur-tile` 260 ms, 40 ms stagger, +12 % offset) | Still `inert` until the last staggered settle; skipping is still allowed and, at this point, costs nothing — all four are already revealed and already written | The only move in the product longer than 700 ms. Camera is silent |
+| Pulling back | Last card settled (t ≈ 2.39 s) | Camera `c: 1 → 0` over `--elsa-dur-pullback` (760 ms): the 2 × 2 / 1 × 4 becomes visible, the light pool fades out over `--elsa-dur-fade` (140 ms), each card gets one ≤ 8 px settle (`--elsa-dur-tile` 260 ms, 40 ms stagger, +12 % offset) | Still `inert` until the last staggered settle; skipping is still allowed and, at this point, costs nothing — all four are already revealed and already written | The only move in the product longer than 700 ms. Camera is silent |
 | Settled (complete) | Pull-back's last settle | Final grid, hint line, footer actions, counter stays `4 von 4`; pool gone | `inert` removed; all four cards focusable from the same frame; focus lands on card 1; arrows/`Tab`/click active; backdrop click now closes | The only state where the pack can be left "open" indefinitely |
 | Reduced motion | `prefers-reduced-motion: reduce` | **No sachet, no camera, no focus sequence**: all four cards are present in the final grid at first paint — the pull-back's final frame, composed deliberately. Pool absent, foil static, counter `4 von 4`, hint + footer visible | Reveal completes immediately; **one soft tick at t = 0**; no per-card ticks, no chime; focus on card 1 | Canon + F22 + motion-sheet §5. The counter must survive here |
 | Image slow or failed | A drawn photo is slow, fails to load or fails to convert | The **frame and its printed text render synchronously** — plate, name, rarity, moment, stats, serial — with the photo area in its shared `CardTile` shimmer, then the photo or the set-coloured fallback panel. **Never an empty box**, and the reveal clock never waits for pixels | Interaction unaffected; the camera pace never stalls on a network | `loading="eager"`, `decoding="async"`, `fetchpriority="high"` on cards 1–2 |
@@ -414,7 +414,7 @@ extra one.
 | Input | Platform | Action | Visual Response | Audio Cue | Notes |
 |-------|----------|--------|-----------------|-----------|-------|
 | Tab / Shift+Tab | Keyboard | Cycle: ✕ → card 1…4 → footer buttons → (wrap) | Focus ring per element | none | Focus trap inside the dialog (native `<dialog>`). **During the reveal the stage is `inert`, so the cycle is ✕ → footer-disabled → wrap** |
-| `←` / `→` | Keyboard | Move focus one card back/forward in DOM (reveal) order | Focused card shows the ring; the camera does **not** move | none | Roving model, wraps at the ends. `←` from card 1 → card 4 (wrap) |
+| `←` / `→` | Keyboard | Move focus one card back/forward in DOM (reveal) order, **wrapping within the visual row** | Focused card shows the ring; the camera does **not** move | none | Roving model (Pack Roving Arrows). In the 2 × 2, `←` from card 1 wraps to card 2, not card 4; the one-row desktop layout wraps at the row ends |
 | `↑` / `↓` | Keyboard | **2 × 2 only** (≤ 760 px): move focus a row −/+ (± 2 in DOM order) | Ring moves; card scrolls into view if the stage is in the compressed tier | none | No-op on the 1 × 4 desktop row (a row-jump would be a lie). Sanctioned by exposure, not forced: a visitor who never presses it loses nothing |
 | Hover | Mouse | Nothing during the reveal. After settle: the focused/hovered card's **static** foil brightens | No tilt, no parallax, no pointer-tracked foil on drop cards | none | Motion-sheet §4/§8: no idle motion during the reveal; tilt belongs to the lightbox's exhibit card |
 
@@ -430,7 +430,7 @@ dialog.
 |-------|----------|-------------------------------|--------|----------|-----------|-----------|-------|
 | Click / tap a revealed card | Mouse/Touch | `phase === "settled"` | Open that card in CardDetail | Child modal opens; parent stays | `--elsa-dur-dialog-in` 200 ms | soft tick | Card is marked collected by the card system |
 | `Enter` / `Space` on a card | Keyboard | Card focused | Open that card | same | same | same | Native button |
-| Escape / ✕ | Keyboard/Mouse/Touch | anywhere | Close dialog | Modal close; focus → `#open-pack` | `--elsa-dur-dialog-out` 160 ms; instant reduced | none | Live at all times incl. mid-reveal; **backdrop click closes only after the pull-back's last settle** — never blocks, never discards the accession |
+| Escape / ✕ | Keyboard/Mouse/Touch | anywhere | Close dialog | Modal close; focus → the trigger (see §4) | `--elsa-dur-dialog-out` 160 ms; instant reduced | none | Live at all times incl. mid-reveal; **backdrop click closes only after the pull-back's last settle** — never blocks, never discards the accession |
 | "Noch ein Pack" | Mouse/Touch/Keyboard | `phase === "settled"` | Close + request new accession | Dialog reopens into theatre | 160 ms gap (current timing kept) | rip | Disabled during busy and during the reveal |
 | "Zur Sammlung" | Mouse/Touch/Keyboard | `phase === "settled"` | Close + anchor to `#katalog` | Smooth scroll | 300 ms; instant reduced | none | Round-2 footer |
 | `P` | Keyboard | — | **No-op while this dialog is open** | none | none | none | Prevents accidental stacked packs |
@@ -477,7 +477,7 @@ dialog.
 |---------------|-------------|---------|-----------------|-------|
 | (any entry) | `pack:opened` (system event, on draw) | `{ ids: [4], revealOrder, holoSlot: 3\|4 }` | Persistence + audio + UI | Lap context derived per GDD R-H; audio schedules rip |
 | Card settles in the focus frame (×4) | `pack:card-landed` | `{ index, rarity, settledAt }` | Audio system | Fires on the **settle** frame, never on the start (motion-sheet §7.1): tick; chime for rare/holo |
-| Last card settles (t ≈ 2.98 s) | `pack:reveal-complete` | `{ ids, revealed: 4 }` | Persistence system | Writes the four ids to `seen.v2` in one write; updates the catalogue. **Before the camera** — the pull-back is presentation, not collection |
+| Last card settles (t ≈ 2.39 s) | `pack:reveal-complete` | `{ ids, revealed: 4 }` | Persistence system | Writes the four ids to `seen.v2` in one write; updates the catalogue. **Before the camera** — the pull-back is presentation, not collection |
 | Camera reaches `c = 0` and the last tile settles | `pack:pullback-complete` | `{ focus: null }` | UI only | Marks the frame where `inert` is removed and focus moves to card 1; the hook a Playwright timing assertion waits on |
 | Tap a card | `card:selected` | `{ id, source: "pack" }` | Card system → CardDetail | |
 | Escape / ✕ / backdrop | `pack:closed` | `{ revealed: 0–4, skippedMidReveal: boolean }` | UI only | Focus-return contract in §4. The count, not a boolean, is what the persistence system needs for Ruling 1b |
@@ -612,6 +612,8 @@ implementation blocker for this project.*
 
 ## 12. Accessibility
 
+> Tier Standard per `design/accessibility-requirements.md`; WCAG 2.2 AA target.
+
 **Text contrast requirements for this screen**:
 
 | Text Element | Background Context | Required Ratio | Current Ratio | Pass? |
@@ -652,12 +654,12 @@ returns to the originating pack card (see `card-detail.md` §12).
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
 | Dialog opens | "Das Pack geht auf." | On entry |
-| Card revealed (×4) | "Karte {i} von {n}: {name}. {rarity}." | At each card's **entrance** (its own frame; the region is written once per beat, so a slow reader hears the last one it can keep up with and the summary below is authoritative) |
+| Card revealed (×4) | "Karte {i} von {n}: {name}. {rarity}." | At each card's **settle** frame (its own beat; the region is written once per beat, so a slow reader hears the last one it can keep up with and the summary below is authoritative) |
 | Reveal complete | "{n} Karten: {names}." | Once, at the **pull-back end** — the sentence a visitor needs if every per-card line was too fast |
 | Reduced motion | "{n} Karten: {names}." only | At open; no per-card lines (nothing was revealed one at a time) |
 | Mid-reveal skip | "{k} von {n} Karten gesammelt." | Before the dialog closes (the 160 ms close cannot outrun a polite write) |
 | Second lap | "Das waren alle Karten. Jetzt beginnt das Pack von vorn." | When the restart moment fires |
-| Card selected | "{number}. {name}. {rarity}." | On entering CardDetail |
+| Card selected | "Nr. {number}. {name}. {rarity}." | On entering CardDetail |
 | Focus moved to first card | (no separate line — card 1's own accessible name is read on focus) | On the focus move |
 | Dialog closed | (no announcement — visual return is enough) | — |
 
@@ -695,17 +697,20 @@ never by shrinking the type.
   baseline**.
 - No RTL target; layout not mirrored.
 - **Copy-deck sync required for this revision** (4-card pack). Keys are
-  unchanged — only values move, and three rows are new:
+  unchanged — only values move. The three reveal keys this revision needs are
+  now deck rows with their caps (#74); the deck is the string SSOT, so B4
+  renders them rather than declaring spec-local strings:
   - `pack.eyebrow` — the number word changes: EN *"1st edition · four fresh
     cards"* / DE *"1. Auflage · vier frische Karten"*.
   - `pack.hint` — the swipe half is dead (no carousel): EN *"Tap a card."* /
     DE *"Tippe eine Karte an."*.
-  - **new** `pack.count` — `{i} von {n}` / `{i} of {n}`, used visually in the
-    stage counter.
-  - **new** `pack.card.revealed` — "Karte {i} von {n}: {name}. {rarity}." /
-    "Card {i} of {n}: {name}. {rarity}."
-  - **new** `pack.skipped` — "{k} von {n} Karten gesammelt." / "{k} of {n} cards
-    collected."
+  - `pack.count` — **copy deck §4**, cap 12; `{i} von {n}` / `{i} of {n}`,
+    used visually in the stage counter.
+  - `pack.card.revealed` — **copy deck §4**, live region only (uncapped by
+    layout): "Karte {i} von {n}: {name}. {rarity}." / "Card {i} of {n}: {name}.
+    {rarity}."
+  - `pack.skipped` — **copy deck §4**, live region only (uncapped by layout):
+    "{k} von {n} Karten gesammelt." / "{k} of {n} cards collected."
   - `pack.announcement` keeps its `{n}` placeholder (now always 4).
 - **Copy-deck sync 2026-11-22**: the eyebrow, hint and lap line below carry the
   copy deck's winning variants; the pack announcement uses `{n}` per the deck
@@ -735,10 +740,9 @@ never by shrinking the type.
 > row below is binary and names where it is measured; §14.2 keeps the gates that
 > were never about that model.
 >
-> **Cross-reference note (2026-11-22):** §12's announcement table still words the
-> per-card line as firing at "each card's **entrance**". The criteria below test
-> the **settle** frame (§9 already fires `pack:card-landed`, tick and announcement
-> there). §12 needs that one word changed; until it is, §9 + §14 are authoritative.
+> **Cross-reference note (2026-11-22, resolved in this review):** §9 fires
+> `pack:card-landed`, the tick and the per-card announcement on the **settle**
+> frame; §12 now says the same. §9 + §14 remain authoritative if they ever drift.
 
 ### 14.1 Primary criteria (11 — the ten required gates, with the clock and the compositing halves of gate 3 split)
 

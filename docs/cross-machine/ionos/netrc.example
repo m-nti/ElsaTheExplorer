@@ -1,0 +1,3 @@
+machine IONOS_HOST
+login IONOS_USER
+password REPLACE_WITH_LOCAL_PASSWORD

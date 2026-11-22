@@ -26,12 +26,12 @@
 | Asset | Raw B | Gzip B |
 |---|---:|---:|
 | `index.html` | 11,760 | 3,464 |
-| `assets/css/style.css` + `cards.css` | 65,034 | 15,711 |
-| `assets/js/app.js` + `card-bank.js` | 71,517 | 20,248 |
+| `legacy/assets/css/style.css` + `cards.css` | 65,034 | 15,711 |
+| `legacy/assets/js/app.js` + `card-bank.js` | 71,517 | 20,248 |
 | `chivo-latin.woff2` | 33,252 | 33,187 (pre-compressed) |
 | `ultra-latin.woff2` | 15,248 | 15,098 |
 | `photos/thumbs/elsa-01.jpg` | 111,795 | 107,644 |
-| `assets/og.png` | 466,442 | 464,689 |
+| `legacy/assets/og.png` | 466,442 | 464,689 |
 | `vendor/heic2any` | 1,351,840 | 337,743 (dynamic only) |
 
 ## Cold thumbnail generation (serialized, temp copy)
@@ -94,6 +94,11 @@ tile (their 720 px edge is twice the 360 px tile rung), so the tile ceiling does
 | Detail never original | 0 | 3,983,035 B | **OVER** |
 | IONOS gzip/brotli | — | — | NOT ASSESSED |
 | Cold-cache first visit on real mobile | — | — | NOT ASSESSED |
+
+**Resolution (2026-11-22, #35):** the font row is fixed. `chivo-latin.woff2` now ships at
+**29,368 B** (97.9 % of the 30,000 B ceiling, −3,884 B) and the ceiling is enforced by
+`npm run gate:fonts` in CI. The measurements above are kept as the baseline they are; evidence in
+`docs/build/i5b-verification.md`.
 
 ## Confirmed defects
 

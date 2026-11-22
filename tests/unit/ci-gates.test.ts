@@ -1,11 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 const script = fileURLToPath(new URL("../../scripts/ci-gates.mjs", import.meta.url));
+const repo = fileURLToPath(new URL("../..", import.meta.url));
 
 type Fixture = {
   gates?: unknown;
@@ -55,13 +56,75 @@ describe("gate manifest", () => {
   it("fails when the CI step is missing", () => {
     const result = run(fixture({ workflow: "steps:\n  - run: echo skipped\n" }));
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("ci.yml never runs");
+    expect(result.stderr).toContain("has no bare");
   });
 
   it("fails on --if-present, the original false-green", () => {
     const result = run(fixture({ workflow: "steps:\n  - run: npm run --if-present canon\n" }));
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("--if-present");
+  });
+
+  it("fails on continue-on-error, in any casing or expression form", () => {
+    for (const value of ["true", "True", "${{ true }}", "true # flaky until #24"]) {
+      const result = run(
+        fixture({
+          workflow: `steps:\n  - run: npm run canon\n    continue-on-error: ${value}\n`,
+        }),
+      );
+      expect(result.status, value).toBe(1);
+      expect(result.stderr).toContain("continue-on-error");
+    }
+  });
+
+  it("fails when a gate step is gated on `if: false`, in any casing", () => {
+    for (const value of ["false", "False", "${{ false }}", "false # disabled"]) {
+      const result = run(
+        fixture({ workflow: `steps:\n  - run: npm run canon\n    if: ${value}\n` }),
+      );
+      expect(result.status, value).toBe(1);
+      expect(result.stderr).toContain("if: false");
+    }
+  });
+
+  it("fails on `|| exit 0`", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon || exit 0\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("exit 0");
+  });
+
+  it("fails on `|| :` even with a redirect before it", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon 2>/dev/null || :\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("|| true");
+  });
+
+  it("does not accept a step whose name mentions the gate", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - name: npm run canon\n    run: echo skipped\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("has no bare");
+  });
+
+  it("fails when a gate is piped through a redirect and tee", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon 2>&1 | tee canon.log\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("pipes a gate");
+  });
+
+  it("fails when a gate is piped through another command", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon | tee canon.log\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("pipes a gate");
   });
 
   it("fails when a pending gate names no issue", () => {
@@ -85,5 +148,30 @@ describe("gate manifest", () => {
     );
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("both enforced and pending");
+  });
+});
+
+describe("this repository's manifest", () => {
+  const manifest = JSON.parse(readFileSync(join(repo, ".github", "gates.json"), "utf8")) as {
+    enforced: { id: string; script: string }[];
+  };
+
+  // #105 + #99: both gates passed transitively (canon-self-test / test:unit) for a
+  // while, which is enforcement nobody can name in the Actions UI. Pinning the ids
+  // here means deleting the entry — not only the step — turns a test red.
+  it("declares art bible parity and the font budget as enforced named gates", () => {
+    expect(manifest.enforced).toEqual(
+      expect.arrayContaining([
+        { id: "bible-tokens-parity", script: "gate:parity" },
+        { id: "font-budget", script: "gate:fonts" },
+      ]),
+    );
+  });
+
+  it("backs every declared gate with a bare ci.yml step on the real tree", () => {
+    const result = run(repo);
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("bible-tokens-parity");
+    expect(result.stdout).toContain("font-budget");
   });
 });

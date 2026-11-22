@@ -23,16 +23,25 @@ if (gates.length === 0) {
 const failed = [];
 const started = Date.now();
 
+/**
+ * Windows has no `npm` executable — it is `npm.cmd`, and Node refuses to spawn a
+ * `.cmd` without a shell (CVE-2024-27980), so a bare `spawnSync("npm", …)` is
+ * ENOENT and every gate "fails" in 0 ms. Run npm's own CLI through this node
+ * binary when npm tells us where it is: the argument array stays exact and no
+ * shell is involved. Fall back to `npm` for a direct `node scripts/verify.mjs`.
+ */
+function npmRun(script) {
+  const cli = process.env.npm_execpath;
+  if (cli && !cli.toLowerCase().endsWith(".exe")) {
+    return { command: process.execPath, args: [cli, "run", script] };
+  }
+  return { command: "npm", args: ["run", script], shell: process.platform === "win32" };
+}
+
 for (const gate of gates) {
   const at = Date.now();
-  // Windows resolves `npm` to `npm.cmd`, which `spawnSync` cannot execute
-  // without a shell (EINVAL since Node's CVE-2024-27980 fix). Without this the
-  // local mirror failed at the FIRST gate on the owner's host while CI stayed
-  // green — the gate disagreed with itself between hosts.
-  const result = spawnSync("npm", ["run", gate.script], {
-    stdio: "inherit",
-    shell: process.platform === "win32",
-  });
+  const { command, args, shell } = npmRun(gate.script);
+  const result = spawnSync(command, args, { stdio: "inherit", shell });
   if (result.status !== 0) {
     failed.push(`${gate.id} (npm run ${gate.script})`);
     console.error(`\nverify: FAILED ${gate.id} — stopping.\n`);

@@ -8,7 +8,7 @@
 - Host: IONOS shared webspace, static deploy, PHP optional (`photos.php`), never required
 - Requirements Source: `PRD.md` §3–§7 (binding); `design/accessibility-requirements.md` (committed, Standard tier). GDDs/UX/art specs are being authored concurrently and are not yet reviewed here — traceability review (`/architecture-review`) runs once they land.
 - ADRs Referenced: `docs/adr/ADR-0001-stack.md` (Accepted), `docs/adr/ADR-0002-styling-system.md` (Accepted), `docs/adr/ADR-0008-image-derivatives.md` (Accepted), `docs/adr/ADR-0009-pwa.md` (Accepted, owner decision 2026-11-22).
-- Path note: the studio skill template names `docs/architecture/architecture.md`; AGENTS.md binds `docs/architecture.md` for this project. AGENTS.md wins.
+- Path note: the studio skill template names `docs/architecture.md`; AGENTS.md binds `docs/architecture.md` for this project. AGENTS.md wins.
 
 ---
 
@@ -188,8 +188,9 @@ fixed-percentage grid row. Each zone carries a hard character budget constant in
 `CardTile` CSS uses `overflow: hidden` + `text-overflow` as the last line of
 defense, never as the layout plan. No zone may size to its content.
 
-The art window uses `object-position` from `photo.focus` (default center) so crop
-anchors survive every frame size. Foil layers (rays, glitter, glare, print frame)
+The art window uses `object-position` from `photo.focus` (absent `focus` ⇒
+`center 42%`, the one "no opinion" anchor — ADR-0011 R4) so crop anchors survive
+every frame size. Foil layers (rays, glitter, glare, print frame)
 are bespoke art in `CardTile`'s Svelte-scoped CSS, consuming tokens only via
 `var()`; rarity tiers come from a **typed Panda recipe** (`cardRecipe({ rarity })`)
 — per ADR-0002, recipes are the only sanctioned variant mechanism. Rarity changes
@@ -579,7 +580,7 @@ by the derivative contract above (v1.1 adds `ver` / `images` independently of th
 
 ```jsonc
 "set": "sommer-2026",              // optional grouping tag, default null; used for binder headings
-"focus": { "x": 0.35, "y": 0.30 }, // crop anchor, normalized 0..1, default {x:0.5,y:0.5}
+"focus": { "x": 0.35, "y": 0.30 }, // crop anchor, normalized 0..1; absent ⇒ center 42% (ADR-0011 R4)
 "chase": true                      // optional chase-card marker, default false
 ```
 
@@ -1028,7 +1029,7 @@ knip → Vitest (incl. contrast gate + PWA cache policy) → build + bundle-budg
 image-derivative byte assertion (`php -S`) → Playwright → **PWA gate** (precache ≤ 400 KB,
 `sw.js` ≤ 25 KB gzip, manifest/icon validation, CDP installability, `pwa` Playwright project);
 Lighthouse runs advisory only — its PWA category has not existed since Lighthouse 12.
-`scripts/qa.mjs`'s checks are absorbed here.
+`legacy/scripts/qa.mjs`'s checks are absorbed here.
 
 ---
 

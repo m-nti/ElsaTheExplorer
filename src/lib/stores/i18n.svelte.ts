@@ -1,43 +1,14 @@
 /**
- * i18n store — typed DE/EN surface. DE is the master; EN must satisfy the same
- * Dictionary. The full copy deck lands with the copy pass; these keys exist so
- * the store's API (and the parity tests) are real from day one.
+ * i18n store — reactive locale over the typed DE/EN dictionary.
+ *
+ * The dictionary itself lives in `dictionary.ts` (data, node-importable); this
+ * module owns only the current locale and the `lang` attribute. Re-exported so
+ * call sites keep a single import surface.
  */
+import { DICTIONARIES, isLocale, LOCALES, type Dictionary, type Locale, type MessageKey } from "$lib/stores/dictionary";
 
-export const LOCALES = ["de", "en"] as const;
-
-export type Locale = (typeof LOCALES)[number];
-
-export type MessageKey =
-  | "app.title"
-  | "app.tagline"
-  | "card.serial"
-  | "state.offline"
-  | "state.error.catalogue";
-
-export type Dictionary = Readonly<Record<MessageKey, string>>;
-
-const DE: Dictionary = {
-  "app.title": "Elsa the Explorer",
-  "app.tagline": "Die Sammlung ist das Produkt. Elsa ist der Sammlungsmechanismus.",
-  "card.serial": "ELSA · {number}",
-  "state.offline": "Die Sammlung ist gerade offline. Die zuletzt gesammelten Karten bleiben lesbar.",
-  "state.error.catalogue": "Die Sammlung kommt gleich wieder.",
-};
-
-const EN: Dictionary = {
-  "app.title": "Elsa the Explorer",
-  "app.tagline": "The collection is the product. Elsa is the collection mechanism.",
-  "card.serial": "ELSA · {number}",
-  "state.offline": "The collection is offline. The cards you have collected remain readable.",
-  "state.error.catalogue": "The collection will be back shortly.",
-};
-
-export const DICTIONARIES: Readonly<Record<Locale, Dictionary>> = { de: DE, en: EN };
-
-export function isLocale(value: unknown): value is Locale {
-  return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
-}
+export { DICTIONARIES, isLocale, LOCALES };
+export type { Dictionary, Locale, MessageKey };
 
 export class I18nStore {
   #locale = $state<Locale>("de");

@@ -117,7 +117,7 @@ closing to continue browsing.
 
 | Exit Action | Destination | Transition Type | Data Returned / Saved | Notes |
 |-------------|------------|-----------------|----------------------|-------|
-| Escape / ✕ / backdrop | Parent (PackOpening, BinderShelf, or stage) | Modal close 200ms (instant reduced-motion) | Focus returns to the **originating card button**; if none (deep link), to the stage CTA | Focus-return contract is binary-tested (§14) |
+| Escape / ✕ / backdrop | Parent (PackOpening, BinderShelf, or stage) | Modal close 160ms (instant reduced-motion) | Focus returns to the **originating card button**; if none (deep link), to the stage CTA | Focus-return contract is binary-tested (§14) |
 | "Noch ein Pack" | PackOpening (new accession) | Close + `pack:open-request` | — | Disabled while a pack resolves |
 | "Foto speichern" | Browser download | Native download sheet | original file, `download` attribute | Page state unchanged |
 | "Teilen" | Share sheet / clipboard | Native UI | deep-link URL | Status line reports the result (§7.2) |
@@ -144,12 +144,12 @@ Desktop (≥1120px, ≥850px tall — side-by-side layout, current behaviour kep
 ║   │  Teilen      │   │ │ Elsa the Explorer · 1. Aul │ │  ← credit│
 ║   │              │   │ │ ★★★★☆        (own band!)   │ │   strip  │
 ║   │  (status)    │   │ ├────────────────────────────┤ │          ║
-║   │              │   │ │ ELSA-MOMENT                │ │          ║
+║   │              │   │ │ SENTENCE ≤3                │ │          ║
 ║   │  (hint)      │   │ │ „Sie hat den Garten neu    │ │          ║
 ║   │              │   │ │  sortiert. Nach ihr."      │ │          ║
-║   └──────────────┘   │ │ Im Bild: Elsa am Beete     │ │          ║
+║   └──────────────┘   │ │ FANTASIEWERTE (1 LINE)     │ │          ║
 ║                      │ ├────────────────────────────┤ │          ║
-║  ‹                 ›  │ Fantasiewerte · nur zum Spaß│ │          ║
+║  ‹                 ›  │ [STATS: CHIPS ONLY]         │ │          ║
 ║   (chevrons, mid-    │ │ [Spaß 7/10][Naps 9/10][X]  │ │ ← stats  │
 ║    edges)            │ ├────────────────────────────┤ │          ║
 ║                      │ │ 04/24      Elsa the Ex ·1A │ │ ← serial │
@@ -171,7 +171,7 @@ overlay the card's vertical midline at the dialog edges.
 | Card slot | The full card (`card--full`) | width = fit formula (§5.3 L1); height = width / 0.70 | No | **Never scrolls, never clips zones — zones are proportioned to fit (L2–L5)** |
 | Chevron zones | ‹ › over the dialog edges, vertically centred on the card | 44×44px each | No | Hidden at catalogue size 1 |
 | Status line | Share/save feedback — plain text with no live semantics; the same string is announced through `#live-status` (ADR-0010 §2) | 1 line | No | Wraps to 2 lines; reserves min-height to avoid reflow |
-| Confetti/halo dressing | Halo behind card + ground shadow + glare band | around the card | No | Decorative, `aria-hidden`, static under reduced motion |
+| Halo/dressing | Halo behind card + ground shadow + glare band | around the card | No | Decorative, `aria-hidden`, static under reduced motion |
 
 The dialog never scrolls (`overflow: hidden`, current behaviour kept);
 everything fits from 320×480 up.
@@ -190,8 +190,8 @@ photograph is the only lit object, so it takes the largest content band.
 | 1 · plate | **15.5** | row 1: name, **one line with ellipsis**; row 2: number, mood (one line), rarity chip |
 | 2 · photo window | **41.5** | 4:5 window filling its band (no block padding), `object-position` from the focus anchor; nothing overlaps it |
 | 3 · credit strip | **5.5** | edition credit + stars, own row, never painted over the photo |
-| 4 · story | **19.5** | keyword + sentence (≤ 3 lines) + "Im Bild" note |
-| 5 · stats | **8.5** | Fantasiewerte label + 3 stat chips, every value inside its chip |
+| 4 · story | **19.5** | sentence (**≤ 3 lines**) + Fantasiewerte line (1 line, ellipsis) — two rows, D70 |
+| 5 · stats | **8.5** | 3 stat chips, every value inside its chip; the Fantasiewerte label is band 4's last row, immediately above the chips (D70) |
 | 6 · foot | **5.0** | serial + credit + edition |
 | 7 · gutters | **4.5** | five gaps, never collapses; the foil edge keeps its margin |
 
@@ -216,7 +216,7 @@ band. Decorative foil layers (rays, glitter, glare) may cover the card but
 never carry content.
 
 **L3 — The credit strip is its own band.**
-Fix: "Elsen · Erste Auflage" credit + stars live in band 3, a reserved row
+Fix: "Elsa the Explorer · 1. Auflage" credit + stars live in band 3, a reserved row
 between photo and Elsa-Moment. It must not be absolutely positioned or
 negative-margined over the photo window (current failure mode). At every
 viewport the strip's bounding box does not intersect the photo's.
@@ -243,6 +243,24 @@ zooms the page (browser default, allowed and unblocked). Display copies are the
 a display rendition; the **original** is used only by "Foto speichern". A photo
 zoom/magnify affordance is deliberately deferred (§15).
 
+**L7 — Band 4 is two rows and the sentence clamps at three lines (D70).**
+At the 340 × 485.71 px reference (plate inner height 469.71 px) band 4 is 19.5 % = **91.59 px**.
+Two rows — sentence (13 px, line-height 1.35 = 17.55 px per line) over the Fantasiewerte line (11 px
+= 14.85 px) — cost 16 px padding + 4 px gap + 52.65 px copy + 14.85 px label = **87.50 px**, leaving
+**4.09 px** slack. A third sub-row (a separate keyword or "Im Bild" row) drops the copy to
+**37.89 px**, which is 2.16 lines: the third line then overruns its row by **14.76 px** and clips
+mid-glyph — measured at 308 px, where four of five German sample sentences at the 96-character
+ceiling render three lines. That is the arithmetic #70 records, and it is why this spec carries no
+keyword row and no "Im Bild" row on the card face: the card's name is the heading, the image note was
+already declared the first thing to yield, and a keyword sharing the disclaimer's row measures
+100.3 + 205.1 + 8 = 313.4 px against a 308 px measure — it overflows. The copy contract is unchanged
+— 96 characters authored, German binding — and it is a three-line contract. Three lines with three
+sub-rows would need a 22.64 % band (+3.14 pp out of the photograph), which D12a's ruling does not
+fund. The tile column (16 % = 75.15 px) leaves **40.30 px** for copy, so the tile clamps at **two**
+lines; the drop card shares this card's plate and therefore this clamp. The Fantasiewerte line sits
+last in band 4, directly above the chips, so it precedes the values visually and in the accessible
+name (F2a) — it ellipsises to its leading word under pressure but is never removed.
+
 **Holo / foil treatment — adopted from the reference study** (`holo-card-ref.html`,
 the layered-CSS foil reference; the current implementation shares its lineage —
 what follows is what the card should additionally adopt):
@@ -250,7 +268,7 @@ what follows is what the card should additionally adopt):
 | # | Adopt | Reference mechanic | Why it earns its place |
 |---|-------|--------------------|------------------------|
 | A | **Keyboard foil tilt** | Arrow keys nudge the tilt target ±7°/step, clamped ±18°/±20° | The card reserves `←`/`→` for card navigation (canon). **Split:** `←`/`→` navigate cards; `↑`/`↓` tilt the foil while the card has focus. Keyboard visitors get the same material life as pointer users. |
-| B | **Tap-vs-drag discrimination** | `pointerdown` captures; movement < 8px on release = tap (flip); ≥ 8px = tilt drag | Touch users currently risk accidental flips while aiming to tilt. Also sets `touch-action: none` on the card zone only — the dialog never scrolls, so page behaviour is unaffected. |
+| B | **Tap-vs-drag discrimination** | `pointerdown` captures; a three-step gesture ladder: movement < 8px on release = tap (flip), 8–39px = tilt drag, ≥ 40px dominant-horizontal = card navigation (Card Browsing) | Touch users risk accidental flips while aiming to tilt, and a navigation swipe must not be read as tilt. Also sets `touch-action: none` on the card zone only — the dialog never scrolls, so page behaviour is unaffected. |
 | C | **Halo + ground shadow** | Conic rainbow halo (blur 60px, opacity tracks tilt energy) behind the card; elliptical ground shadow that counter-shifts with tilt | "The card is the only lit object in the room" — this dressing is the light source. Static under reduced motion; `aria-hidden`. |
 | D | **Spring flip** | Flip angle runs through the same spring as tilt (`k=110/c=13`, reduced `200/30`) with a `translateZ` lift at 90° | Replaces the flat 700ms CSS transition; flip and tilt share one physical system, and reduced motion collapses both to instant. |
 | E | **em-scaled card typography** | Card root `font-size` derived from the card width (cqw); every zone sized in `em` | The card scales as **one unit** — this is the mechanism that makes L2's fixed bands safe at any size (the reference's card never overflows for this reason). |
@@ -270,8 +288,8 @@ what follows is what the card should additionally adopt):
 | `.card__wing-frame` | Frame variant | card frame (band-independent) | **GDD R3b — completed-room frame variant on the seven-bay face (Vertical Slice)**: the same gilt frame the room's tiles wear, rendered around the dialog card; **decorative only (R10)** — announced nowhere, carries no state | Yes (VS) | Same frame tokens as `.shelf__gilt` |
 | `.card__photo` (+ img, rays, frame, focus anchor) | Composite | band 2 | The photograph is the art | Yes | Yes |
 | `.card__strip` (credit + stars) | Band | band 3 | Edition + rarity stars | Yes | Yes (moved into its own band per L3) |
-| `.card__line` (Elsa-Moment, copy, "Im Bild") | Panel | band 4 | The card's story | Yes | Yes |
-| `.card__stats-label` + `.card__stats` | Label + 3 chips | band 5 | Fantasiewerte, openly imaginary (F2a) | Yes | Yes (per L4) |
+| `.card__line` (sentence + Fantasiewerte line) | Panel | band 4 | The card's story, two rows per L7 | Yes | Yes |
+| `.card__stats` (3 chips, no label row) | 3 chips | band 5 | Fantasiewerte, openly imaginary (F2a); the label is band 4's last row | Yes | Yes (per L4) |
 | `.card__foot` (serial + credit + edition) | Band | band 6 | Catalogue position | Yes | Yes |
 | `.card__halo` / `.card__ground-shadow` | Decorative | around card | Adopted dressing (§5.3 C) | Round 1 (dressing) | New |
 | `.card__corner` ×4 | Decorative SVG | frame | Adopted brackets (§5.3 F) | Phase 2 | New |
@@ -319,7 +337,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | Share copied | Clipboard fallback succeeded | Status: "Link kopiert." | — | Status clears after 3.4s (current timing kept) |
 | Share failed | Clipboard refused | Status: "Link konnte nicht kopiert werden. Er steht oben in der Adresszeile." | — | Failure is never silent |
 | Completed-room frame | Opened card belongs to a completed room | The **gilt frame variant (R3b, VS)** renders around the card face — decorative only (R10) | — | Same frame tokens as the room's tiles |
-| Capstone plaque | The capstone surface is opened for study (header component, not a catalogue card) | Grand frame treatment; **no Fantasiewerte band** — bands 4–5 collapse and the photo grows to compensate | Serial band reads "Sammlung I · abgeschlossen" | Phase 3 (Full Vision); **Elsas Ehrenmensch / Elsa's Honorary Human** per owner canon; per-set diplomas do not exist |
+| Capstone plaque | The capstone surface is opened for study (header component, not a catalogue card) | Grand frame treatment; **no Fantasiewerte band** — bands 4–5 collapse and the photo grows to compensate | Serial band reads "Sammlung I · vollzählig" | Phase 3 (Full Vision); **Elsas Ehrenmensch / Elsa's Honorary Human** per owner canon; per-set diplomas do not exist |
 | Second lap | Opened card was pulled after lap restart | "2. Auflage" stamp on the plate **(GDD R6, Phase 3)** + the dialog's stamp line beneath the actions: "Zweite Auflage — die Sammlung kennt sie schon." / "Second printing — the collection already knows this one." | — | Stamp is decorative (R10); the dialog line is its text form; catalogue tiles never show stamps |
 | Chase / gold-glint | Opened card is Das Hauptporträt (`chase: true`, GDD R-G) | **Gold-glint keystone frame** around the face — same material family as the room tile's frame, saturated for the dialog stage | — | Decorative (R10); never announced as rarity |
 | Reduced motion | System setting | No tilt spring, no idle sway, no flip animation (instant), halo/shadow static, foil material static | All inputs unchanged | Canon: foil movement off; information identical |
@@ -337,7 +355,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | `↑` / `↓` | Keyboard | Nudge foil tilt while the card has focus (§5.3 A) | Foil/glare track the nudge | none | Adopted from the reference; does not collide with `←→` |
 | `Tab` / `Shift+Tab` | Keyboard | Walk: dialog → ✕ → ‹ → card → › → Noch ein Pack → Foto speichern → Teilen → (wrap) | Focus ring per element | none | Card is `role="button"` `tabindex="0"` |
 | Drag (pointer/touch) | Mouse/Touch | Tilt the card | Foil layers + glare + halo track; spring settles | none | Grab cursor on the card zone |
-| Horizontal swipe on the card | Touch | Tilt only — **never** navigation | see above | none | Gesture conflict resolved: navigation has dedicated chevrons on touch; the card surface belongs to tilt/flip (§5.3 B) |
+| Horizontal swipe on the card | Touch | Navigate prev/next when the gesture is dominant-horizontal and ≥ 40 px (`Card Browsing`); 8–39 px drags tilt | Card crossfades 150ms | tick | Gesture ladder: tap < 8 px flips, 8–39 px drag tilts, ≥ 40 px horizontal swipe navigates; vertical movement never navigates. Chevrons remain the visible affordance (§5.3 B) |
 
 ### 7.2 Action Inputs
 
@@ -366,7 +384,7 @@ originating card button (pack card / catalogue tile); with no originating card
 
 | Data Element | Source System | Update Frequency | Who Owns It | Format | Null / Missing Handling |
 |--------------|--------------|-----------------|-------------|--------|------------------------|
-| Card content (name, mood, sentence, "Im Bild", Fantasiewerte, rarity) | Card catalogue (photo → card pipeline; per-photo bilingual overrides; bank fallback) | On open / navigate / language switch | Card source system | photo object | Missing copy → neutral fallback copy (F2), never invented activities |
+| Card content (name, mood, sentence, Fantasiewerte, rarity) | Card catalogue (photo → card pipeline; per-photo bilingual overrides; bank fallback) | On open / navigate / language switch | Card source system | photo object | Missing copy → neutral fallback copy (F2), never invented activities |
 | Rarity | Card source system (from the photo's own id — F3) | Stable per photo | Card source system | `common\|rare\|holo` | n/a — identity must not drift |
 | Set membership / chase flag / edition stamp | Card catalogue (`set`, `chase`) + persistence (`flags.v1` lap) | On open | Card source system / persistence respectively | string / boolean | Missing set → no chip; missing stamp → none |
 | Focus anchor | Card source system (manifest `focus`) | On render | Card source system | {x,y}% | Missing → `center 42%` |
@@ -407,8 +425,8 @@ originating card button (pack card / catalogue tile); with no originating card
 | Card navigation | `←→`/chevrons | Crossfade + 8px horizontal drift toward the travel direction | 150 | ease-out | Yes | Yes — instant swap |
 | HEIC swap | Conversion done | Photo crossfade | 200 | ease | Yes | Yes |
 | Status line | Share result | Text appears in reserved slot | 0 (no shift — height reserved) | — | — | n/a |
-| Dialog close | Exit | Fade + scale →1.02 | 200 | ease-in | Yes | Yes — instant |
-| Confetti | On open from a fresh holo pull (parent decides) | Canvas burst | ~1900 | n/a | Runs to end | **Yes — none** |
+| Dialog close | Exit | Fade + scale →1.02 | 160 | ease-in | Yes | Yes — instant |
+| Confetti | — | **Withdrawn from this dialog** (motion-sheet §8: capstone-only; the pack parent owns the holo glint flourish) | — | — | — | — |
 
 ---
 
@@ -427,13 +445,13 @@ implementation blocker for this project.*
 
 **Mouse**
 - [x] Hover states defined for all interactive elements (card tilt, buttons, chevrons, ✕)
-- [x] Clickable hit targets are at minimum 32x32px (44x44px preferred) — actions ≥42px, chevrons 44px, ✕ ≥36px visual/44px hit
+- [x] Clickable hit targets are at minimum 32x32px (44x44px preferred) — actions ≥44px hit target (38px visual padded), chevrons 44px, ✕ ≥36px visual/44px hit
 - [x] Right-click behavior defined (native context menu on the card image = OS save path; no custom handler)
 - [x] Scroll wheel behavior defined in all scrollable zones (the dialog has none; wheel over the card nudges nothing — tilt is pointer-position-driven)
 
 **Touch**
 - [x] All touch targets are minimum 44x44px (actions row is a 2-col grid with ≥38px buttons **padded to 44px hit height** — current 38px visual is kept with expanded hit slop)
-- [x] Swipe gestures do not conflict with system-level swipe navigation (card surface = tilt/flip with 8px discrimination; navigation uses chevrons, never edge swipes)
+- [x] Swipe gestures do not conflict with system-level swipe navigation (card surface: tap < 8 px flips, 8–39 px drag tilts, ≥ 40 px dominant-horizontal swipe navigates; chevrons are the visible affordance; vertical movement never navigates)
 - [x] All actions achievable with one hand in portrait orientation (actions at the bottom, chevrons at the card's midline)
 - [x] Long-press behavior defined (native image context sheet on the card photo — OS default, not intercepted)
 
@@ -448,6 +466,14 @@ implementation blocker for this project.*
 | Text Element | Background Context | Required Ratio | Current Ratio | Pass? |
 |--------------|-------------------|---------------|---------------|-------|
 | Plate name (rare/holo foil gradient text) | Indigo plate gradient | 4.5:1 at **every gradient stop** | verify — gradient text is the audit's hardest case; drop-shadow required as the second channel | [ ] audit |
+| Plate number / mood / rarity chip | Plate | 4.5:1 | ≈ 10:1 | [x] |
+| Credit strip text + stars | Parchment band | 4.5:1 | ≥ 4.5 required (8–10px type is the risk) | [ ] audit — smallest text on the card |
+| Elsa-Moment copy | Panel | 4.5:1 | ≈ 9:1 | [x] |
+| Fantasiewerte label + stat values | Label: muted on velvet; values on chip | 4.5:1 | values ≈ 12:1; label ≥ 4.5 required | [ ] audit |
+| Serial foot | Card face | 4.5:1 | ≥ 4.5 required | [ ] audit |
+| Action buttons | Pearl/outline surfaces | 4.5:1 | verify primary (dark ink on light) | [ ] audit |
+| Status line | Dialog velvet | 4.5:1 | ≈ 10:1 | [x] |
+| Keyboard hint `.print__hint` | Dialog velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 
 **Foil-name gradient under reduced motion (audit target)**: with
 `prefers-reduced-motion: reduce`, the gradient text's `background-position`
@@ -460,14 +486,6 @@ so the audit can check a single rendered frame instead of an animated range.
 (binder.md §6) shares this dialog's foil/frame token set — its exact frame
 treatment follows the same art sign-off; nothing in this spec's geometry
 requirements depends on it.
-| Plate number / mood / rarity chip | Plate | 4.5:1 | ≈ 10:1 | [x] |
-| Credit strip text + stars | Parchment band | 4.5:1 | ≥ 4.5 required (8–10px type is the risk) | [ ] audit — smallest text on the card |
-| Elsa-Moment copy | Panel | 4.5:1 | ≈ 9:1 | [x] |
-| Fantasiewerte label + stat values | Label: muted on velvet; values on chip | 4.5:1 | values ≈ 12:1; label ≥ 4.5 required | [ ] audit |
-| Serial foot | Card face | 4.5:1 | ≥ 4.5 required | [ ] audit |
-| Action buttons | Pearl/outline surfaces | 4.5:1 | verify primary (dark ink on light) | [ ] audit |
-| Status line | Dialog velvet | 4.5:1 | ≈ 10:1 | [x] |
-| Keyboard hint `.print__hint` | Dialog velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 
 **Colorblind-unsafe elements and mitigations**:
 
@@ -495,13 +513,13 @@ returns to the originating card button, else `#open-pack`.
 
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
-| Card opened | "{number}. {name}. {rarity}." — e.g. "Nr. 07. Ministerin für Mittagsschlaf. Holo-Pracht." (library format) | On open (current behaviour kept) |
+| Card opened | "Nr. {number}. {name}. {rarity}." — e.g. "Nr. 07. Ministerin für Mittagsschlaf. Holo-Pracht." (library format) | On open (current behaviour kept) |
 | Navigation | "{number} von {total}." (then the new card's open announcement) | On each `←→`/chevron step |
 | Flip to back / front | "Rückseite der Karte." / "Vorderseite der Karte." | On flip |
 | Share sheet resolved | "Geteilt." | On success |
 | Clipboard fallback | "Link kopiert." | On success |
 | Share failed | "Link konnte nicht kopiert werden. Er steht oben in der Adresszeile." | On failure — never silent |
-| Fantasiewerte | Label precedes the values in the card's `aria-label` ("Fantasiewerte · nur zum Spaß: …") | Part of the open announcement (F2a) |
+| Fantasiewerte | Label precedes the values in the card's `aria-label` ("Fantasiewerte · nur zum Spaß: …"); visually it is band 4's last row, directly above the chips (D70) | Part of the open announcement (F2a) |
 | "Noch ein Pack" while busy | Button is disabled with label "Pack wird geöffnet" state carried by the parent | On attempt |
 
 **Cognitive load assessment**:
@@ -526,9 +544,9 @@ numbers are read (F2a), preventing misreading them as data.
 | Card name | catalog-driven | 24 (2 lines in band 1) | 40 % | n/a | Wraps to 2 lines; then font steps down one cqw clamp (never truncates a name) | Medium — **HIGH PRIORITY for localization**: band 1 is fixed |
 | Mood ("Laune: …") | catalog-driven | 20 | 40 % | n/a | Wraps inside band 1's mood row | Low |
 | Credit strip "Elsa the Explorer · 1. Auflage" | ~28 | 40 | 40 % | n/a | Fixed band per L3; letter-spacing steps down, then wraps to 2 short lines — **never** overlaps the photo | Medium — **HIGH PRIORITY**: the defect zone |
-| Elsa-Moment sentence | catalog-driven | 96 (band clamp) | 40 % | n/a | Wraps within band 4; band 4 is 19.5 % and the copy clamps at 3 lines; the font steps down once; last resort drops the "Im Bild" line to keep the sentence | Medium — **HIGH PRIORITY** |
-| "Im Bild: …" note | ~30 | 44 | 40 % | n/a | First thing to yield (see above); never the sentence | Low |
-| Fantasiewerte label ("Imaginary stats · just for fun" / "Fantasiewerte · nur zum Spaß") | 30 | 42 | 40 % | n/a | Wraps to 2 short lines above the chips | Low |
+| Elsa-Moment sentence | catalog-driven | 96 (3-line contract, D70) | 40 % | n/a | Band 4 is 19.5 % and clamps at **3 lines**; the type does not step down — the two-row plan is what buys the third line (L7); a fourth line ellipsises | Medium — **HIGH PRIORITY** |
+| "Im Bild: …" note | ~30 | 44 | 40 % | n/a | **Not rendered on the card face** (D70): the deck already named it the first thing to yield, and it is not in the card model | Low |
+| Fantasiewerte label ("Fantasiewerte · mit voller Überzeugung" / "Imaginary stats · held with conviction") | 38 | 42 | 40 % | n/a | One line, band 4's last row: measured 205.1 px at 11 px against 308 px. Ellipsises to the leading word; never removed | Low |
 | Stat keys + values | manifest-driven | key 12, value 4 | 40 % | n/a | Key wraps inside the chip (L4 reserves the value box) | Low |
 | Stamp line (dialog, Phase 2) "Second printing — the collection already knows this one." / "Zweite Auflage — die Sammlung kennt sie schon." | ~57 | 80 | 40 % | n/a | Status/hint area wraps to 2 lines | Low |
 | Action buttons ("Another pack"/"Noch ein Pack", "Save this photo"/"Foto speichern", "Share"/"Teilen") | 12/15/5 | 17/21/7 | 40 % | n/a | Mobile 2-col grid: buttons wrap to their own rows rather than shrink below 44px hit height | Medium — **HIGH PRIORITY**: mobile actions row |
@@ -544,6 +562,7 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] At every viewport in {320×480, 320×568, 390×844, 414×896, 640×480, 768×1024, 1024×768, 1280×800, 1280×900, 1920×1080, 1920×1200}, portrait and landscape: **the credit strip's bounding box does not intersect the photo window's** (fixes the "Elsen · Erste Auflage" overlap)
 - [ ] Same viewport sweep: **the lowest text baseline of the last stat value sits ≥2px above the card's inner bottom edge** (fixes the clipped stat)
 - [ ] Same viewport sweep: **no content band extends beyond the card frame's inner border** — nothing crosses the foil edge (fixes defect 3)
+- [ ] Same sweep, DE and EN: band 4 shows the sentence at up to 3 lines with **no clipped partial line** (clamp 3 on the full and drop card, 2 on the binder tile), and the Fantasiewerte line is present on every card that shows stats (D70)
 - [ ] These three checks run as scripted Playwright geometry assertions (bounding-box intersection + baseline math) on every build — CI, not eyeballs
 - [ ] At 200 % browser zoom the same three assertions pass
 
@@ -561,7 +580,7 @@ numbers are read (F2a), preventing misreading them as data.
 
 **Input**
 - [ ] Keyboard-only pass: open → read card → `←` wraps to the collection end → `→` back → `F` flips → `↑↓` tilt → Escape returns focus to the originating card button (assert `document.activeElement`)
-- [ ] Touch pass: tap flips, an 8px+ drag tilts without flipping, chevrons navigate; no browser back-swipe is triggered from the card surface
+- [ ] Touch pass: tap flips, an 8–39 px drag tilts without flipping, a ≥ 40 px horizontal swipe navigates, chevrons navigate; no browser back-swipe is triggered from the card surface
 - [ ] From the pack flow, closing returns focus to the same pack card; from the collection, to the same tile; from a deep link, to `#open-pack`
 
 **Events & Data**
@@ -588,7 +607,7 @@ numbers are read (F2a), preventing misreading them as data.
 |----------|-------|----------|-----------|
 | Photo zoom affordance (pinch-to-inspect inside the card) — deferred this round; revisit with real photos | ux-designer + user | after first playtest | — |
 | Keyboard tilt discoverability: is `↑↓` hint-worthy in the dialog hint line, or learnable? (Hint line has one row budget.) | ux-designer | with playtest | — |
-| Should `←→` from a pack-opened card step within the five pulled cards only, or the whole catalogue (current + canon)? Canon says the lightbox browses; confirm no playtest confusion | game-designer + ux-designer | with playtest | — |
+| Should `←→` from a pack-opened card step within the four pulled cards only, or the whole catalogue (current + canon)? Canon says the lightbox browses; confirm no playtest confusion | game-designer + ux-designer | with playtest | — |
 | Share text: card sentence or printed name only (PRD §9.7)? | user | before launch | — |
 | ~~Diplom: CardDetail render vs. dedicated honours view~~ **RESOLVED 2026-11-22 (owner canon):** the capstone **Elsas Ehrenmensch / Elsa's Honorary Human** lives in the collection header (binder.md §6); this dialog renders it only for study via the capstone-plaque state | owner + ux-designer | 2026-11-22 | RESOLVED |
 | Foil name gradient: cap animation of `background-position` under "no motion" preference — static gradient at a fixed flattering stop needs art sign-off | art-director | with art bible pass | — |

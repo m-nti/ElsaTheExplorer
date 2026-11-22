@@ -47,6 +47,24 @@ export default defineConfig({
       fontWeight: "400",
       fontDisplay: "swap",
     },
+    /**
+     * The metric-matched interim face for Ultra (#26). `swap` is the art-bible
+     * rule, so the wordmark changes face after first paint; without a face whose
+     * width and vertical metrics already match Ultra, that swap moves the block
+     * (measured CLS 0.0075-0.0080). Ratios come from measured advances at
+     * 100 px: Ultra 1070.75 / Georgia 762.60 = 140.41 %, ascent 101 %, descent
+     * 27 %, no line gap. A local serif is the fallback of the fallback.
+     */
+    "Ultra Fallback": {
+      src: 'local("Georgia"), local("Times New Roman")',
+      fontStyle: "normal",
+      fontWeight: "400",
+      fontDisplay: "swap",
+      sizeAdjust: "140.41%",
+      ascentOverride: "71.9%",
+      descentOverride: "19.2%",
+      lineGapOverride: "0%",
+    },
   },
 
   globalCss: {

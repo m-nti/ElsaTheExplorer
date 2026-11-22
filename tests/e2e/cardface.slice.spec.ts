@@ -184,7 +184,7 @@ for (const locale of ["de", "en"] as const) {
       page,
     }, testInfo) => {
       await page.setViewportSize(viewport);
-      await page.goto(`/?lang=${locale}`);
+      await page.goto(`/?slice=1&lang=${locale}`);
 
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
       // Every row rendered, so a missing width cannot pass silently.
@@ -258,7 +258,7 @@ for (const locale of ["de", "en"] as const) {
 
 test("the reference card holds its bands (340 px, #70 pinned)", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/?lang=de");
+  await page.goto("/?slice=1&lang=de");
 
   const cards = cardsOf(await measure(page), REFERENCE_WIDTH);
   expect(cards).toHaveLength(CARD_IDS.length);
@@ -289,7 +289,7 @@ test("sub-reference widths honour the bands (#89, em scale)", async ({ page }) =
   // a smaller box. Before the refactor this run measured +30 px of stats
   // overflow at 148 px and a 0 px copy box; the contract below is what failed.
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/?lang=de");
+  await page.goto("/?slice=1&lang=de");
 
   const measured = await measure(page);
 
@@ -311,7 +311,7 @@ test("sub-reference widths honour the bands (#89, em scale)", async ({ page }) =
 
 test("the holo card carries the five foil layers", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/?lang=de");
+  await page.goto("/?slice=1&lang=de");
 
   const holo = page.locator(`[data-slice-width="340"] [data-slice-card="${HOLO_CARD}"]`).first();
 
@@ -328,7 +328,7 @@ test("E-IMG-09: renderable:false prints the frame and requests no image", async 
   page.on("request", (request) => requested.push(request.url()));
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/?lang=de");
+  await page.goto("/?slice=1&lang=de");
   await page.waitForLoadState("load");
 
   const printed = page
@@ -347,7 +347,7 @@ test("E-IMG-09: renderable:false prints the frame and requests no image", async 
 
 test("tilt follows the pointer and releases at rest (E-KBD-06 tilt input)", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/?lang=de");
+  await page.goto("/?slice=1&lang=de");
 
   const face = page
     .locator(`[data-slice-width="340"] [data-slice-card="${HOLO_CARD}"] .card-face`)
@@ -384,7 +384,7 @@ test.describe("reduced motion (E-RM-03, E-RM-08)", () => {
 
   test("the final frame is static and the content is unchanged", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto("/?lang=de");
+    await page.goto("/?slice=1&lang=de");
 
     const face = page
       .locator(`[data-slice-width="340"] [data-slice-card="${HOLO_CARD}"] .card-face`)
