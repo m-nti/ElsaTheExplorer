@@ -121,3 +121,51 @@ jobs:
       # breach was red but unnamed; now it is its own step and its own gate.
       - name: Font byte budget
         run: npm run gate:fonts
+
+  # One job closes the class of Windows-host defects (#71). Every gate above runs on
+  # ubuntu only, so script and test drift specific to the maintainer's host stayed
+  # invisible until a local `npm run verify`: a bash-only `prepare`, a canon path
+  # comparison, a CRLF registry fixture, 8.3 short paths and a symlink privilege all
+  # landed as red on Windows and green on CI. This is an addition, not a replacement:
+  # the ubuntu `verify` job still owns all eighteen enforced gates (including the
+  # #98 scanners and the #109 parity/font steps), and this job runs the ratified
+  # subset that exercises the host-sensitive code paths. `.github/gates.json` is the
+  # authority on the list; `npm run ci:gates` prints it.
+  windows:
+    name: verify-windows
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Gate manifest
+        run: npm run ci:gates
+
+      # The unit suite drives scripts/pre-push-refs.sh through a POSIX shell, and Git
+      # for Windows keeps sh.exe in its own bin directory, which a runner shell does not
+      # export. Without this the five hook tests skip instead of running.
+      - name: Git POSIX shell on PATH
+        shell: pwsh
+        run: |
+          "C:\Program Files\Git\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Typecheck (tsc)
+        run: npm run check:ts
+
+      - name: Typecheck (svelte-check --tsgo)
+        run: npm run check
+
+      - name: Unit tests + contrast gate + coverage ratchet (Vitest)
+        run: npm run test:unit
