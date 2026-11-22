@@ -269,7 +269,7 @@ No string may be assembled by concatenating a noun with a count.
 | `card.btn.share` | Teilen | Share | 7 | **space-critical** — shortest label in the deck | PL |
 | `card.share.title` | «{name}» — eine Elsa-Karte | «{name}» — an Elsa card | 40 + name | share-sheet title | PL |
 | `card.share.text` | Aus Elsas Archiv: «{name}». | From Elsa's archive: «{name}». | 30 + name | share-sheet body; DE 23 / EN 25 + name. No "gezogen / pulled" — draw-and-win language is gambling-adjacent (§0.4.10) and the archive claim is warmer anyway. **re-voiced 2026-11-22** · VOICE | PL |
-| `card.share.shared` | Unterwegs. | On its way. | 17 | `role="status"`, auto-clears ~3.4 s. Status string — no exclamation (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
+| `card.share.shared` | Unterwegs. | On its way. | 17 | Announced via `#live-status` as `live.share`; the visible line is **plain** (no `role`, no `aria-live`) and auto-clears ~3.4 s. Status string — no exclamation (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
 | `card.share.copied` | Link kopiert. | Link copied. | 17 | clipboard fallback success. Status string — no exclamation (§0.4.4) | PL |
 | `card.share.error` | Kopieren ging nicht. Der Link steht oben in der Adresszeile — dort bekommst du ihn. | Copying did not work. The link is up in the address bar — you can get it there. | 85 | **space-critical** — DE 82 / EN 79; 2-line reserved slot; always leaves a usable next step. Plain on purpose: an error never winks (§0.4.4). **re-voiced 2026-11-22** · VOICE | PL |
 | `card.aria.open` | {n}. {name}. {rarity}. | No. {n}. {name}. {rarity}. | dynamic | spoken on open; Fantasiewerte label follows the values' framing | CRD §12 |
@@ -410,10 +410,11 @@ this pair. Keys follow `archive-fiction.md` §4 (`lex:<slug>:term` / `lex:<slug>
 
 ## 8. Accessibility announcements
 
-All of these are writes to the single `role="status" aria-live="polite"` region. Rapid
-successive messages replace, never queue. Every announcement is ≤ 2 sentences and uses
-the language of the page. Where a key is already in another section, it is referenced —
-never re-keyed.
+All of these are writes to `#live-status` — the polite region of the two ADR-0010 §1 defines
+(`#live-alert` is the assertive one and has no row here today). Rapid successive messages replace,
+never queue. Every announcement is ≤ 2 sentences and uses the language of the page. Where a key is
+already in another section, it is referenced — never re-keyed. The visible status line for
+`live.share` is plain text with no live semantics: the region is the only voice.
 
 | Key | DE | EN | Max | Fires when | Source |
 | --- | --- | --- | --- | --- | --- |
