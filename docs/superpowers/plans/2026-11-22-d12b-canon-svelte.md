@@ -15,7 +15,7 @@
 ## Global Constraints
 
 - Canon: **Die Sammlung / The Collection**, progress verb **gesammelt / collected**, **Der Abfahrtsaal**; the water ban and the retired binder noun are the `AGENTS.md` canon list, the retired collection name and its progress verb are `docs/decisions.md` D-04b — the gate names them, this plan does not repeat them as copy; at most one `!`, never in error/announcement/aria copy.
-- `npm run canon` clean on the real tree; `scripts/canon-allowlist.json` **`maxBaseline` stays 7** and gains **no entry** unless a real history row matches it, with a reason.
+- `npm run canon` clean on the real tree; `scripts/canon-allowlist.json` **`maxBaseline` is 0** on main (the #31 baseline was emptied by #72) and this ticket adds **no entry**.
 - Gate chain is fail-closed: no `--if-present`, no `|| true`, no skipped gate; `.github/gates.json` and `ci.yml` are untouched by this ticket.
 - Report paths are POSIX on every host (forward slashes), so an allowlist entry means the same thing on Windows and Linux.
 - Rules, allowlist semantics, exit codes (0/1/2) and the `--strict` ratchet keep their current contract; `bang` stays a copy-deck/`.ts` rule (non-goal here).
@@ -48,7 +48,7 @@ That is the pre-existing Windows-only defect, and it blocks #49's acceptance cri
 - Test: `tests/canon/canon.test.mjs`
 
 **Interfaces:**
-- Produces: `posixPath(path: string): string` (module-local) — `path.split(sep).join("/")`. Every `relative(root, file)` that leaves the process (JSON `scanned`, violation `file`, error text) or is compared with an allowlist `file` goes through it.
+- Produces: `toPosix(path: string): string` (module-local) — `path.split(sep).join("/")`. Every `relative(root, file)` that leaves the process (JSON `scanned`, violation `file`, error text) or is compared with an allowlist `file` goes through it.
 
 - [ ] **Step 1: Write the failing test** — append to `tests/canon/canon.test.mjs`:
 
@@ -72,12 +72,12 @@ Add next to `describe()`:
 
 ```js
 /** Report paths are POSIX on every host: an allowlist entry must mean one thing. */
-function posixPath(path) {
+function toPosix(path) {
   return path.split(sep).join("/");
 }
 ```
 
-Use it in `describe()` (`posixPath(relative(root, violation.file))`), in `applyAllowlist` (`posixPath(relative(root, violation.file)) !== file`), in the `baselineHits` comparison in `main()`, in the JSON `scanned`/`violations[].file` fields, and in the allowlist-error message.
+Use it in `describe()` (`toPosix(relative(root, violation.file))`), in `applyAllowlist` (`toPosix(relative(root, violation.file)) !== file`), in the `baselineHits` comparison in `main()`, in the JSON `scanned`/`violations[].file` fields, and in the allowlist-error message.
 
 - [ ] **Step 4: Verify GREEN**
 
@@ -268,7 +268,7 @@ describe("canon-check: the real tree (D12b)", () => {
   it("keeps the real tree clean and the baseline cap at 7", () => {
     const { code, report } = run([]);
     expect(code).toBe(0);
-    expect(report.allowlist.maxBaseline).toBe(7);
+    expect(report.allowlist.maxBaseline).toBe(0);
     expect(report.allowlist.baseline).toBeLessThanOrEqual(7);
   });
 });
@@ -281,7 +281,7 @@ Expected: "names every Svelte template…" fails (`report.templates` is `undefin
 
 - [ ] **Step 3: Implement**
 
-Collect the paths in the scan loop (`if (isSvelteFile(file)) templates.add(posixPath(relativeFile));` next to the mask call) and add `templates: [...templates].sort(),` to the JSON object beside `scanned`.
+Collect the paths in the scan loop (`if (isSvelteFile(file)) templates.add(toPosix(relativeFile));` next to the mask call) and add `templates: [...templates].sort(),` to the JSON object beside `scanned`.
 
 - [ ] **Step 4: Verify GREEN**
 
@@ -319,7 +319,7 @@ Paste the violation lines (7, 8, 11, 13, 14, 15, 25) into the PR body as the fix
 
 - [ ] **Step 3: No allowlist change**
 
-`git diff --stat main -- scripts/canon-allowlist.json` → empty. `maxBaseline` is still 7; no entry added.
+`git diff --stat main -- scripts/canon-allowlist.json` → empty. `maxBaseline` is 0 (the #31 baseline was emptied by #72); no entry added.
 
 ---
 

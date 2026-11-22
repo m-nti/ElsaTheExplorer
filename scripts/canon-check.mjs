@@ -586,16 +586,6 @@ function loadAllowlist(path) {
 }
 
 /**
- * Report paths are POSIX on every host. `relative()` yields `design\art\art-bible.md`
- * on Windows while every allowlist entry is written `design/art/art-bible.md`; without
- * this the allowlist covers nothing and a clean tree reports 128 violations. The gate's
- * report is its contract, so it is host-neutral (fixed for #49).
- */
-function posixPath(path) {
-  return path.split(sep).join("/");
-}
-
-/**
  * Apply the allowlist. An entry covers every hit on the single line it matches
  * (or only its named rule when `rule` is set). Stale and ambiguous entries are
  * configuration errors: the allowlist must not outlive the text it excuses.
@@ -637,7 +627,9 @@ function applyAllowlist(violations, sources, entries, root) {
       }
       used.add(entry);
       for (const violation of violations) {
-        if (posixPath(relative(root, violation.file)) !== file || violation.line !== matches[0]) continue;
+        if (toPosix(relative(root, violation.file)) !== file || violation.line !== matches[0]) {
+          continue;
+        }
         if (entry.rule && violation.rule !== entry.rule) continue;
         covered.add(`${violation.file}:${violation.line}:${violation.rule}`);
       }
@@ -651,8 +643,18 @@ function applyAllowlist(violations, sources, entries, root) {
   return { active, errors, used };
 }
 
+/**
+ * Allowlist `file` values are repo-relative POSIX paths (`design/copy/copy-deck.md`)
+ * because that is how the corpus is written down. `relative()` is host-shaped: on
+ * Windows it returns `design\copy\copy-deck.md`, so comparing the two directly
+ * silently uncovered every entry and turned a clean run into 128 violations.
+ */
+function toPosix(value) {
+  return value.split(sep).join("/");
+}
+
 function describe(violation, root) {
-  const file = posixPath(relative(root, violation.file));
+  const file = toPosix(relative(root, violation.file));
   return `  ${violation.rule.padEnd(10)} ${file}:${violation.line}:${violation.column}  ${violation.term}`;
 }
 
@@ -700,7 +702,7 @@ function main() {
         markupState = masked.state;
         // The surfaces read as templates, by path — "App.svelte is scanned" is an
         // assertion a test can make (#49), not a claim in a comment.
-        if (isSvelteFile(file)) templates.add(posixPath(relativeFile));
+        if (isSvelteFile(file)) templates.add(toPosix(relativeFile));
       }
       const lineNumber = index + 1;
       const hits = scanLine(line, file, firstSegment, lineNumber);
@@ -742,7 +744,7 @@ function main() {
   const baselineHits = violations.filter((violation) =>
     baseline.some(
       (entry) =>
-        posixPath(relative(options.root, violation.file)) === entry.file &&
+        toPosix(relative(options.root, violation.file)) === entry.file &&
         sources.get(resolve(options.root, entry.file))?.[violation.line - 1]?.includes(entry.match),
     ),
   );
@@ -765,7 +767,7 @@ function main() {
           files: files.length,
           // The gated surface, by path: "index.html is scanned" is an assertion
           // a test can make, not a claim in a comment.
-          scanned: files.map((file) => posixPath(relative(options.root, file))),
+          scanned: files.map((file) => toPosix(relative(options.root, file))),
           templates: [...templates].sort(),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
@@ -776,7 +778,7 @@ function main() {
             baselineHits: baselineHits.length,
           },
           violations: active.map((violation) => ({
-            file: posixPath(relative(options.root, violation.file)),
+            file: toPosix(relative(options.root, violation.file)),
             line: violation.line,
             column: violation.column,
             rule: violation.rule,

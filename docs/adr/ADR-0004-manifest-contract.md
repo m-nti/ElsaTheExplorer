@@ -52,6 +52,12 @@ aspect-ratio authority). Optional, every one defaulted:
 | `renderable` | boolean = `true` | Computed by `?list=1` from size/pixel caps **without decoding**; `false` renders the printed frame, never an image request. |
 | `demo`,`heic`,`filename` | bool/bool/string | v1 metadata retained (`demo` drives sample-card copy). |
 
+> **Note (ticket #56, ADR-0011 R4 — not an edit of the `focus` row):** the `focus` default above is the
+> drift R4 names. The one "no opinion" anchor is `center 42%` (art-bible §7, `sizes.photo-anchor`),
+> and an absent `focus` renders as that value. This row's default is not changed here: changing a
+> field default is a semantics change under §5 change control, so the restatement is tracked
+> separately in #63.
+
 Unknown fields are ignored, never an error — that is what makes the contract additive.
 
 ### 3. Compatibility rules (binding on every consumer)

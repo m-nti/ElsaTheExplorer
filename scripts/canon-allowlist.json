@@ -12,7 +12,7 @@
     "New live copy goes in src/ and design/copy/copy-deck.md with the canon name. Do not add",
     "entries for new text; rewrite it."
   ],
-  "maxBaseline": 7,
+  "maxBaseline": 0,
   "entries": [
     {
       "file": "AGENTS.md",
@@ -179,9 +179,8 @@
     {
       "file": "design/copy/copy-deck.md",
       "match": "den Katalog vervollständigen",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "meta.description re-voice row: both the current and the proposed value still carry the retired entity name."
+      "status": "allowed",
+      "reason": "History row: §15 records the superseded pre-voice value of `meta.description` (its New column and §1 carry the canon). The retired name is the record, not live copy."
     },
     {
       "file": "design/copy/copy-deck.md",
@@ -257,13 +256,6 @@
     },
     {
       "file": "design/features/mechanics.md",
-      "match": "no longer in the catalogue.",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live import copy (X5) names the collection; canon is 'no longer in the collection'."
-    },
-    {
-      "file": "design/features/mechanics.md",
       "match": "print as mud",
       "status": "allowed",
       "reason": "Metaphor for ink saturation in print, not water content."
@@ -288,13 +280,6 @@
     },
     {
       "file": "design/narrative/greek-origin.md",
-      "match": "one goddess, one catalogue.",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live `myth:frame:lede` copy names the collection; canon is 'one collection' (the line also has a DE grammar defect)."
-    },
-    {
-      "file": "design/narrative/greek-origin.md",
       "match": "Water is not catalogued.",
       "status": "allowed",
       "reason": "The taboo line: water's only permitted mention is this refusal; the verb is archival, not the progress verb."
@@ -312,30 +297,10 @@
       "reason": "Canon rule row: the water constraint's acceptance check."
     },
     {
-      "file": "design/player-journey.md",
-      "match": "\"What's new in the Catalogue?\"",
-      "status": "allowed",
-      "reason": "Narrative paraphrase of the visitor's question, not a shipped string; the journey row describes the session start."
-    },
-    {
       "file": "design/ux/binder.md",
       "match": "no wet-dog, rain, mud or bathing content exists",
       "status": "allowed",
       "reason": "Canon declaration in the room table: Der Abfahrtsaal replaced the wet collection."
-    },
-    {
-      "file": "design/ux/binder.md",
-      "match": "\"Catalogue: {pct} per cent done",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
-    },
-    {
-      "file": "design/ux/binder.md",
-      "match": "This clears the Catalogue",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live `reset.body` EN not renamed; the copy deck's `reset.body` says 'This clears the Collection'."
     },
     {
       "file": "design/ux/binder.md",
@@ -345,23 +310,9 @@
     },
     {
       "file": "design/ux/interaction-patterns.md",
-      "match": "This clears the Catalogue",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live `reset.body` EN not renamed; the copy deck's `reset.body` is the SSOT."
-    },
-    {
-      "file": "design/ux/interaction-patterns.md",
       "match": "the archive contains no wet-dog, rain, mud or bathing content",
       "status": "allowed",
       "reason": "Canon declaration in the room list (Der Abfahrtsaal note)."
-    },
-    {
-      "file": "design/ux/interaction-patterns.md",
-      "match": "\"Catalogue: {pct} per cent done",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
     },
     {
       "file": "docs/adr/ADR-0009-pwa.md",

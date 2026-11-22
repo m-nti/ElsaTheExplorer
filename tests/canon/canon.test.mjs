@@ -335,10 +335,11 @@ describe("canon-check: the real tree (D12b)", () => {
     ]);
   });
 
-  it("keeps the real tree clean and the baseline cap at 7", () => {
+  it("keeps the real tree clean and the baseline empty", () => {
     const { code, report } = run([]);
     expect(code).toBe(0);
-    expect(report.allowlist.maxBaseline).toBe(7);
-    expect(report.allowlist.baseline).toBeLessThanOrEqual(7);
+    // main after #72: the #31 baseline burned down to zero; this ticket adds no entry.
+    expect(report.allowlist.maxBaseline).toBe(0);
+    expect(report.allowlist.baseline).toBe(0);
   });
 });
