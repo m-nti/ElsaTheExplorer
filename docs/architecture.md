@@ -41,7 +41,7 @@
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
 │  │ App                                                                  │  │
 │  │   ├─ Stage ────────────── page shell, spotlight, lang toggle, progress │
-│  │   │    ├─ PackTheatre ─── tear-open + staggered 5-card reveal         │  │
+│  │   │    ├─ PackTheatre ─── tear-open + staggered 4-card reveal         │  │
 │  │   │    │    └─ CardTile (pack mode)                                   │  │
 │  │   │    ├─ BinderShelf ─── full grid, lazy images                      │  │
 │  │   │    │    └─ CardTile (binder mode)                                 │  │
@@ -164,7 +164,7 @@ interface Props {
 }
 ```
 
-- Reduced motion (`motion` store): renders all five at once, no tear animation, no confetti (PRD F22).
+- Reduced motion (`motion` store): renders all four at once, no tear animation, no confetti (PRD F22).
 - Reveal is time-choreographed internally; each revealed card announces via `announcer`.
 - Every visible string comes from the i18n dictionary — no copy may promise an
   interaction PackTheatre does not implement (the "swipe" defect; enforced by a test, see Testing).
@@ -783,7 +783,7 @@ include them in the ratified key list.
 
 | Concern | Mechanism |
 | --- | --- |
-| Announcements | `announcer` store → one polite + one assertive live region in `App`. Pack flow (open, five names, restart, language switch, flip) fully announced (F21). All strings via `i18n` so language switches propagate. |
+| Announcements | `announcer` store → one polite + one assertive live region in `App`. Pack flow (open, four names, restart, language switch, flip) fully announced (F21). All strings via `i18n` so language switches propagate. |
 | Focus | `a11y/focus.ts`: `showModal` for dialogs (native trap); explicit opener tracking (`opener` prop) for return focus (F20); visible focus everywhere via `:focus-visible` token ring. |
 | Keyboard | `P` = open pack; `←/→` = step cards; `Esc` = close; full tab order through pack → binder tiles → toggles. No pointer-only interactions. |
 | Reduced motion | `motion` store from `matchMedia('(prefers-reduced-motion: reduce)')`, live-updated. Every animation, the foil shimmer and confetti gate on it; reduced mode renders all four cards in the final grid (F22). |
@@ -968,9 +968,9 @@ no kit needed).
   trusted to pass anything.
 
 **Playwright 1.65 — flows on the built app (`vite preview` + mocked routes).**
-- Open pack: 5 cards reveal, dialog opens, focus returns to the pack button (F20).
+- Open pack: 4 cards reveal, dialog opens, focus returns to the pack button (F20).
 - Keyboard-only run: `P`, `←/→`, `Esc`, tab through the binder — no pointer events.
-- `prefers-reduced-motion: reduce` emulation: no reveal animation, all five at
+- `prefers-reduced-motion: reduce` emulation: no reveal animation, all four at
   once, no confetti (F22); VoiceOver-equivalent assertions via live-region text.
 - Language: default German (F7), toggle switches `<title>`, aria-labels, rarity
   labels (F8), persists across reload, `?lang=en` beats storage (F9).

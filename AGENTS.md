@@ -79,6 +79,29 @@ The owner does not review or approve. A PR steward agent owns the lifecycle end 
 
 No merge without a recorded review and a resolution comment. No waiting on the owner.
 
+## Standing rule — every build starts with a committed plan
+
+Implementation follows the Superpowers harness, in this order:
+
+1. `brainstorming` for anything new or contested.
+2. `using-git-worktrees` — one isolated worktree and branch per ticket; never implement
+   on `main`.
+3. `writing-plans` → a committed plan at `docs/superpowers/plans/YYYY-MM-DD-<slug>.md`,
+   with the header, Global Constraints, Review Focus and bite-sized TDD tasks (exact
+   paths, interfaces, the failing test). No plan, no implementation.
+4. `subagent-driven-development` — a fresh implementer per task, a task review after
+   each, a final whole-branch review, and a ledger at
+   `.superpowers/sdd/<plan-slug>/progress.md` (git-ignored).
+5. `test-driven-development` for each task; `systematic-debugging` before any fix.
+6. `requesting-code-review` / `receiving-code-review` with the project reviewers, then
+   `verification-before-completion` with pasted output, then
+   `finishing-a-development-branch`.
+
+The harness is the method; the standing rules below are the policy. Ambiguity is ruled
+on and recorded in the ledger, not escalated — except force-push, history rewrite,
+deleting owner data, an FTP deploy over `photos/`, or a plan where every path is a
+guess. `docs/action-plan.md` §0 is the full contract.
+
 ## Standing rule — commit and PR cadence
 
 Work is committed in coherent checkpoints and pushed regularly; features land as reviewed

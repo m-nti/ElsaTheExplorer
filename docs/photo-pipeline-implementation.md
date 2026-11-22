@@ -1030,8 +1030,8 @@ Rules:
   a client one deploy ahead of the server still knows the rungs.
 - The `srcset` block above is **not part of the contract**: ADR-0004 §4 makes `srcset`/`sizes`
   a component concern derived from `images.*` + `w`/`h`, so no emitter may transmit it
-  (§14.1). It is still emitted by `?list=1` today; dropping it there is part of the same
-  contract change, and no consumer may read it in the meantime.
+  (§14.1). `?list=1` stopped emitting it on 2026-11-22 (issue #34: `grep -c srcset photos.php`
+  → 0); no consumer may read it.
 
 ### 13.5 Parity test (`npm run photos:parity`, CI)
 

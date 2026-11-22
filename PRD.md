@@ -26,7 +26,7 @@
 > `design/accessibility-requirements.md` (committed tier: Standard). §5 (privacy) and
 > §7 (scope/constraints) remain binding except where explicitly replaced above.
 
-**Product:** Elsen, a static website where you open a pack and get five collectible cards of the
+**Product:** Elsa the Explorer, a static website where you open a pack and get four collectible cards of the
 dog Elsa. Each card pairs one supplied photo with its bilingual, photo-specific name, mood and
 caption; optional `/10` values are manually matched jokes, visibly marked as imaginary.
 **Audience for this document:** the owner, plus whoever helps build, design, write and ship it.
@@ -198,11 +198,11 @@ owner's own counters.
 | # | Metric | Target | How to measure |
 | --- | --- | --- | --- |
 | M1 | It ships and stays up | Public URL opens without an error, 100% of manual checks after each upload | Manual load on desktop and phone |
-| M2 | A pack is complete and fair | 5 cards, none repeated inside the pack, at least one rare or holographic | `npm run qa` |
+| M2 | A pack is complete and fair | 4 cards, none repeated inside the pack, at least one rare or holographic | `npm run qa` |
 | M3 | A card keeps its identity | The same photo retains its bilingual caption, stable rarity and manually assigned imaginary play values | Reopen it by deep link in either language |
 | M4 | Both languages are complete | 0 untranslated strings after switching; German default confirmed every session | Manual pass plus `npm run qa` assertions |
 | M5 | Nobody gets stuck | Every person who receives the link opens a pack unaided | Watch 3–5 people once, do not explain |
-| M6 | Cards actually get opened | More than one card out of the five gets opened big | Ask which card they liked; count the "gesehen" marks when someone hands the phone back |
+| M6 | Cards actually get opened | More than one card out of the four gets opened big | Ask which card they liked; count the "gesammelt" marks when someone hands the phone back |
 | M7 | Adding photos is cheap | A new photo is a card within 5 minutes of the first attempt, by file drop only | Owner times themselves once |
 | M8 | Nothing leaked | No search result for the domain after one month; no `/photos/` listing | Search once, try `yourdomain/photos/` |
 | M9 | Accessibility floor | Keyboard-only and screen-reader spot check can open a pack and read a card | Manual check with VoiceOver or similar |

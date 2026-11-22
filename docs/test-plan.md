@@ -438,9 +438,9 @@ Storage is a fake in-memory adapter; no jsdom required.
 | U-PST-19 | `seen` round-trips as a `Set` after reload with 500 ids |
 | U-PST-20 | Storage keys are exactly the ratified set from ADR-0003; a snapshot test pins the list |
 
-> **Blocking dependency:** architecture lists `lucky-elsa.{lang,sound,seen}.v2`;
-> interaction-patterns v2 also names `lucky-elsa.sets.v1` and `lucky-elsa.flags.v1`.
-> U-PST-20 must be pinned to the ratified ADR-0003 key list. See **C5**.
+> **Resolved 2026-11-22:** ADR-0003 §2 ratifies the full key set. U-PST-20 pins exactly:
+> `lucky-elsa.{lang,sound,seen}.v2`, `lucky-elsa.{sets,flags,exhibition,cardback}.v1`.
+> See **C5**.
 
 ### 5.5 Contrast gate from tokens — `tests/unit/tokens.contrast.spec.ts`
 

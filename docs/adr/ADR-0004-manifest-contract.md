@@ -40,9 +40,9 @@ aspect-ratio authority). Optional, every one defaulted:
 | --- | --- | --- |
 | `ver` | string ≤ 32 | Hash of `mtime`+`size`; cache-buster, not a secret. Absent → URLs without `&v=`. |
 | `aspect` | number | Emitted convenience value (`width/height`); **not authoritative** — consumers derive from `width`/`height`. |
-| `images` | `{ tile, pack, detail: { jpeg, webp, w, h }, download: url }` | Fixed renditions, same-origin, under `photos.php` or `photos/thumbs/`. Missing → deprecated aliases. |
+| `images` | `Record<'tile'\|'pack'\|'detail'\|'download', { jpeg: url, webp: url, w, h }>` | Fixed renditions, same-origin, under `photos.php` or `photos/thumbs/`. `download` is a rung too (its own `?download=` action, still `jpeg`+`webp`+`w`+`h`). Missing → deprecated aliases. |
 | `src` / `thumb` / `view` | string | **Deprecated bounded aliases** → `detail` / `pack` / `download` rung. Never a file. |
-| `download` | string | Accepted synonym of `images.download`, normalized into it. |
+| `download` | string | Accepted synonym of the `images.download` rung; `normalize()` maps it onto that rung (jpeg + webp + `w`/`h`) so a consumer reads one shape. |
 | `caption` | `string \| Localized` | Displayed as authored. |
 | `alt`,`name`,`mood`,`description` | `string \| Localized` | `Localized = string \| {de,en}`; missing `en` falls back to `de` **and counts**. |
 | `rarity` | `'' \| 'common' \| 'rare' \| 'holo'` = `''` | `''` ⇒ stable id hash (F3); an override wins and never changes photo bytes. |
