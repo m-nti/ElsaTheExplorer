@@ -307,7 +307,7 @@ own columns disagreed with each other, surfaced rather than resolved silently.
 
 | Finding | Arithmetic | Effect | Owner of the fix |
 | --- | --- | --- | --- |
-| The 15 % plate could not hold its own clamp column — **resolved (D12a, #47)** | band 70.5 px − 16 px padding − 8 px gaps = **46.5 px** available; number + name (1 line) + mood = **55.4 px**; number + name (2 lines) + mood = **81 px** | At the reference card the plate rendered **number + one name line** (40.5 px), `mood` dropped by the pressure order. D12a answers it: plate **15.5 %** in **two rows** holds number + name + mood with **2.16 px slack**, and the name clamps to one line with ellipsis | closed by #47 (art-director) |
+| The 15 % plate could not hold its own clamp column — **resolved (D12a, #47)** | band 70.5 px − 16 px padding − 8 px gaps = **46.5 px** available; number + name (1 line) + mood = **55.4 px**; number + name (2 lines) + mood = **81 px** | At the reference card the plate rendered **number + one name line** (40.5 px), `mood` dropped by the pressure order. D12a answers it: plate **15.5 %** in **two rows** holds number + name + mood with **6.16 px slack** (52.81 px content vs 46.65 px need), and the name clamps to one line with ellipsis | closed by #47 (art-director) |
 | The strip and foot px floors overrun 100 % | 4.5 % = 21.1 px vs floors 24 / 22 px → **+3.73 px** on a 469.7 px plate | Resolved by R3 (gutters absorb 3.73 px); without R3 the plate would clip the foot by 3.7 px. Moot under D12a — the new bands (strip 5.5 %, foot 5 %) carry the floors with no payer | technical-director (R3, ruled above) |
 | The 22 % copy bay holds 2 story lines, not 3 | 103.3 − 24 = **79.3 px**; keyword + 3 lines + print = **82.4 px** → 3 lines need **22.6 %** | The third line only exists on larger cards; the pressure order's last step covers it. D12a's 19.5 % story bay is re-derived in #47, not here | art-director (informational — the clamp is already "≤ 3") |
 | The 31 % photo band shrank the lit object by a third — **resolved (D12a, #47)** | 145.6 px band − 16 px padding = 129.6 px tall → **103.7 px wide** vs the **160.05 px** measured in the 46 % band | The photograph — "all light, sheen and motion belong to the card under study — and within the card, to Elsa's photograph" (art-bible §1), "the only lit object in the room" (`card-detail.md` §5.3 item C) — would have lost 35 % of its width. D12a answers it: photo **41.5 %** with no block padding gives **155.94 px = 45.87 %** of card width, a **2.6 %** reduction from 160.05 px, not 35 % | closed by #47 (art-director) |
@@ -337,7 +337,7 @@ and keeps a 155.94 px window. The ADR records that ruling; it did not derive it.
 **Negative / accepted costs**
 
 - **Both pre-ruling losses are withdrawn (D12a, #47).** The plate holds number + name + mood in two
-  rows with 2.16 px slack, and the photograph shrinks **2.6 %** (160.05 → 155.94 px) rather than the
+  rows with 6.16 px slack, and the photograph shrinks **2.6 %** (160.05 → 155.94 px) rather than the
   35 % the pre-ruling table implied; findings 1 and 4 in §9 are closed.
 - **The ruling is the visual owner's**; the ADR ratifies it rather than deriving it.
 - **#13 (B2) must not implement the card geometry until #47 merges**; after that the bands in §1 are
