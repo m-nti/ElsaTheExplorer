@@ -4,9 +4,9 @@
     "must carry a reason. An entry that stops matching is a stale entry and fails the gate",
     "(exit 2), so this file cannot rot into a blanket permission.",
     "",
-    "status: \"allowed\"  — canon-legal: the archival concept (D-04b), a key or identifier, a",
+    "status: \"allowed\"  \u2014 canon-legal: the archival concept (D-04b), a key or identifier, a",
     "                       history/retired row, a rule declaration, or audit evidence.",
-    "status: \"baseline\" — a known canon defect in a file ticket #5 may not edit. Baseline",
+    "status: \"baseline\" \u2014 a known canon defect in a file ticket #5 may not edit. Baseline",
     "                       entries must name their issue and are capped by maxBaseline.",
     "",
     "New live copy goes in src/ and design/copy/copy-deck.md with the canon name. Do not add",
@@ -18,7 +18,7 @@
       "file": "AGENTS.md",
       "match": "NO wet-dog, rain, mud or bathing content",
       "status": "allowed",
-      "reason": "Canon declaration: the water ban itself (AGENTS.md, canon — water)."
+      "reason": "Canon declaration: the water ban itself (AGENTS.md, canon \u2014 water)."
     },
     {
       "file": "AGENTS.md",
@@ -72,31 +72,31 @@
       "file": "design/copy/copy-deck.md",
       "match": "~~katalogisiert / catalogued~~",
       "status": "allowed",
-      "reason": "History row: retired progress verb shown struck through in §0.1."
+      "reason": "History row: retired progress verb shown struck through in \u00a70.1."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "~~Sammelheft / binder / Heft~~",
       "status": "allowed",
-      "reason": "History row: retired collection names shown struck through in §0.2."
+      "reason": "History row: retired collection names shown struck through in \u00a70.2."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "5. **No water content** (canon",
       "status": "allowed",
-      "reason": "Canon declaration: the copy deck's own water rule (§0.5)."
+      "reason": "Canon declaration: the copy deck's own water rule (\u00a70.5)."
     },
     {
       "file": "design/copy/copy-deck.md",
-      "match": "\"nass\" — not in a card",
+      "match": "\"nass\" \u2014 not in a card",
       "status": "allowed",
-      "reason": "Canon declaration: the copy deck's own water rule (§0.5)."
+      "reason": "Canon declaration: the copy deck's own water rule (\u00a70.5)."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "\"Heft\", \"binder\", a second name",
       "status": "allowed",
-      "reason": "Rule declaration: forbidden synonyms for the collection (§0.3)."
+      "reason": "Rule declaration: forbidden synonyms for the collection (\u00a70.3)."
     },
     {
       "file": "design/copy/copy-deck.md",
@@ -114,25 +114,25 @@
       "file": "design/copy/copy-deck.md",
       "match": "Sammelheft, binder, \"das Heft\"",
       "status": "allowed",
-      "reason": "History row: retired collection names in §13."
+      "reason": "History row: retired collection names in \u00a713."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "katalogisiert / catalogued | gesammelt / collected",
       "status": "allowed",
-      "reason": "History row: the retired verb in the §13 retired-terms table."
+      "reason": "History row: the retired verb in the \u00a713 retired-terms table."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "Das Heft hat Zuwachs. (count-free)",
       "status": "allowed",
-      "reason": "History row: retired count-free arrival line in §13."
+      "reason": "History row: retired count-free arrival line in \u00a713."
     },
     {
       "file": "design/copy/copy-deck.md",
-      "match": "| D5 — the GDD R8 wording is superseded",
+      "match": "| D5 \u2014 the GDD R8 wording is superseded",
       "status": "allowed",
-      "reason": "History row: retired GDD R8 arrival line in §13."
+      "reason": "History row: retired GDD R8 arrival line in \u00a713."
     },
     {
       "file": "design/copy/copy-deck.md",
@@ -150,7 +150,7 @@
       "file": "design/copy/copy-deck.md",
       "match": "no wet dog, rain, mud, bathing, puddles, towelling",
       "status": "allowed",
-      "reason": "Canon declaration: the copy deck's water vocabulary rule (§0.6)."
+      "reason": "Canon declaration: the copy deck's water vocabulary rule (\u00a70.6)."
     },
     {
       "file": "design/copy/copy-deck.md",
@@ -166,7 +166,7 @@
     },
     {
       "file": "design/copy/copy-deck.md",
-      "match": "rain, mud, bath, wet dog, Pfütze, Handtuch",
+      "match": "rain, mud, bath, wet dog, Pf\u00fctze, Handtuch",
       "status": "allowed",
       "reason": "Checklist line: the water vocabulary list this gate enforces."
     },
@@ -178,7 +178,7 @@
     },
     {
       "file": "design/copy/copy-deck.md",
-      "match": "den Katalog vervollständigen",
+      "match": "den Katalog vervollst\u00e4ndigen",
       "status": "baseline",
       "issue": 31,
       "reason": "meta.description re-voice row: both the current and the proposed value still carry the retired entity name."
@@ -187,37 +187,37 @@
       "file": "design/copy/copy-deck.md",
       "match": "| `zuwachs.line` | Das Heft hat Zuwachs",
       "status": "allowed",
-      "reason": "History row: §14 change log quotes the superseded arrival line."
+      "reason": "History row: \u00a714 change log quotes the superseded arrival line."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "Sein Rahmen leuchtet im Katalog.",
       "status": "allowed",
-      "reason": "History row: §14 change log quotes the superseded set-complete line."
+      "reason": "History row: \u00a714 change log quotes the superseded set-complete line."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "| `catalogue.milestone` | Katalog-Meilenstein",
       "status": "allowed",
-      "reason": "History row: §14 change log quotes the superseded milestone line (D-04b rename came later)."
+      "reason": "History row: \u00a714 change log quotes the superseded milestone line (D-04b rename came later)."
     },
     {
       "file": "design/copy/copy-deck.md",
-      "match": "Katalog I · abgeschlossen",
+      "match": "Katalog I \u00b7 abgeschlossen",
       "status": "allowed",
-      "reason": "History row: §14 change log quotes the superseded capstone subtitle."
+      "reason": "History row: \u00a714 change log quotes the superseded capstone subtitle."
     },
     {
       "file": "design/copy/copy-deck.md",
       "match": "Katalog komplett. Elsas Ehrenmensch",
       "status": "allowed",
-      "reason": "History row: §14 change log quotes the superseded capstone announcement."
+      "reason": "History row: \u00a714 change log quotes the superseded capstone announcement."
     },
     {
       "file": "design/copy/copy-deck.md",
-      "match": "Das Heft hat Zuwachs — der Ehrenmensch",
+      "match": "Das Heft hat Zuwachs \u2014 der Ehrenmensch",
       "status": "allowed",
-      "reason": "History row: §14 change log quotes the superseded capstone-waiting line."
+      "reason": "History row: \u00a714 change log quotes the superseded capstone-waiting line."
     },
     {
       "file": "design/features/archive-fiction.md",
@@ -251,7 +251,7 @@
     },
     {
       "file": "design/features/mechanics.md",
-      "match": "Bad clock → UTC date",
+      "match": "Bad clock \u2192 UTC date",
       "status": "allowed",
       "reason": "False positive: English sentence-initial 'Bad', not the German noun Bad."
     },
@@ -328,7 +328,7 @@
       "match": "\"Catalogue: {pct} per cent done",
       "status": "baseline",
       "issue": 31,
-      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
+      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: \u2026'."
     },
     {
       "file": "design/ux/binder.md",
@@ -361,7 +361,7 @@
       "match": "\"Catalogue: {pct} per cent done",
       "status": "baseline",
       "issue": 31,
-      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: …'."
+      "reason": "Live milestone announcement EN not renamed; the copy deck's `catalogue.milestone` says 'Collection: \u2026'."
     },
     {
       "file": "docs/adr/ADR-0009-pwa.md",
@@ -419,9 +419,15 @@
     },
     {
       "file": "docs/test-plan.md",
-      "match": "Bad parameters → `400`",
+      "match": "Bad parameters \u2192 `400`",
       "status": "allowed",
       "reason": "False positive: English 'Bad parameters' (E-ORG-10), not the German noun Bad."
+    },
+    {
+      "file": "design/copy/copy-deck.md",
+      "match": "the former name `Katalog` / `Catalogue` is retired",
+      "status": "allowed",
+      "reason": "Rename history (D-04b): the row must name the retired name to record the rename; it is not live copy."
     }
   ]
 }

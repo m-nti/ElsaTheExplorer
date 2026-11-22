@@ -112,7 +112,8 @@ them as "considered and rejected" is part of the inventory, not an omission.
 2. The local gate set from `docs/test-plan.md` §8 passes for the task's scope:
    `canon` · typecheck (`tsc` + `svelte-check --tsgo`) · Stylelint + selector-diff +
    unused CSS · ESLint · knip · jscpd · Vitest · build · Playwright · axe · bundle/byte
-   budget · PWA — eleven gates. `ci.yml` is fail-closed: `.github/gates.json` declares
+   budget · PWA — the enforced gate set (`.github/gates.json`: 12 today, 13 once #36
+   lands the table gate). `ci.yml` is fail-closed: the manifest declares
    each gate, a missing script or step is a red build, and `scripts/ci-gates.mjs` fails on
    `--if-present`/`|| true`. Four gates are declared **pending** with their issue
    (e2e/axe #24, budget #25, PWA #19) and cannot report success.
@@ -220,7 +221,7 @@ a curl/byte table (already the pattern from I1).
 | Q1 | Vitest: pack draw (4, no repeat, rarity single-source), storage migration, contrast, i18n parity, copy-lint | ⬜ | #23 |
 | Q2 | Playwright: golden journey, keyboard-only, reduced motion, focus-return matrix, error states, overflow matrix, swipe/chevrons | ⬜ | #24 |
 | Q3 | Replace `scripts/qa.mjs` gaps | ✅ retired | v1 script archived; the gaps are Q1 (unit) + Q2 (e2e), not a third suite |
-| Q4 | CI gate chain, eleven gates, no `--if-present` masking at merge time | ⬜ | #25 |
+| Q4 | CI gate chain: every gate in `.github/gates.json`, no `--if-present` masking at merge time | ⬜ | #25 |
 | Q5 | Cross-file selector-diff check | ✅ | `npm run gate:selectors` |
 | Q6 | Canon gate + self-tests, jscpd threshold, knip, unused-CSS escalation | ✅ | `verify` green; 11 canon tests |
 | Q7 | Negative proofs for every gate (legacy hex fails contrast, duplicate selector, unused CSS, raw value) | ✅ | `docs/build/b0-b1-verification.md` |
