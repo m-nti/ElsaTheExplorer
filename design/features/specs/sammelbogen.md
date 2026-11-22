@@ -98,7 +98,6 @@ No error modal, no in-app preview: the browser's print dialog *is* the preview (
 | `print:count` | {collected} von {total} gesammelt | {collected} of {total} collected |
 | `print:number` | Nr. {number} | No. {number} |
 | `print:page` / `date` | Seite {page} von {pages} / Stand: {date} | Page {page} of {pages} / As of: {date} |
-| `print:error` | Der Bogen konnte nicht vorbereitet werden. | The sheet could not be prepared. |
 
 `{room}` reuses the wing display names (R-A); `{date}` is the local calendar date, never a timestamp.
 
