@@ -34,7 +34,14 @@ function photosDevServer(root: string): Plugin {
       return;
     }
 
-    const relativePath = decodeURIComponent(pathname.slice("/photos/".length));
+    let relativePath: string;
+    try {
+      relativePath = decodeURIComponent(pathname.slice("/photos/".length));
+    } catch {
+      res.statusCode = 400;
+      res.end("Bad request");
+      return;
+    }
     const segments = relativePath.split("/");
     if (
       relativePath.includes("\0") ||
@@ -91,7 +98,7 @@ export default defineConfig({
   build: {
     target: "es2024",
     cssTarget: "chrome120",
-    sourcemap: true,
+    sourcemap: false,
     reportCompressedSize: true,
   },
 

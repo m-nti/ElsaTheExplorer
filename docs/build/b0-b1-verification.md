@@ -181,7 +181,13 @@ pack theatre, catalogue, reading room, meta layer, PWA, image pipeline.
   `package.json` before its implementation was committed. Fixed in `262c5e7` by
   removing the `canon` / `canon:strict` / `test:canon` entries until the canon
   author lands them with `scripts/canon-check.mjs`; the failure is not masked.
-- Re-run `45015317206`: **verify pass in 29 s** (install, typecheck, stylelint,
+- Re-run `45015317206`: verify pass in 29 s (install, typecheck, stylelint,
   selector diff, unused CSS, ESLint, knip, jscpd, Vitest, build; Playwright skipped
   because no e2e spec exists yet).
+- **Correction (review B1, 2026-11-22):** that pass was partly false-green — every
+  step used `npm run --if-present`, so the canon step reported *success* on
+  `abda36e` even though `package.json` had no `canon` script. The gate manifest
+  (`.github/gates.json` + `scripts/ci-gates.mjs`) now fails on a missing script, a
+  missing step, `--if-present` or `|| true`, and the workflow uses plain
+  `npm run <script>`. The real canon proof is the run after `f5cdb7d`.
 - Commits: `7df151c` (B0/B1), `262c5e7` (CI fix).

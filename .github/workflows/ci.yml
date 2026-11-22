@@ -25,8 +25,14 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Fail closed: no `--if-present`, no `|| true`. A gate declared in
+      # .github/gates.json must have a script and a step here; a gate that
+      # cannot exist yet is declared pending with its issue and printed.
       - name: Install
-        run: npm ci || npm install
+        run: npm ci
+
+      - name: Gate manifest
+        run: npm run ci:gates
 
       - name: Scaffold presence
         run: |
@@ -39,49 +45,52 @@ jobs:
             exit 1
           fi
 
-      # Gate order follows ADR-0006: typecheck first, then styling/lint/dead
-      # code, then tests, then the build. Fast failures come first.
+      # Gate order follows ADR-0006: vocabulary first, then typecheck, then
+      # styling/lint/dead code, then tests, then the build.
       - name: Canon / vocabulary gate
-        run: npm run --if-present canon
+        run: npm run canon
 
       - name: Canon gate self-tests
-        run: npm run --if-present test:canon
+        run: npm run test:canon
 
       - name: Typecheck (tsc)
-        run: npm run --if-present check:ts
+        run: npm run check:ts
 
       - name: Typecheck (svelte-check --tsgo)
-        run: npm run --if-present check
+        run: npm run check
 
       - name: Stylelint
-        run: npm run --if-present stylelint
+        run: npm run stylelint
 
       - name: Cross-file selector diff
-        run: npm run --if-present gate:selectors
+        run: npm run gate:selectors
 
       - name: Unused CSS (Svelte compiler)
-        run: npm run --if-present gate:unused-css
+        run: npm run gate:unused-css
 
       - name: Lint (ESLint)
-        run: npm run --if-present lint
+        run: npm run lint
 
       - name: Dead code (knip)
-        run: npm run --if-present knip
+        run: npm run knip
 
-      - name: Duplicate code (jscpd)
-        run: npx --yes jscpd --config jscpd.json .
+      - name: Duplicate code (jscpd, pinned)
+        run: npm run jscpd
 
-      - name: Unit tests + contrast gate (Vitest)
-        run: npm run --if-present test:unit
+      - name: Unit tests + contrast gate + coverage ratchet (Vitest)
+        run: npm run test:unit
 
       - name: Build
-        run: npm run --if-present build
+        run: npm run build
 
+      # Pending gate e2e/#24: skipped only while no spec exists, and the skip
+      # is declared in .github/gates.json. Once a spec lands, this step runs
+      # the full matrix and is fail-closed.
       - name: E2E (Playwright)
         run: |
           if compgen -G "tests/e2e/*.spec.ts" > /dev/null; then
-            npx playwright install --with-deps chromium
+            npx playwright install --with-deps chromium webkit
             npm run test:e2e
           else
-            echo "No Playwright specs yet (arrive in B2+) — skipped."
+            echo "pending gate e2e (#24) — no specs yet"
           fi

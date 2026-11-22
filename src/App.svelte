@@ -28,7 +28,7 @@
     serial: "ELSA · 0001 / 0001",
     credit: "Foto: Hausarchiv",
     photo: {
-      src: "/photos/thumbs/elsa-01.jpg",
+      src: "/img/photo-unavailable.webp",
       alt: "Elsa blickt aufmerksam in die Kamera.",
       width: 540,
       height: 720,

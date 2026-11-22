@@ -41,7 +41,7 @@
 
     <div class="zone strip">
       <span class="edition">{model.edition}</span>
-      <span class="stars" aria-label={`${model.stars} von 3 Sternen`}>
+      <span class="stars" role="img" aria-label={`${model.stars} von 3 Sternen`}>
         {#each Array.from({ length: model.stars }) as _, index (index)}
           <span aria-hidden="true">★</span>
         {/each}
