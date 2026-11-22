@@ -590,8 +590,8 @@ or any screenshot:
 | Zero exclamation marks (the rule itself) | at most one `!` per surface; never in error, destructive-confirmation or a11y strings (§0.4.4) | Owner voice ruling 2026-11-22 — the old rule made the deck too dry. Superseded, not merely relaxed |
 | Die Nassabteilung / The Wet Collection | Der Abfahrtsaal / The Departure Hall | Owner water ruling 2026-11-22 |
 | "Badegast des Jahres", "Unwetterwarnung Stufe Pfote", "nasser Hund und Stolz" | — (no replacement; the card bank entries stay retired) | Owner water ruling — must not be re-pulled from the card bank at runtime |
-| "Den Katalog ansehen" / "See the collection" | Zum Katalog / To the collection | D4 |
-| "Fünf Karten. Ein Sammelwerk." | Was steckt im Katalog? | D2 |
+| "Den Katalog ansehen" / "See the collection" | Zur Sammlung / To the collection | D4, renamed by D-04b |
+| "Fünf Karten. Ein Sammelwerk." | Was steckt in der Sammlung? | D2, renamed by D-04b |
 | fünf Karten / five cards as the **pack count** — "1. Auflage · fünf frische Karten", "Fünf Karten pro Pack", "five cards per pack" | **vier Karten / four cards** ("1. Auflage · vier frische Karten", "Vier Karten pro Pack") | Owner canon 2026-11-22 (**4-card canon**, mobile-first). The holo/rare still lands late, now **3rd or 4th** (PL §Card Reveal Step). "Fünf Karten. Ein Sammelwerk." above is retired on *both* grounds (D2 and this) |
 | "Du hast alle … gesehen. Das Pack beginnt von vorn." | Das waren alle Karten. Jetzt beginnt das Pack von vorn. | A11Y/PRE-refactor lap line, superseded by PL |
 | Diplom, DiplomCard, per-set Diplom | Elsas Ehrenmensch / Elsa's Honorary Human, one surface at 100 % | Owner canon (BND §15 resolved) |
