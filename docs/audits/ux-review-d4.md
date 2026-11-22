@@ -47,7 +47,7 @@ No dimension was **NOT ASSESSED**: the a11y tier is committed, the pattern libra
 
 - **BLOCKING** — `binder.md:272` and `interaction-patterns.md:668` carried the **EN** milestone announcement with the retired entity name (`"<retired>: {pct} per cent done — {outfit}."`); the deck's `catalogue.milestone` is `"Collection: {pct} per cent done — {outfit}."` Canon (D-04b) forbids the retired name naming the collection.
 - **BLOCKING** — `binder.md:279` and `interaction-patterns.md:515` carried the **EN** `reset.body` with the retired entity name ("This clears the …"); the deck says "This clears the **Collection**…".
-- All four were the repo's `baseline` canon entries (#31). **Fixed**, and the four `baseline` rows were removed from `scripts/canon-allowlist.json` (`maxBaseline` 7 → 3) so the ratchet cannot re-accept them.
+- All four were the repo's `baseline` canon entries (#31). **Fixed**, and the four `baseline` rows were removed from `scripts/canon-allowlist.json` (`maxBaseline` 7 → 3) so the ratchet cannot re-accept them. #72 then burned down the remaining three; on the merged tree `maxBaseline` is **0**.
 
 ### Three pack strings exist only in the spec
 
@@ -201,12 +201,12 @@ Pack-Open Button · Dialog Open/Close · Language Toggle · Sound Toggle · Prog
 |---|---|
 | `npm run canon` (base `6b9c50a`) | **128** raw hits in 17 files; 15 in `design/ux/` (4 entity + 11 water/history) |
 | `npm run canon` (head `158ea05`) | **124** raw hits in 17 files; **11** in `design/ux/`, all water canon-declaration/history lines that the allowlist covers on Linux |
-| Canon baseline | 7 → **3** entries (`maxBaseline` 3); `--json` reports `baseline: 3/3`, `baselineHits: 0` locally |
+| Canon baseline | 7 → 3 at this branch's head; **0** on main after #72. `--json` on the merged tree: `baseline: 0/0`, `baselineHits: 0` |
 | `npm run gate:tables` | `table-integrity: clean (364 tables, 45 files)` |
 | Rubric artefacts | 4 `## UX Review:` blocks, 4 `### Verdict:` lines |
 | copy-deck SSOT | every live string in the four specs now matches `design/copy/copy-deck.md`; 3 declared pack keys still absent (deferred) |
 
-**win32 caveat, stated rather than hidden:** locally the canon allowlist is not applied because `path.relative()` returns backslashes while the allowlist keys use forward slashes, so the run reports raw hits. The meaningful local evidence is the before/after raw count (128 → 124, exactly the four entity hits removed) and `baseline: 3/3`; the authoritative allowlist pass is the Linux CI run.
+**win32 caveat, resolved on main:** the reviewed head could not apply the allowlist locally because `path.relative()` returned backslashes while the allowlist keys use forward slashes. #72 fixed that (`c516332`, `toPosix()`); on the merged tree the allowlist applies on Windows and `npm run canon` is clean. The before/after raw counts above are the evidence at the reviewed head.
 
 ## Deferred (open, with reason)
 

@@ -12,7 +12,7 @@
     "New live copy goes in src/ and design/copy/copy-deck.md with the canon name. Do not add",
     "entries for new text; rewrite it."
   ],
-  "maxBaseline": 3,
+  "maxBaseline": 0,
   "entries": [
     {
       "file": "AGENTS.md",
@@ -179,9 +179,8 @@
     {
       "file": "design/copy/copy-deck.md",
       "match": "den Katalog vervollständigen",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "meta.description re-voice row: both the current and the proposed value still carry the retired entity name."
+      "status": "allowed",
+      "reason": "History row: §15 records the superseded pre-voice value of `meta.description` (its New column and §1 carry the canon). The retired name is the record, not live copy."
     },
     {
       "file": "design/copy/copy-deck.md",
@@ -257,13 +256,6 @@
     },
     {
       "file": "design/features/mechanics.md",
-      "match": "no longer in the catalogue.",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live import copy (X5) names the collection; canon is 'no longer in the collection'."
-    },
-    {
-      "file": "design/features/mechanics.md",
       "match": "print as mud",
       "status": "allowed",
       "reason": "Metaphor for ink saturation in print, not water content."
@@ -288,13 +280,6 @@
     },
     {
       "file": "design/narrative/greek-origin.md",
-      "match": "one goddess, one catalogue.",
-      "status": "baseline",
-      "issue": 31,
-      "reason": "Live `myth:frame:lede` copy names the collection; canon is 'one collection' (the line also has a DE grammar defect)."
-    },
-    {
-      "file": "design/narrative/greek-origin.md",
       "match": "Water is not catalogued.",
       "status": "allowed",
       "reason": "The taboo line: water's only permitted mention is this refusal; the verb is archival, not the progress verb."
@@ -310,12 +295,6 @@
       "match": "no sea, rain, bathing, wet dog, boat",
       "status": "allowed",
       "reason": "Canon rule row: the water constraint's acceptance check."
-    },
-    {
-      "file": "design/player-journey.md",
-      "match": "\"What's new in the Catalogue?\"",
-      "status": "allowed",
-      "reason": "Narrative paraphrase of the visitor's question, not a shipped string; the journey row describes the session start."
     },
     {
       "file": "design/ux/binder.md",
