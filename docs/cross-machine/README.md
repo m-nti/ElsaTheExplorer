@@ -17,6 +17,11 @@ sh docs/cross-machine/install.sh --all
 
 Options: `--agents` installs only the global instructions; `--ionos` installs only the lftp templates and the local check script. The installer backs up any existing file it replaces.
 
+On Windows, run the installer from **Git Bash**, and install `lftp` first — see
+`ionos/README.md` for the Chocolatey path, the user-local zip fallback and the
+required `HOME=%USERPROFILE%` shim. Use `--ionos` rather than `--all` if the live
+`~/.config/opencode/AGENTS.md` has newer rules than this snapshot.
+
 ## Credentials
 
 The password is **never** in this repo. `lftp` reads it from `~/.netrc`, which must be mode `600` and stays on the machine. The template `ionos/netrc.example` shows the shape with placeholders only. Fill it locally, then:
@@ -26,7 +31,7 @@ cp ~/.config/elsa/ionos/netrc.example ~/.netrc
 chmod 600 ~/.netrc
 ```
 
-`~/.config/elsa/ionos/check.sh` verifies that the file exists and has mode `600` without printing its contents.
+`~/.config/elsa/ionos/check.sh` verifies that the file exists and has mode `600` without printing its contents. On Windows, `chmod` is a no-op on NTFS; `check.sh` detects Git Bash/MSYS/Cygwin and delegates to `check.ps1`, which verifies the ACL instead (current user, SYSTEM and Administrators only).
 
 ## Host key
 
