@@ -180,7 +180,7 @@ language is library register; it stays.)
 current manifest: write `flags.diploma` (and refresh it on each re-completion), set
 `flags.masterIndex = true`. The completion reward is the **single** 100 % surface **"Elsas
 Ehrenmensch" / "Elsa's Honorary Human"** (owner canon): one certificate card in the catalogue
-header bearing the subtitle **"Katalog I · abgeschlossen" / "Catalogue I · completed"**, a
+header bearing the subtitle **"Katalog I · vollzählig" / "Catalogue I · all present"**, a
 photo collage from the collection, the completion date, the lap number, and the curator's
 closing line (a `diplomaLine` pair in `captions.json` meta, DE/EN; neutral fallback copy if
 absent), shareable and savable through the existing share/save plumbing. **Per-set completion

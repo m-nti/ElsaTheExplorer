@@ -90,8 +90,8 @@ Wing unions (slugs from R-A): `sofa = nap-wing ∪ portrait-room` · `vigilance 
 | `tag:capstone` | Der Bestand ist vollständig. Die Prognose entfällt. | The holdings are complete. No forecast needed. |
 | `tag:note` | Wechselt mit dem Kalendertag. Nichts verfällt. | Changes with the calendar day. Nothing expires. |
 
-- Trait names are **not** new strings: reuse `lex:<trait>:term` (`archive-fiction.md` §4 — Sofakomfort/Sofa comfort, Wachsamkeit/Vigilance). **Reiselust has no Lexikon pair yet** — add one to §4 before build (its §6 rule 5 forbids first use without definition).
-- The date line reuses `print:date` ("Stand: {date}" / "As of: {date}") — one key, no duplicate. **`tag:title` is the canonical surface name** (Der Aushang / The Bulletin — canonical decision 1, not a proposal); the remaining keys above are proposals until a copy-deck entry exists. It deliberately avoids "Karte des Tages" (allowed vocab only, `du`-register, zero exclamation marks); renaming the surface would be an owner ruling and a copy-deck change, not a code change.
+- Trait names are **not** new strings: reuse `lex:<trait>:term` (`archive-fiction.md` §4 — Sofakomfort/Sofa comfort, Wachsamkeit/Vigilance, Reiselust/Wanderlust). The `Reiselust` / `Wanderlust` pair is now present in §4, added as the **forecast label for the travel union** (`departure-hall ∪ garden-annex`) — never a per-card stat — so §6 rule 5 is satisfied and there is nothing left to add before build.
+- The date line reuses `print:date` ("Stand: {date}" / "As of: {date}") — one key, no duplicate. **`tag:title` is the canonical surface name** (Der Aushang / The Bulletin — canonical decision 1, not a proposal); the remaining keys above are proposals until a copy-deck entry exists. It deliberately avoids "Karte des Tages" (allowed vocab only, `du`-register; at most one `!` per surface, and never in an error, destructive-confirmation or accessibility string); renaming the surface would be an owner ruling and a copy-deck change, not a code change.
 
 ## 7. Acceptance Criteria (binary)
 

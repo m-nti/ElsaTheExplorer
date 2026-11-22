@@ -58,7 +58,7 @@ Consequences, all binding:
 - **Uniqueness is asserted, not assumed.** At 80 cards a collision is ~3 % likely over the catalogue's lifetime; a Vitest check asserts uniqueness of `serial` across the current manifest, and `serial` in `captions.json` is the curator's override for the degenerate case. Never renumber a live card to fix a collision.
 - **Numbers are engraved, not counted.** `02345` — leading zero, check letter — is what a printed number is supposed to look like, and it is the only decoration the house allows itself.
 
-**The volume.** `Katalog I` is a proper name and survives translation in meaning, not in spelling: DE `Katalog I`, EN `Catalogue I` (matches R-I's subtitle `Katalog I · abgeschlossen` / `Catalogue I · completed`). **Katalog II does not exist and is not promised;** it may be opened only when the curator declares I closed. Never print `Erste Auflage` as a series label — that word now belongs to the stamp.
+**The volume.** `Katalog I` is a proper name and survives translation in meaning, not in spelling: DE `Katalog I`, EN `Catalogue I` (matches R-I's subtitle `Katalog I · vollzählig` / `Catalogue I · all present`). **Katalog II does not exist and is not promised;** it may be opened only when the curator declares I closed. Never print `Erste Auflage` as a series label — that word now belongs to the stamp.
 
 **The impression.** `2. Auflage` (SSOT copy) is stamped on any pull of an already-collected card. It is always `2.`, never `3.` or `17.`: the house notes *that* you have read a card, not how often (`R-H`, no counter stored). Diegetically it is the reader's copy being reprinted, which is why the photo does not change and the number does not change. Line in the dialog (SSOT): DE *"Zweite Auflage — der Katalog kennt sie schon."* / EN *"Second printing — the catalogue already knows this one."*
 
@@ -102,7 +102,7 @@ Keys: `room:<slug>:plaque`, `room:<slug>:door`, `room:<slug>:closed`. The shelf 
 
 **Who writes what.** Card names, moods, captions, alt text, `diplomaLine` and the accession note are the curator's (via `photos/captions.json`); the indexed fallbacks in `card-bank.js` are also authored copy. **No prose on a card is ever generated at runtime.** A card without a caption has no caption; the house does not improvise.
 
-**Voice law** (binding on every string in this document and in the copy deck): `du`, never `Sie`; no exclamation marks; one joke per card — the name is the second; no diminutives, no "süß/knuffig", no marketing warmth, no "wir freuen uns", no question put to the reader, no emoji, no first-person claim about Elsa's feelings. Warmth comes from precision and from noticing the right detail.
+**Voice law** (binding on every string in this document and in the copy deck): `du`, never `Sie`; **at most one `!` per surface**, never in an error message, a destructive confirmation or an accessibility string (the terminal `!` is removed before a string enters the live region), and card names carry none (§6); one joke per card — the name is the second; no diminutives, no "süß/knuffig", no marketing warmth, no "wir freuen uns", no question put to the reader, no emoji, no first-person claim about Elsa's feelings. Warmth comes from precision and from noticing the right detail.
 
 **The reader is a reader.** The printed role is **die Leserin, der Leser** — in prose, always `du`. Not *Gast* (hospitality, gift framing), not *Nutzer* (software), not *Sammler* (that is the curator). And **expedition language belongs to Elsa**: the title says she is the explorer, so the visitor's click is not an expedition. The five cards are what the archive deals, not what the reader hunted. (This settles the open question in `player-journey.md` §Open Questions in favour of the neutral register: keep `Pack öffnen` / `Open a pack`; do not ship `Auf Expedition gehen`.)
 
@@ -113,7 +113,7 @@ Fixed form (names SSOT from R-I; fields and fallback are new):
 | Field | DE | EN |
 | --- | --- | --- |
 | Title | `Elsas Ehrenmensch` | `Elsa's Honorary Human` |
-| Subtitle | `Katalog I · abgeschlossen` | `Catalogue I · completed` |
+| Subtitle | `Katalog I · vollzählig` | `Catalogue I · all present` |
 | Issued for | `Ausgestellt für: die Leserin, den Leser` | `Issued to: the reader` |
 | Date label | `Ausgestellt am {date}` | `Issued on {date}` |
 | Pass label | `Durchgang {n}` | `Reading {n}` |
@@ -151,8 +151,9 @@ A **legend, not a page**: each term is a disclosure attached to the stat it defi
 | Kissenversteck / Cushion hideout | Ein Versteck, in das genau ein Hund passt, wenn man die Kissen mitzählt. | A hiding place that fits exactly one dog, if you count the cushions. |
 | Unauffälligkeit / Stealth | Die Fähigkeit, unbemerkt im Raum zu sein, die sie selbst überschätzt. | The ability to be unnoticed in a room, which she overestimates. |
 | Sonnenplatz / Sunspot | Ein Stück Boden, das wandert; sie weiß vorher, wohin. | A patch of floor that moves; she knows in advance where it is going. |
+| Reiselust / Wanderlust | Die Neigung, im Auto ein Ziel zu vermuten. | The tendency to assume the car has a destination. |
 
-Keys: `lex:<slug>:term`, `lex:<slug>:def`. Trait names are never synonymised at runtime and never paraphrased in a second string.
+Keys: `lex:<slug>:term`, `lex:<slug>:def`. Trait names are never synonymised at runtime and never paraphrased in a second string. `Reiselust / Wanderlust` is the **forecast label for Der Aushang's travel union** (`Abfahrtsaal ∪ Außenstelle Garten`, `karte-des-tages.md` §2) — never a per-card stat, and never a second string.
 
 ---
 
@@ -169,7 +170,7 @@ The house has one manner in every failure: state the fact, do not console, do no
 | Card deaccessioned (photo removed) | Nothing is announced. The number is vacant and stays vacant; the house does not keep a book of vacancies. | `arch:number:vacant` — reserved, not rendered today: DE *"Diese Nummer ist frei. Sie wird nicht neu vergeben."* / EN *"This number is vacant. It will not be reissued."* |
 | Storage refused (private window) | **No string.** The house simply does not keep a reading card this visit; claiming continuity it lacks is the only failure that would matter. | — |
 | Fewer than five cards / promotion / skip | No new copy. Slots never show voids; the promoted card is never asterisked (canon). | — |
-| New photos arrive | Accession notice. Exact copy is in conflict between documents — see D-1. Recommended: `arch:zuwachs` — DE *"Der Katalog hat Zuwachs: {n} neue Karten."* / EN *"New in the catalogue: {n} new cards."* ▸SC(48) |
+| New photos arrive | Accession notice: the deck's `zuwachs.line`, quoted here and changed nowhere. `arch:zuwachs` is an **alias** of `zuwachs.line` — one string, one meaning, one copy-deck entry (copy deck §15, D5). | `arch:zuwachs` = `zuwachs.line` — DE *"{n} neue Schmuckstücke sind da!"* / EN *"{n} new treasures have arrived!"* ▸SC(44) |
 | Reader resets | Canonical confirmation and announcement stay unchanged (SSOT). Diegetically the reader hands back **their reading card**; the archive's holdings are untouched — which is literally true, and is why reset is not a tragedy. One quiet line may follow. | `arch:reset:note` — DE *"Neue Lesekarte. Der Katalog steht wieder offen."* / EN *"A new reading card. The catalogue is open again."* ▸SC(48) |
 
 The reading-card model governs all five failure paths at once: what the reader loses is a copy; what the house holds never changes. Say it once, in the Lexikon margin if a surface ever needs to, and never again as reassurance.
@@ -189,7 +190,7 @@ The reading-card model governs all five failure paths at once: what the reader l
 **Cards.** A card name is **an office a dog holds**, not a description of a photograph.
 
 1. Pattern: `Wächterin der Keksdose`, `Ministerin für Mittagsschlaf`, `Amtliche Leckerli-Prüferin` — title, ministry, or post. If it could caption a stock photo, it is wrong.
-2. ≤ 28 characters DE / 30 EN on the plate (▸SC(28)); no exclamation; no adjective of quality; no first person; no rarity word in the name.
+2. ≤ 28 characters DE / 30 EN on the plate (▸SC(28)); no `!` in a card name; no adjective of quality; no first person; no rarity word in the name.
 3. Caption: 1–2 sentences, present tense, third person `sie`, photo-matched, never explaining its own joke, never mentioning the camera or the photographer, never inventing a fact (PRD R6).
 4. Mood: lowercase, 2–4 words, adjectival (*"stur und munter"*, *"wach, aber nur innerlich"*).
 5. New stat keys are defined in §4 **before** first use; one canonical DE/EN pair per key, no synonyms.
@@ -200,15 +201,15 @@ The reading-card model governs all five failure paths at once: what the reader l
 
 ## 7 · Contradictions Check and Decisions
 
-**Checked against existing canon — no contradiction introduced:** room display names and slugs match `collection-meta.md` R-A exactly, and the codes `RUH GAR ABF BAL POR WAC NEU` are new but derived from those names; the chase card is named `Das Hauptporträt` / `The Portrait of Record` (R-G) everywhere above; the capstone name, subtitle, stamp line and reset copy are quoted, not rewritten; empty rooms stay omitted (R2/E4), so §2's closed lines are marked reserved; no water word, no exclamation mark and no `Sie` appears in any string above; the `2. Auflage` stamp, the `aus:` chip and the `Im Katalog` badge keep their SSOT wording.
+**Checked against existing canon — no contradiction introduced:** room display names and slugs match `collection-meta.md` R-A exactly, and the codes `RUH GAR ABF BAL POR WAC NEU` are new but derived from those names; the chase card is named `Das Hauptporträt` / `The Portrait of Record` (R-G) everywhere above; the capstone name, subtitle, stamp line and reset copy are quoted, not rewritten; empty rooms stay omitted (R2/E4), so §2's closed lines are marked reserved; no water word and no `Sie` appears in any string above; at most one `!` per surface and never in error, destructive-confirmation or accessibility strings — the sanctioned surface here is the Zuwachs line, whose `!` is removed before the live region; the `2. Auflage` stamp, the `aus:` chip and the `Im Katalog` badge keep their SSOT wording.
 
 **Findings in existing copy (reported, not edited here):**
 - `card-bank.js` still carries retired water content: `Badegast des Jahres` / `Bather of the Year`, `Unwetterwarnung, Stufe Pfote` / `Weather Warning, Paw Level`, *"Nass bis auf die Haut…"*, *"Nach dem Regen riecht sie nach nassem Hund und Stolz."*, mood `tropfnass` / `soaking wet`, and *"die Wiese klebt"* (mud-adjacent). All must be rewritten in the build phase per the water canon.
 - Trait drift: `Wachsamkeit` maps to EN `One-eye watch` on `IMG_0155`, which collides with `Ein-Auge-Wache`. §4 fixes the pairs; `card-bank.js` follows.
-- Accession-notice wording conflicts: `game-brief.md` says *"Der Katalog hat Zuwachs"*, `collection-meta.md` R8 and `binder.md` say *"Das Heft hat Zuwachs"*. One must win.
+- ~~Accession-notice wording conflicts: `game-brief.md` says *"Der Katalog hat Zuwachs"*, `collection-meta.md` R8 and `binder.md` say *"Das Heft hat Zuwachs"*.~~ **RESOLVED 2026-11-22** to the copy-deck winner (owner voice ruling, D5): `{n} neue Schmuckstücke sind da!` / `{n} new treasures have arrived!`. Both *"Das Heft hat Zuwachs"* and *"Der Katalog hat Zuwachs"* are retired (§13).
 
 **Decisions for the owner (recommendation, then owner's call):**
-- **D-1 · Zuwachs wording.** Recommend `Der Katalog hat Zuwachs: {n} neue Karten.` — `Heft` is retired vocabulary that survives nowhere else, and R8's own note already supersedes the PRD's booklet terms. Cost: one copy-deck line in two languages.
+- **D-1 · Zuwachs wording — RESOLVED 2026-11-22** to the copy-deck winner (D5, `zuwachs.line`): `{n} neue Schmuckstücke sind da!` / `{n} new treasures have arrived!`. The earlier recommendation (`Der Katalog hat Zuwachs: {n} neue Karten.`) is withdrawn — the owner voice ruling retired that form together with `Heft`, with no exception. Cost: one copy-deck entry in two languages, plus the propagation pass listed in the findings above.
 - **D-2 · Trait SSOT.** Adopt §4 as the canonical pair list and align `photoTraits` in the build phase. Cost: one pass over ten photo entries.
 - **D-3 · Reader role.** Adopt *Leser:in* + neutral CTA and drop the expedition variants from the candidate copy. Cost: none; it removes a costume risk.
 - **D-4 · Diploma field labels.** `Durchgang {n}` / `Reading {n}` for what R-I calls the lap number, plus the fallback line in §3. Cost: two labels.
