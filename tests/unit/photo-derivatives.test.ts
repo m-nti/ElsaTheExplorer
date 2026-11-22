@@ -15,11 +15,12 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { crc32, deflateSync } from "node:zlib";
 import sharp, { type Sharp } from "sharp";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { defaultUrlPrefix, isRepoRelativePrefix } from "../../scripts/photo-urls.mjs";
 
 /**
  * Static derivative ladder — manifest v2 + byte budgets (ticket #21).
@@ -419,6 +420,46 @@ describe("manifest v2", () => {
     // "same name.jpg" sorts before "same-name.jpg" by code point; both slug to `same-name`.
     expect(ids).toEqual(["landscape", "same-name", "same-name-2", "ueber-elsa-ss"]);
   }, RENDER_TIMEOUT);
+});
+
+// ---------------------------------------------------------------------------
+// Manifest URL prefix (#113) — a URL must be deployable from any host
+// ---------------------------------------------------------------------------
+
+/**
+ * ADR-0004 §3 / ADR-0008 §5: manifest URLs are repo-relative. The generator used
+ * `path.relative()`, which returns an **absolute** path when root and target sit on
+ * different volumes — `windows-latest` checks out on `D:` and temp lives on `C:`, so
+ * the manifest shipped `C:/Users/RUNNER~1/AppData/Local/Temp/…/derived/tile/a.jpg`.
+ * The in-repo case is pinned here; the cross-volume case uses `win32.relative` explicitly
+ * so the rule is exercised identically on Linux CI and on the owner's machine.
+ */
+describe("manifest URL prefix", () => {
+  it("keeps an in-repo output and a same-volume QA directory relative", () => {
+    expect(defaultUrlPrefix(ROOT, join(ROOT, "photos", "derived"))).toBe("photos/derived");
+    expect(defaultUrlPrefix(ROOT, join(tmpdir(), "elsa-out"))).toBe("elsa-out");
+  });
+
+  it("refuses the absolute path path.relative returns across volumes", () => {
+    const crossVolume = win32.relative("D:\\a\\repo\\repo", "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\elsa\\derived");
+
+    // The bug's input, spelled out: this is what the Windows runner produced.
+    expect(crossVolume).toBe("C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\elsa\\derived");
+    expect(isRepoRelativePrefix(crossVolume)).toBe(false);
+    // The emitted JSON form of the same path.
+    expect(isRepoRelativePrefix("C:/Users/RUNNER~1/AppData/Local/Temp/elsa/derived")).toBe(false);
+
+    // Escapes and absolute-rooted prefixes are not deployable either.
+    expect(isRepoRelativePrefix("..\\elsewhere")).toBe(false);
+    expect(isRepoRelativePrefix("../elsewhere")).toBe(false);
+    expect(isRepoRelativePrefix("/srv/photos")).toBe(false);
+    expect(isRepoRelativePrefix("")).toBe(false);
+
+    // What the manifest is allowed to carry.
+    expect(isRepoRelativePrefix("derived")).toBe(true);
+    expect(isRepoRelativePrefix("photos/derived")).toBe(true);
+    expect(isRepoRelativePrefix("photos\\derived")).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
