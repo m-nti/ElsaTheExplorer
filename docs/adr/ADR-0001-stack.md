@@ -60,7 +60,7 @@ Adopt the pinned stack as the exclusive toolchain:
   manifest normalization, storage migration, i18n parity).
 - **Playwright 1.65** for flows, keyboard/reduced-motion runs, error-state mocks,
   overflow checks, axe-core contrast, third-party-request audit. Replaces the v1
-  `scripts/qa.mjs` puppeteer smoke test.
+  `legacy/scripts/qa.mjs` puppeteer smoke test.
 - **sharp 0.35.5 (dev)** for thumbnails/crop anchors in `scripts/photos.mjs` —
   dev/QA only; the runtime pipeline remains `photos.php` (+ `photos.json` fallback).
 - **No i18n dependency, no CSS framework**: typed first-party dictionary
