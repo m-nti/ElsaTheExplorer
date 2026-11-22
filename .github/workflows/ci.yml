@@ -115,7 +115,8 @@ jobs:
   # invisible until a local `npm run verify`: a bash-only `prepare`, a canon path
   # comparison, a CRLF registry fixture, 8.3 short paths and a symlink privilege all
   # landed as red on Windows and green on CI. This is an addition, not a replacement:
-  # the ubuntu `verify` job still owns all fourteen enforced gates, and this job runs
+  # the ubuntu `verify` job still owns all sixteen enforced gates (including the two
+  # additive scanners from #98 — internal paths and plan status), and this job runs
   # the ratified subset that exercises the host-sensitive code paths.
   windows:
     name: verify-windows
