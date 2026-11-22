@@ -331,12 +331,21 @@ export const tokens = defineTokens({
     "card-min": value("180px"),
     "card-max": value("340px"),
     content: value("1440px"),
-    "zone-header": value("17%"),
-    "zone-photo": value("46%"),
-    "zone-strip": value("7%"),
-    "zone-story": value("15%"),
-    "zone-stats": value("10%"),
+    // Card bays — art-bible §8, D12a ruling (#47). Percentages of the plate's
+    // inner height; the seven bays sum to exactly 100 %. `zone-header` is §8's
+    // plate bay (name row + number/mood/chip row). `zone-gutters` is the
+    // content-free bay: it is consumed as the 5 gaps between the six content
+    // bands (4.5 % / 5 = 0.9 % per gap = 4.23 px at the 340 px reference card),
+    // so it is named here rather than derived in CSS — one bay, one token, and
+    // #30's parity test compares seven rows instead of six plus a special case.
+    // Bible ↔ token parity is #30's test; this file mirrors §8, it does not own it.
+    "zone-header": value("15.5%"),
+    "zone-photo": value("41.5%"),
+    "zone-strip": value("5.5%"),
+    "zone-story": value("19.5%"),
+    "zone-stats": value("8.5%"),
     "zone-foot": value("5%"),
+    "zone-gutters": value("4.5%"),
     "photo-anchor": value("center 42%"),
     "photo-focus-x": value("50%"),
     "photo-focus-y": value("42%"),
