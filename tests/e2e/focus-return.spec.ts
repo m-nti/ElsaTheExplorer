@@ -40,6 +40,16 @@ test("browser Back closes the dialog and returns focus to the invoking tile", as
   await expect.poll(() => activeFocusId(page)).toBe("elsa-04");
 });
 
+test("backdrop click closes and returns focus to the invoking tile", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-focus-id="elsa-01"]').click();
+  await expect(page.locator("dialog[open]")).toBeVisible();
+  // The dialog is centred and narrower than the viewport; a corner click is the backdrop.
+  await page.mouse.click(2, 2);
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
+  await expect.poll(() => activeFocusId(page)).toBe("elsa-01");
+});
+
 test("an unknown deep link opens no dialog and leaves the URL alone", async ({ page }) => {
   await page.goto("/?photo=missing");
   await expect(page.locator("dialog[open]")).toHaveCount(0);

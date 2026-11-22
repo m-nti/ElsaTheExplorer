@@ -41,6 +41,11 @@
   bind:this={dialog}
   aria-labelledby={titleId}
   tabindex="-1"
+  onclick={(event) => {
+    // Backdrop dismissal (interaction-patterns "Card lightbox — dismiss"):
+    // only a click whose target is the dialog itself, never its content.
+    if (event.target === dialog) dialog?.close();
+  }}
 >
   {#if model}
     <div class="card-dialog__bar">
