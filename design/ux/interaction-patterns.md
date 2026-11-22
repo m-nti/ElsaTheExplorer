@@ -60,7 +60,7 @@ Non-negotiable constraints that shape every pattern:
    household *du* register, museum-catalogue dry humor, no marketing voice.
    The brand name **Elsa the Explorer** is fixed; taglines localize.
 3. **Reduced motion is a first-class state**: with
-   `prefers-reduced-motion: reduce`, all four cards render in the final grid at first paint, one soft tick, no `inert` phase,
+   `prefers-reduced-motion: reduce`, all four cards render in the final grid at first paint, one soft tick, no `inert` phase, no
    foil movement, no confetti. Every pattern names its fallback explicitly.
 4. **No color-only information**: rarity, progress, and state are always
    carried by text, shape, or count as well.
@@ -145,7 +145,7 @@ implementation change.
 | Hovered | Slight brightness lift; seal tilts toward the pointer (see Card Tilt & Foil Material) | Pointer over | Surface transition | 80 ms ease-out | none (deliberate: hover silence avoids fatigue on a chat-link site) |
 | Focused | Visible focus ring, ≥3:1 contrast against adjacent colors, offset ≥2 px | Tab / Shift+Tab | Ring transition | 80 ms ease-out | none |
 | Active / Pressed | Scale 0.98; seal starts its tear animation | Pointer down / Space / Enter on focused control | Opens the pack (see Card Reveal Step) | 60 ms down / 80 ms up | Pack Rip (once) |
-| Opening / Busy | Label swaps to "Pack wird geöffnet / Opening the pack"; trigger and seal `disabled`; pack dialog already open | — | Haul sequence runs; re-entry locked | whole opening (~1.5 s) | Rip + per-card ticks |
+| Opening / Busy | Label swaps to "Pack wird geöffnet / Opening the pack"; trigger and seal `disabled`; pack dialog already open | — | Haul sequence runs; re-entry locked | whole opening (~4.1 s, pack-opening §10.1) | Rip + per-card ticks |
 | Disabled | Reduced-opacity fill, no hover/press affordances, `disabled` set | — | No response; label reads "Noch keine Karten / No cards yet" in empty state | — | — |
 | Error | No separate error state: with no photos the trigger *is* the empty state (label + disabled) | — | Binder shows the curator-directed Empty State | — | — |
 
@@ -243,7 +243,7 @@ implementation change.
 | Theatre (sachet) | Sachet tears at centre viewport; the stage sits at `focus(0)`, still empty and `inert` | Pack open | Tear + flash; no card on the stage yet | 900 ms ease-out (theatre keeps its own keyframes — `pack-opening.md` §10) | Pack Rip |
 | Focus beat, card 1 — then ×3 | **One card** arrives in the focus frame (short edge at 74 % of the stage, anchor 50 % / 42 %): `translateY` 6 %→0, `scale` .96→1, opacity 0→1; counter reads `i von 4`; the card just left is behind the camera | Timed on the reveal clock (no user input) | Card's own line written to the live region; card **not** yet interactive (stage `inert`) | `--elsa-dur-cardin` **300**, `--elsa-ease-soft`; then `--elsa-hold-beat` **260** of stillness | Card Tick **on the settle frame**; Rare Chime / Holo Shine for a non-common |
 | Hand-off / camera move, focus → focus (×3) | Dolly to the next plate's solved anchor; the next card's entrance starts while the camera is still moving, so the seam is hidden | Timed | — | `--elsa-dur-focus` **380**, `--elsa-ease-focus`; next card enters at `--elsa-overlap` 35 % (≈ **133 ms** before arrival) | none — *the camera is silent* (motion-sheet §7) |
-| Highest-rarity arrival (pos. 3/4) | Strongest foil material; one small canvas burst when the holo lands (fires only after the last tile settles) | Timed | Same beat, plus the celebration | burst ≤ 1.2 s, once per pack, holo only | Holo Shine |
+| Highest-rarity arrival (pos. 3/4) | Strongest foil material; one 520 ms glint flourish when the holo lands (fires only after the last tile settles) | Timed | Same beat, plus the glint | `--elsa-dur-flourish` 520, once per pack, holo only; **no canvas confetti** (motion-sheet §8) | Holo Shine |
 | Pull-back (`c: 1 → 0`) | The 2 × 2 / 1 × 4 becomes visible; each card travels into its own cell — 8 px lift-in, 40 ms forward stagger (max 4) | Card 4's settle frame — **no extra beat** (the settle *is* the beat) | `pack:pullback-complete` at `c = 0`; the last ~290 ms is pure stillness | `--elsa-dur-pullback` **760**, `--elsa-ease-pullback`; tile settle `--elsa-dur-tile` **260** starts at +12 % (+91 ms) and finishes before rest | per-card sound on each tile settle; **no whoosh** |
 | `inert` during the reveal | The stage (and its cards) takes neither focus nor pointer events for the whole sequence; nothing that is still moving or about to be left behind is reachable | whole reveal | Mis-tap and mis-focus protection only — **✕ and `Escape` stay live** (the deliberate skip path) | — | — |
 | Settled / live | Grid, all four cards interactive; stage un-`inert`ed and focus moved to card 1 in the same frame; counter `4 von 4`; hint line visible: "Tippe eine Karte an." / "Tap a card." (copy-deck sync pending: the old swipe clause has no consumer now that the reveal is not a carousel) | `pack:pullback-complete` | Cards openable → Card Lightbox | hint + footer `--elsa-dur-fade` 140 | — |
@@ -255,7 +255,7 @@ implementation change.
 
 **Accessibility**:
 - The drop row is an `<ol>` with `aria-label` "Die Karten aus diesem Pack" / "The cards in this pack"; each card is a `<button>` with a full accessible name: number, name, rarity — DE: *"Karte 04 öffnen: Hüterin der verlorenen Socken"* / EN: *"Open card 04: Keeper of the Missing Socks"*.
-- **One announcement per beat, plus an authoritative summary.** Each card's line — "Karte {i} von {n}: {name}. {rarity}." — is written at that card's **entrance**; the completion summary `pack.summary` ("{n} Karten: {names}." / "{n} cards: {names}.") is written **once, at the pull-back end**. Writes replace rather than queue (rapid polite writes), so a slow reader may hear only the last per-card line — every line is a complete sentence and the summary restates the haul, so dropping one loses nothing. Text and timing: `pack-opening.md` §12.
+- **One announcement per beat, plus an authoritative summary.** Each card's line — "Karte {i} von {n}: {name}. {rarity}." — is written at that card's **settle** frame; the completion summary `pack.summary` ("{n} Karten: {names}." / "{n} cards: {names}.") is written **once, at the pull-back end**. Writes replace rather than queue (rapid polite writes), so a slow reader may hear only the last per-card line — every line is a complete sentence and the summary restates the haul, so dropping one loses nothing. Text and timing: `pack-opening.md` §12.
 - Because the holo lands 3rd/4th visually, its accessible name must not bury rarity: the rarity label is part of every card's name, so an SR user hears which card shines without waiting.
 - **The stage is `inert` for the theatre, the reveal and the pull-back**, so focus cannot land on a card that is still moving or about to be left behind; it is un-`inert`ed on the last settle frame and focus moves to card 1 in that same frame. The focus cycle during that window is ✕ → (disabled footer) → ✕.
 - Reduced-motion layout must place the highest-rarity card *last in DOM order* of the drop, matching the visual order rule, so tab order tells the same story.
@@ -512,7 +512,7 @@ implementation change.
 
 **Structure** (Confirmation Dialog — these strings are canon / SSOT; the confirm button is labelled with the action, never "OK" / "Ja"):
 - Title: "Von vorn?" / "Start over?"
-- Body (one line, listing what is lost): DE: *"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN: *"This clears the Catalogue, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default."* (copy-deck sync 2026-11-22)
+- Body (one line, listing what is lost): DE: *"Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück."* / EN: *"This clears the Collection, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default."* (copy-deck sync 2026-11-22)
 - Confirm button: Primary-styled **destructive** — DE: *"Alles löschen"* / EN: *"Delete everything"* — labeled with the action, never "OK" / "Ja".
 - Cancel button: Secondary — "Abbrechen" / "Cancel". **Default focus here.**
 - Scope note (binding, per project facts): reset clears **all** `lucky-elsa.*`
@@ -528,8 +528,8 @@ implementation change.
 |-------|--------|---------------|----------|----------|-------|
 | Trigger (default) | Quiet outline button in the collection tools row; never visually loud — the danger lives in the confirmation, not the trigger | click / `Enter` | Confirmation dialog opens (Dialog Open / Close rules) | 200 ms open | soft warning tick (distinct from confirm) |
 | Confirmation — default focus | Cancel focused | `showModal()` | — | — | — |
-| Confirmed | — | click confirm / `Enter` | Clears all `lucky-elsa.*` keys, re-renders catalogue + progress in the default language, announces result | 150 ms close | final weighted confirm tone |
-| Cancelled | — | `Escape`, backdrop click, Cancel click | Dialog closes; nothing changed; focus returns to the reset button | 150 ms close | modal-close tick |
+| Confirmed | — | click confirm / `Enter` | Clears all `lucky-elsa.*` keys, re-renders catalogue + progress in the default language, announces result | 160 ms close | final weighted confirm tone |
+| Cancelled | — | `Escape`, backdrop click, Cancel click | Dialog closes; nothing changed; focus returns to the reset button | 160 ms close | modal-close tick |
 | Result (after confirm) | Progress bar to 0, all tiles revert to unseen framing, "2. Auflage" era ends | — | Live region: "Von vorn. Alle Karten können wieder kommen." / "Starting over. Every card can come up again." | 300 ms progress transition | UI Confirm — Destructive |
 
 **Accessibility**:
@@ -665,7 +665,7 @@ implementation change.
 | Just gained an entry | Count ticks up, fill animates | card of this set marked | — | 300 ms ease-out | none (card sounds suffice) |
 | Department complete | Line flips to its completion state. Visible note (carries the surface's one permitted `!`): DE: *"Der Rahmen leuchtet, als hätte er gewartet!"* / EN: *"The frame is glowing, as if it had been waiting!"*; live region: DE: *"{set} ist komplett. Alle da."* / EN: *"{set} is complete. All present."* — no `!` (copy-deck sync 2026-11-22). **Exclamation rule: at most one `!` per surface; never in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region.** The **permanent frame variant** for this set now applies to its tiles | last card of set | Small one-time flourish + live region announcement | 300 ms + one-time flourish ~800 ms | milestone chime (set-scale, quieter than the Ehrenmensch chime) |
 | Loose department | Same pattern, labeled "Neuzugänge / New Acquisitions"; completion possible and celebrated the same way | — | — | — | — |
-| Milestone crossing (25/50/75 % overall) | Surfaced once via a catalogue-level flourish + live region; **milestone announcements are overall-catalogue** — copy key `catalogue:milestone-reached { pct }` (the GDD references this key; do not rename in one place only), with the outfit resolved from the milestone — SSOT: binder spec §12 (**25 % gilded door sign / Türschild, 50 % reading lamp / Leselampe, 75 % velvet rope / Samtband**): DE: *"Sammlung: {pct} Prozent geschafft — {outfit}."* / EN: *"Catalogue: {pct} per cent done — {outfit}."* ({outfit} resolves from the milestone — no competing copy; announced, so no `!`; copy-deck sync 2026-11-22); the outfit then persists in the collection's presentation | overall ratio crosses | one-time | one-time | milestone chime |
+| Milestone crossing (25/50/75 % overall) | Surfaced once via a catalogue-level flourish + live region; **milestone announcements are overall-catalogue** — copy key `catalogue:milestone-reached { pct }` (the GDD references this key; do not rename in one place only), with the outfit resolved from the milestone — SSOT: binder spec §12 (**25 % gilded door sign / Türschild, 50 % reading lamp / Leselampe, 75 % velvet rope / Samtband**): DE: *"Sammlung: {pct} Prozent geschafft — {outfit}."* / EN: *"Collection: {pct} per cent done — {outfit}."* ({outfit} resolves from the milestone — no competing copy; announced, so no `!`; copy-deck sync 2026-11-22); the outfit then persists in the collection's presentation | overall ratio crosses | one-time | one-time | milestone chime |
 | 100 % overall | All lines complete; the **single capstone Elsas Ehrenmensch / Elsa's Honorary Human** is presented in the collection header; the Das Gesamtverzeichnis / The Master Index plaque stands beside it | last entry | Completion announcement once: DE: *"Sammlung komplett — Elsas Ehrenmensch ist eingetragen."* / EN: *"Collection complete — Elsa's Honorary Human is entered."* — no `!` (copy-deck sync 2026-11-22); ceremony beats in player-journey.md Phase 7 | — | Ehrenmensch chime |
 | Empty department (0 cards exist in it) | **Decision: omit** — the collection only shows departments that exist in the current collection | — | — | — | — |
 
@@ -675,7 +675,7 @@ implementation change.
 - Completion and milestone announcements go through the live region once, at the moment they happen: set completion — DE: *"{set} ist komplett. Alle da."* / EN: *"{set} is complete. All present."*; milestones — `catalogue:milestone-reached { pct }` (overall-catalogue, not per-department). At most one `!` per surface; never in error, destructive-confirmation or accessibility strings; the terminal `!` is removed before a live region.
 - No color-only completion: the word "komplett / complete" carries it.
 
-**Animation spec**: fill 300 ms ease-out; completion flourish (subtle foil brightening on the line, never page-scale confetti — the pack dialog owns the single small holo burst, and the capstone owns the larger celebration); reduced motion: instant states, flourish becomes a plain text change.
+**Animation spec**: fill 300 ms ease-out; completion flourish (subtle foil brightening on the line, never page-scale confetti — the pack dialog owns the one 520 ms holo glint, and the capstone owns the confetti celebration); reduced motion: instant states, flourish becomes a plain text change.
 
 **Implementation Notes** (Svelte 5): `<SetLine>` renders from a `sets.svelte.ts` store; data lives in `lucky-elsa.sets.v1` (per-set ids) and `lucky-elsa.flags.v1` (milestones, Ehrenmensch claimed), both recomputed defensively from `seen.v2` on load (stale-key hygiene, as `pruneSeen()` did). The loose department is automatic, never manually maintained. Container queries: full line ≥ ~480 px, compact line (name + "3/5") below. Vitest: assignment fallback to Neuzugänge; stale-id pruning.
 
@@ -771,7 +771,7 @@ implementation change.
 - Thumbnails lazy-load (`loading="lazy"`); tile images carry width/height to prevent layout shift (PRD NFR: no CLS).
 - Focus-driven scroll: a focused tile must always be scrolled into view.
 
-**Animation spec**: hover lift and static-foil brightening per table; entrance animation for newly accessioned tiles ("Zuwachs accession line") is a light 300 ms fade-in stagger, **capped at ~2 s total** so 50 new tiles don't animate for 15 s; reduced motion: none of it, tiles appear instantly.
+**Animation spec**: hover lift and static-foil brightening per table; entrance animation for newly accessioned tiles ("Zuwachs accession line") is a `--elsa-dur-tile` 260 ms fade-in, 40 ms stagger capped at max 4 (**capped at ~2 s total**) so 50 new tiles don't animate for 15 s; reduced motion: none of it, tiles appear instantly.
 
 **Implementation Notes** (Svelte 5): `<BinderTile>` per entry in a keyed `{#each}`; the "gesammelt" marker derives from the collection store. One delegated click handler on the grid (`closest('[data-photo-id]')` semantics via a wrapper or per-tile handlers — Svelte's cheap listeners make per-tile fine). Focus management uses `scrollIntoView({ block: 'nearest' })` on focus. Re-visit rendering strategy only above ~200 entries (PRD §9.2).
 
@@ -887,7 +887,7 @@ implementation change.
 
 **Category**: Feedback · **Status**: Draft
 **When to Use**: Silent failures (manifest fallback) show *nothing*; user-visible failures show soft copy. **When NOT to Use**: Never block the experience with an error modal — the library has no modal error state by design.
-**Spec**: Principle — error messages are never the reader's fault; they say what happened and what to do next. Only two user-visible error strings exist today (share-fallback, noscript), both with a usable next step. New failures (e.g., HEIC conversion) degrade silently into readable card frames, never into error text aimed at visitors.
+**Spec**: Principle — error messages are never the reader's fault; they say what happened and what to do next. The catalogue failure is the one user-visible load error: `state.error.catalogue` — "Die Sammlung kommt gleich wieder." / "The collection will be back shortly." — on the stage, with the retry (`state.error.retry`, "Nochmal versuchen / Try again") living with the collection's Error state. Share fallback and the noscript notice are the other two visible strings, both with a usable next step. New failures (e.g., HEIC conversion) degrade silently into readable card frames, never into error text aimed at visitors.
 
 ---
 
@@ -928,7 +928,7 @@ implementation change.
 | Progress / set fill | 300 | ease-out | Width or ratio transition |
 | Tile hover lift | 80 | ease-out | ~4 px translate |
 | Glare sweep (drop cards, tiles) | ~600 | linear | Single background-position step; no rAF |
-| Confetti burst | ~1200 | — | Pack dialog only; "big" for holo hauls |
+| Confetti burst | ~1200 | — | **Capstone only** — never the pack dialog or a card surface (motion-sheet §8; a holo find earns the 520 ms glint) |
 | Status line (share) enter / exit | 200 / 200 | ease-out / ease-in | Auto-clear after 3.4 s |
 | Milestone completion flourish (`--elsa-dur-flourish`) | 520 | `--elsa-ease-out` | One glint pass, one-time, set-scale; never page-scale |
 | Tile entrance ("Zuwachs") | 260 per tile | `--elsa-ease-soft` | 40 ms forward stagger, max 4 (no long queues) |
@@ -1009,7 +1009,7 @@ behavior, not an afterthought):
 |----------|-------|----------|-----------|
 | Does native `<dialog>` focus cycling hold up in Safari ≤ 15 (known focus quirks)? Verify on the oldest supported Safari; if broken, a minimal focus-trap helper is needed. | ui-programmer + ux-designer | Before dialog refactor merges | Unresolved |
 | Should the pack dialog's backdrop click stay protected after the reveal settles (current behavior: not bound), or close the dialog then? | ux-designer | First playtest round | **Resolved (owner ruling)**: backdrop is inert *during* the reveal (mis-tap protection); after reveal-complete everything is live — backdrop click closes, same as the lightbox. See Dialog Open / Close. |
-| Is 200 ms the right reveal stagger on mobile, or does it feel slow at expedition #20? Watch a tester open several packs in a row. | ux-designer | First playtest round | Unresolved |
+| ~~Is 200 ms the right reveal stagger on mobile at expedition #20?~~ **Withdrawn 2026-11-22 — the reveal is one card in focus, not a stagger; see pack-opening.md §15** | — | — | withdrawn |
 | Should the reset confirmation's "what is lost" line also mention that sound/language preferences reset — or is the current one-liner enough? Project facts settle the *behavior* (all keys cleared); only the copy emphasis is open. | ux-designer + owner | Before reset implementation | Unresolved |
 | Tile entrance cap of ~2 s for large "Zuwachs" batches — acceptable, or should new tiles simply not animate above 10 additions? | ux-designer | First large-upload test | Unresolved |
 | Does the lightbox need visible prev/next affordances (chevrons) in addition to keys/swipe for discoverability? | ux-designer | First mobile playtest | **Resolved (owner ruling): yes, chevrons** — added as a variant row in Card Browsing (touch parity with ← →, min 44 × 44 targets). Only their placement/labels need a mobile playtest look. |

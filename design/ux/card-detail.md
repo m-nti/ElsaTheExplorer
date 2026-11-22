@@ -117,7 +117,7 @@ closing to continue browsing.
 
 | Exit Action | Destination | Transition Type | Data Returned / Saved | Notes |
 |-------------|------------|-----------------|----------------------|-------|
-| Escape / ✕ / backdrop | Parent (PackOpening, BinderShelf, or stage) | Modal close 200ms (instant reduced-motion) | Focus returns to the **originating card button**; if none (deep link), to the stage CTA | Focus-return contract is binary-tested (§14) |
+| Escape / ✕ / backdrop | Parent (PackOpening, BinderShelf, or stage) | Modal close 160ms (instant reduced-motion) | Focus returns to the **originating card button**; if none (deep link), to the stage CTA | Focus-return contract is binary-tested (§14) |
 | "Noch ein Pack" | PackOpening (new accession) | Close + `pack:open-request` | — | Disabled while a pack resolves |
 | "Foto speichern" | Browser download | Native download sheet | original file, `download` attribute | Page state unchanged |
 | "Teilen" | Share sheet / clipboard | Native UI | deep-link URL | Status line reports the result (§7.2) |
@@ -171,7 +171,7 @@ overlay the card's vertical midline at the dialog edges.
 | Card slot | The full card (`card--full`) | width = fit formula (§5.3 L1); height = width / 0.70 | No | **Never scrolls, never clips zones — zones are proportioned to fit (L2–L5)** |
 | Chevron zones | ‹ › over the dialog edges, vertically centred on the card | 44×44px each | No | Hidden at catalogue size 1 |
 | Status line | Share/save feedback — plain text with no live semantics; the same string is announced through `#live-status` (ADR-0010 §2) | 1 line | No | Wraps to 2 lines; reserves min-height to avoid reflow |
-| Confetti/halo dressing | Halo behind card + ground shadow + glare band | around the card | No | Decorative, `aria-hidden`, static under reduced motion |
+| Halo/dressing | Halo behind card + ground shadow + glare band | around the card | No | Decorative, `aria-hidden`, static under reduced motion |
 
 The dialog never scrolls (`overflow: hidden`, current behaviour kept);
 everything fits from 320×480 up.
@@ -216,7 +216,7 @@ band. Decorative foil layers (rays, glitter, glare) may cover the card but
 never carry content.
 
 **L3 — The credit strip is its own band.**
-Fix: "Elsen · Erste Auflage" credit + stars live in band 3, a reserved row
+Fix: "Elsa the Explorer · 1. Auflage" credit + stars live in band 3, a reserved row
 between photo and Elsa-Moment. It must not be absolutely positioned or
 negative-margined over the photo window (current failure mode). At every
 viewport the strip's bounding box does not intersect the photo's.
@@ -250,7 +250,7 @@ what follows is what the card should additionally adopt):
 | # | Adopt | Reference mechanic | Why it earns its place |
 |---|-------|--------------------|------------------------|
 | A | **Keyboard foil tilt** | Arrow keys nudge the tilt target ±7°/step, clamped ±18°/±20° | The card reserves `←`/`→` for card navigation (canon). **Split:** `←`/`→` navigate cards; `↑`/`↓` tilt the foil while the card has focus. Keyboard visitors get the same material life as pointer users. |
-| B | **Tap-vs-drag discrimination** | `pointerdown` captures; movement < 8px on release = tap (flip); ≥ 8px = tilt drag | Touch users currently risk accidental flips while aiming to tilt. Also sets `touch-action: none` on the card zone only — the dialog never scrolls, so page behaviour is unaffected. |
+| B | **Tap-vs-drag discrimination** | `pointerdown` captures; a three-step gesture ladder: movement < 8px on release = tap (flip), 8–39px = tilt drag, ≥ 40px dominant-horizontal = card navigation (Card Browsing) | Touch users risk accidental flips while aiming to tilt, and a navigation swipe must not be read as tilt. Also sets `touch-action: none` on the card zone only — the dialog never scrolls, so page behaviour is unaffected. |
 | C | **Halo + ground shadow** | Conic rainbow halo (blur 60px, opacity tracks tilt energy) behind the card; elliptical ground shadow that counter-shifts with tilt | "The card is the only lit object in the room" — this dressing is the light source. Static under reduced motion; `aria-hidden`. |
 | D | **Spring flip** | Flip angle runs through the same spring as tilt (`k=110/c=13`, reduced `200/30`) with a `translateZ` lift at 90° | Replaces the flat 700ms CSS transition; flip and tilt share one physical system, and reduced motion collapses both to instant. |
 | E | **em-scaled card typography** | Card root `font-size` derived from the card width (cqw); every zone sized in `em` | The card scales as **one unit** — this is the mechanism that makes L2's fixed bands safe at any size (the reference's card never overflows for this reason). |
@@ -319,7 +319,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | Share copied | Clipboard fallback succeeded | Status: "Link kopiert." | — | Status clears after 3.4s (current timing kept) |
 | Share failed | Clipboard refused | Status: "Link konnte nicht kopiert werden. Er steht oben in der Adresszeile." | — | Failure is never silent |
 | Completed-room frame | Opened card belongs to a completed room | The **gilt frame variant (R3b, VS)** renders around the card face — decorative only (R10) | — | Same frame tokens as the room's tiles |
-| Capstone plaque | The capstone surface is opened for study (header component, not a catalogue card) | Grand frame treatment; **no Fantasiewerte band** — bands 4–5 collapse and the photo grows to compensate | Serial band reads "Sammlung I · abgeschlossen" | Phase 3 (Full Vision); **Elsas Ehrenmensch / Elsa's Honorary Human** per owner canon; per-set diplomas do not exist |
+| Capstone plaque | The capstone surface is opened for study (header component, not a catalogue card) | Grand frame treatment; **no Fantasiewerte band** — bands 4–5 collapse and the photo grows to compensate | Serial band reads "Sammlung I · vollzählig" | Phase 3 (Full Vision); **Elsas Ehrenmensch / Elsa's Honorary Human** per owner canon; per-set diplomas do not exist |
 | Second lap | Opened card was pulled after lap restart | "2. Auflage" stamp on the plate **(GDD R6, Phase 3)** + the dialog's stamp line beneath the actions: "Zweite Auflage — die Sammlung kennt sie schon." / "Second printing — the collection already knows this one." | — | Stamp is decorative (R10); the dialog line is its text form; catalogue tiles never show stamps |
 | Chase / gold-glint | Opened card is Das Hauptporträt (`chase: true`, GDD R-G) | **Gold-glint keystone frame** around the face — same material family as the room tile's frame, saturated for the dialog stage | — | Decorative (R10); never announced as rarity |
 | Reduced motion | System setting | No tilt spring, no idle sway, no flip animation (instant), halo/shadow static, foil material static | All inputs unchanged | Canon: foil movement off; information identical |
@@ -337,7 +337,7 @@ originating card button (pack card / catalogue tile); with no originating card
 | `↑` / `↓` | Keyboard | Nudge foil tilt while the card has focus (§5.3 A) | Foil/glare track the nudge | none | Adopted from the reference; does not collide with `←→` |
 | `Tab` / `Shift+Tab` | Keyboard | Walk: dialog → ✕ → ‹ → card → › → Noch ein Pack → Foto speichern → Teilen → (wrap) | Focus ring per element | none | Card is `role="button"` `tabindex="0"` |
 | Drag (pointer/touch) | Mouse/Touch | Tilt the card | Foil layers + glare + halo track; spring settles | none | Grab cursor on the card zone |
-| Horizontal swipe on the card | Touch | Tilt only — **never** navigation | see above | none | Gesture conflict resolved: navigation has dedicated chevrons on touch; the card surface belongs to tilt/flip (§5.3 B) |
+| Horizontal swipe on the card | Touch | Navigate prev/next when the gesture is dominant-horizontal and ≥ 40 px (`Card Browsing`); 8–39 px drags tilt | Card crossfades 150ms | tick | Gesture ladder: tap < 8 px flips, 8–39 px drag tilts, ≥ 40 px horizontal swipe navigates; vertical movement never navigates. Chevrons remain the visible affordance (§5.3 B) |
 
 ### 7.2 Action Inputs
 
@@ -407,8 +407,8 @@ originating card button (pack card / catalogue tile); with no originating card
 | Card navigation | `←→`/chevrons | Crossfade + 8px horizontal drift toward the travel direction | 150 | ease-out | Yes | Yes — instant swap |
 | HEIC swap | Conversion done | Photo crossfade | 200 | ease | Yes | Yes |
 | Status line | Share result | Text appears in reserved slot | 0 (no shift — height reserved) | — | — | n/a |
-| Dialog close | Exit | Fade + scale →1.02 | 200 | ease-in | Yes | Yes — instant |
-| Confetti | On open from a fresh holo pull (parent decides) | Canvas burst | ~1900 | n/a | Runs to end | **Yes — none** |
+| Dialog close | Exit | Fade + scale →1.02 | 160 | ease-in | Yes | Yes — instant |
+| Confetti | — | **Withdrawn from this dialog** (motion-sheet §8: capstone-only; the pack parent owns the holo glint flourish) | — | — | — | — |
 
 ---
 
@@ -427,13 +427,13 @@ implementation blocker for this project.*
 
 **Mouse**
 - [x] Hover states defined for all interactive elements (card tilt, buttons, chevrons, ✕)
-- [x] Clickable hit targets are at minimum 32x32px (44x44px preferred) — actions ≥42px, chevrons 44px, ✕ ≥36px visual/44px hit
+- [x] Clickable hit targets are at minimum 32x32px (44x44px preferred) — actions ≥44px hit target (38px visual padded), chevrons 44px, ✕ ≥36px visual/44px hit
 - [x] Right-click behavior defined (native context menu on the card image = OS save path; no custom handler)
 - [x] Scroll wheel behavior defined in all scrollable zones (the dialog has none; wheel over the card nudges nothing — tilt is pointer-position-driven)
 
 **Touch**
 - [x] All touch targets are minimum 44x44px (actions row is a 2-col grid with ≥38px buttons **padded to 44px hit height** — current 38px visual is kept with expanded hit slop)
-- [x] Swipe gestures do not conflict with system-level swipe navigation (card surface = tilt/flip with 8px discrimination; navigation uses chevrons, never edge swipes)
+- [x] Swipe gestures do not conflict with system-level swipe navigation (card surface: tap < 8 px flips, 8–39 px drag tilts, ≥ 40 px dominant-horizontal swipe navigates; chevrons are the visible affordance; vertical movement never navigates)
 - [x] All actions achievable with one hand in portrait orientation (actions at the bottom, chevrons at the card's midline)
 - [x] Long-press behavior defined (native image context sheet on the card photo — OS default, not intercepted)
 
@@ -448,6 +448,14 @@ implementation blocker for this project.*
 | Text Element | Background Context | Required Ratio | Current Ratio | Pass? |
 |--------------|-------------------|---------------|---------------|-------|
 | Plate name (rare/holo foil gradient text) | Indigo plate gradient | 4.5:1 at **every gradient stop** | verify — gradient text is the audit's hardest case; drop-shadow required as the second channel | [ ] audit |
+| Plate number / mood / rarity chip | Plate | 4.5:1 | ≈ 10:1 | [x] |
+| Credit strip text + stars | Parchment band | 4.5:1 | ≥ 4.5 required (8–10px type is the risk) | [ ] audit — smallest text on the card |
+| Elsa-Moment copy | Panel | 4.5:1 | ≈ 9:1 | [x] |
+| Fantasiewerte label + stat values | Label: muted on velvet; values on chip | 4.5:1 | values ≈ 12:1; label ≥ 4.5 required | [ ] audit |
+| Serial foot | Card face | 4.5:1 | ≥ 4.5 required | [ ] audit |
+| Action buttons | Pearl/outline surfaces | 4.5:1 | verify primary (dark ink on light) | [ ] audit |
+| Status line | Dialog velvet | 4.5:1 | ≈ 10:1 | [x] |
+| Keyboard hint `.print__hint` | Dialog velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 
 **Foil-name gradient under reduced motion (audit target)**: with
 `prefers-reduced-motion: reduce`, the gradient text's `background-position`
@@ -460,14 +468,6 @@ so the audit can check a single rendered frame instead of an animated range.
 (binder.md §6) shares this dialog's foil/frame token set — its exact frame
 treatment follows the same art sign-off; nothing in this spec's geometry
 requirements depends on it.
-| Plate number / mood / rarity chip | Plate | 4.5:1 | ≈ 10:1 | [x] |
-| Credit strip text + stars | Parchment band | 4.5:1 | ≥ 4.5 required (8–10px type is the risk) | [ ] audit — smallest text on the card |
-| Elsa-Moment copy | Panel | 4.5:1 | ≈ 9:1 | [x] |
-| Fantasiewerte label + stat values | Label: muted on velvet; values on chip | 4.5:1 | values ≈ 12:1; label ≥ 4.5 required | [ ] audit |
-| Serial foot | Card face | 4.5:1 | ≥ 4.5 required | [ ] audit |
-| Action buttons | Pearl/outline surfaces | 4.5:1 | verify primary (dark ink on light) | [ ] audit |
-| Status line | Dialog velvet | 4.5:1 | ≈ 10:1 | [x] |
-| Keyboard hint `.print__hint` | Dialog velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 
 **Colorblind-unsafe elements and mitigations**:
 
@@ -495,7 +495,7 @@ returns to the originating card button, else `#open-pack`.
 
 | State Change | Announcement Text | Announcement Timing |
 |--------------|------------------|---------------------|
-| Card opened | "{number}. {name}. {rarity}." — e.g. "Nr. 07. Ministerin für Mittagsschlaf. Holo-Pracht." (library format) | On open (current behaviour kept) |
+| Card opened | "Nr. {number}. {name}. {rarity}." — e.g. "Nr. 07. Ministerin für Mittagsschlaf. Holo-Pracht." (library format) | On open (current behaviour kept) |
 | Navigation | "{number} von {total}." (then the new card's open announcement) | On each `←→`/chevron step |
 | Flip to back / front | "Rückseite der Karte." / "Vorderseite der Karte." | On flip |
 | Share sheet resolved | "Geteilt." | On success |
@@ -561,7 +561,7 @@ numbers are read (F2a), preventing misreading them as data.
 
 **Input**
 - [ ] Keyboard-only pass: open → read card → `←` wraps to the collection end → `→` back → `F` flips → `↑↓` tilt → Escape returns focus to the originating card button (assert `document.activeElement`)
-- [ ] Touch pass: tap flips, an 8px+ drag tilts without flipping, chevrons navigate; no browser back-swipe is triggered from the card surface
+- [ ] Touch pass: tap flips, an 8–39 px drag tilts without flipping, a ≥ 40 px horizontal swipe navigates, chevrons navigate; no browser back-swipe is triggered from the card surface
 - [ ] From the pack flow, closing returns focus to the same pack card; from the collection, to the same tile; from a deep link, to `#open-pack`
 
 **Events & Data**
@@ -588,7 +588,7 @@ numbers are read (F2a), preventing misreading them as data.
 |----------|-------|----------|-----------|
 | Photo zoom affordance (pinch-to-inspect inside the card) — deferred this round; revisit with real photos | ux-designer + user | after first playtest | — |
 | Keyboard tilt discoverability: is `↑↓` hint-worthy in the dialog hint line, or learnable? (Hint line has one row budget.) | ux-designer | with playtest | — |
-| Should `←→` from a pack-opened card step within the five pulled cards only, or the whole catalogue (current + canon)? Canon says the lightbox browses; confirm no playtest confusion | game-designer + ux-designer | with playtest | — |
+| Should `←→` from a pack-opened card step within the four pulled cards only, or the whole catalogue (current + canon)? Canon says the lightbox browses; confirm no playtest confusion | game-designer + ux-designer | with playtest | — |
 | Share text: card sentence or printed name only (PRD §9.7)? | user | before launch | — |
 | ~~Diplom: CardDetail render vs. dedicated honours view~~ **RESOLVED 2026-11-22 (owner canon):** the capstone **Elsas Ehrenmensch / Elsa's Honorary Human** lives in the collection header (binder.md §6); this dialog renders it only for study via the capstone-plaque state | owner + ux-designer | 2026-11-22 | RESOLVED |
 | Foil name gradient: cap animation of `background-position` under "no motion" preference — static gradient at a fixed flattering stop needs art sign-off | art-director | with art bible pass | — |
