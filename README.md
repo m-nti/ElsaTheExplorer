@@ -1,7 +1,7 @@
 # Elsa the Explorer
 
-A card library about one dog. The committed form: a pack holds **four cards**, revealed one
-after another; German is what a visitor sees first and English is one tap away; everything is
+A card library about one dog. The shape it settled into: a pack holds **four cards**, revealed
+one after another; German is what a visitor sees first and English is one tap away; everything is
 built in the repo and ships as static files to an IONOS webspace, where nothing is built or run
 except `photos.php` when the host has PHP.
 
@@ -45,7 +45,7 @@ Versions are pinned in `package.json` and `package-lock.json`; `.nvmrc` pins Nod
 | Svelte | 5.59.1 | runes-based stores; no SvelteKit, no SSR |
 | Vite | 8.3.8 | plain app build, with `@sveltejs/vite-plugin-svelte` 7.3.1 |
 | TypeScript | 7.0.2 | native compiler via the `@typescript/native` alias, strict |
-| TypeScript (check) | 6.0.3 | the API `svelte-check --tsgo` runs against |
+| TypeScript (check) | 6.0.3 | **required alongside TS 7**: `svelte-check --tsgo` puts the native compiler in charge and still loads the TS 6 API |
 | Panda CSS | 2.6.0 | typed tokens and rarity recipes, static output, no runtime CSS-in-JS |
 | Vitest | 5.1.1 | two projects: `unit` and `canon` |
 | Playwright | 1.65.1 | end-to-end against `vite preview`; the suite is pending (#24) |
@@ -63,7 +63,8 @@ npm run verify    # every enforced gate, in CI order, stopping at the first fail
 
 `npm run verify` reads `.github/gates.json` and runs the scripts CI runs; `npm run ci:gates`
 proves the two lists agree, so a gate cannot be skipped by a typo. Paste its last line when you
-report — a green run is evidence, an intended run is not.
+report — a green run is evidence, an intended run is not. Every command exits non-zero on
+failure; `npm run verify` stops at the first failing gate and names it.
 
 | Command | What it does |
 | --- | --- |
@@ -113,8 +114,8 @@ FTP and reloads; nothing is rebuilt and nothing is redeployed.
   deletes or syncs `photos/`.
 - The ladder is fixed at 360 / 720 / 1200 / 1600 px, JPEG with WebP where the host can encode it.
   Numeric `size=` values are rejected by design.
-- Per-photo copy — bilingual name, mood, caption, alt text — lives in `photos/captions.json`;
-  `photos/captions.example.json` shows the shape.
+- Per-photo copy — bilingual name, mood, `description` (the caption), alt text, optional rarity —
+  lives in `photos/captions.json`; `photos/captions.example.json` shows the shape.
 - `scripts/photos.mjs` is the Node/sharp counterpart for **local dev and QA only** and is never
   uploaded. It is a fail-loud placeholder until the sharp ladder and manifest v2 land in I3
   (#21); the specification is the same document as above.
@@ -129,8 +130,11 @@ staging, no shell, no cron, no database, one operator.
 1. The server-side files versioned in the repo — `photos.php`, `photos/.htaccess` and the
    derivative-cache skeleton (`photos/.cache/`, committed with its deny file) — safe at any
    time.
-2. `assets/` (content-hashed), then `fonts/`, `icons/`, `manifest.webmanifest`.
-3. `sw.js` — only after every asset it precaches.
+2. `assets/` (content-hashed), then `fonts/` and `img/` — what `npm run build` emits today,
+   alongside `index.html` and `favicon.svg`.
+3. **Pending (B8, #19):** `icons/` and `manifest.webmanifest`, then `sw.js` — only after every
+   asset it precaches. None of the three exists yet; the build produces no `sw.js` and the PWA
+   gate is pending, so they are not upload steps today.
 4. `index.html` **last**, because it names the new bundle.
 
 Never delete and upload in one pass; keep the previous build's hashed assets for one release.
