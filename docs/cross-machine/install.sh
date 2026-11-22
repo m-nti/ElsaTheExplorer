@@ -37,7 +37,7 @@ fi
 if [ "$mode" = all ] || [ "$mode" = ionos ]; then
   dest_dir="$HOME/.config/elsa/ionos"
   mkdir -p "$dest_dir"
-  for file in common.lftp connect-test.lftp ls.lftp upload.lftp netrc.example check.sh; do
+  for file in common.lftp connect-test.lftp ls.lftp upload.lftp netrc.example check.sh check.ps1; do
     backup "$dest_dir/$file"
     cp "$repo_root/docs/cross-machine/ionos/$file" "$dest_dir/$file"
   done

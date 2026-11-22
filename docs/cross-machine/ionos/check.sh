@@ -2,6 +2,15 @@
 # Verify credential-file hygiene without reading or printing the password.
 set -eu
 
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    # NTFS ignores chmod; the ACL is the security boundary, so delegate.
+    here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+    ps1=$(cygpath -w "$here/check.ps1" 2>/dev/null || printf '%s' "$here/check.ps1")
+    exec powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$ps1"
+    ;;
+esac
+
 netrc="$HOME/.netrc"
 
 if [ ! -f "$netrc" ]; then
