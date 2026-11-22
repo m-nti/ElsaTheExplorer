@@ -40,5 +40,5 @@
     "*.config.js",
     "panda.config.ts"
   ],
-  "exclude": ["legacy", "node_modules", "dist", "reports", "qa-shots"]
+  "exclude": ["legacy", "node_modules", "dist", "reports", "qa-shots", "tests/canon/fixtures"]
 }

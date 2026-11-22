@@ -152,6 +152,46 @@ describe("canon-check: masked HTML regions (D12)", () => {
   });
 });
 
+describe("canon-check: Svelte template text (D12b)", () => {
+  it("reads template text and copy attributes in src/**/*.svelte, DE and EN", () => {
+    const { code, report } = fixture("svelte-template");
+    expect(code).toBe(1);
+    const hits = report.violations.filter((violation) =>
+      violation.file.endsWith("Banned.svelte"),
+    );
+    // Template text (h1, p), copy attributes (alt, aria-label, title,
+    // placeholder) and an expression attribute (`{"…"}`), one hit per line. A
+    // rule that reads only text nodes, or only literal attributes, misses lines.
+    expect(hits.map((violation) => violation.line)).toEqual([6, 7, 8, 9, 10, 11, 12, 13]);
+    expect(new Set(hits.map((violation) => violation.rule))).toEqual(
+      new Set(["entity-de", "entity-en"]),
+    );
+  });
+
+  it("ignores <script>, <style> and comment bodies in a .svelte file", () => {
+    const { report } = fixture("svelte-masked");
+    const hits = report.violations.filter((violation) =>
+      violation.file.endsWith("Quiet.svelte"),
+    );
+    // Lines 2–4 (script), 9 (style), 14 (comment), 18 (`<SCRIPT>`, uppercase) are
+    // code or markup. Only line 21 — live template text after the uppercase close
+    // — may fail. A hit anywhere else means a masked region was read as copy.
+    expect(hits.map((violation) => violation.line)).toEqual([21]);
+  });
+
+  it("reads template copy after a Svelte expression with a bare `<`", () => {
+    const { code, report } = fixture("svelte-expression");
+    expect(code).toBe(1);
+    // `{n < 3}` is text, not a tag: the DE line 6 and the EN line 8 after it both
+    // must be read. A tag mask that swallows line 8 is a silent false negative.
+    const hits = report.violations.filter((violation) => violation.file.endsWith("Probe.svelte"));
+    expect(hits.map((violation) => [violation.line, violation.rule])).toEqual([
+      [6, "entity-de"],
+      [8, "entity-en"],
+    ]);
+  });
+});
+
 describe("canon-check: copy-bearing HTML attributes (D12)", () => {
   it("reads alt, aria-label, title, placeholder and value", () => {
     const { code, report } = fixture("html-attributes");

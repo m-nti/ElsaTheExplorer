@@ -17,6 +17,9 @@ export default tseslint.config(
       "test-results/**",
       "qa-shots/**",
       "photos/**",
+      // Seeded canon failures (scripts/canon-check.mjs); not project code. Excluded
+      // from tsconfig too, so svelte-check and eslint agree.
+      "tests/canon/fixtures/**",
     ],
   },
 

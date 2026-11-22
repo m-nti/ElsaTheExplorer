@@ -20,8 +20,10 @@
  *   keeps the archival concept alive ("catalogue number", "the catalogue as an
  *   index"), and the design corpus uses that concept in prose throughout. The
  *   ban applies where a string can reach a visitor: string literals in `src/**`,
- *   quoted copy in specs, the DE/EN value cells of the copy deck, and the
- *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes).
+ *   quoted copy in specs, the DE/EN value cells of the copy deck, the
+ *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes),
+ *   and Svelte templates (`src/**\/*.svelte`: template text and copy-bearing
+ *   attributes, with `<script>`/`<style>`/comments masked).
  *
  * Scanned roots are the whole gated corpus, not a sample: every document the
  * phase owns plus the page shell. `README.md` and `index.html` are listed for
@@ -291,10 +293,24 @@ const copyAttributeNames = new Set([
 ]);
 
 /**
- * Live segments of one HTML line: the copy-bearing attribute values (in place)
- * and the visible text between tags.
+ * Svelte attribute expressions: `alt={t("…")}`. The value is code, but a string
+ * literal inside it is the copy a visitor reads, so the literals are scanned.
+ * One brace level is enough for the attribute shapes this codebase uses; a
+ * nested expression is read as its outer literals only (documented, not hidden).
  */
-function htmlSegments(line) {
+const SVELTE_EXPRESSION_ATTRIBUTE =
+  /(?:^|[\s<])([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*\{([^{}\n]*)\}/g;
+const STRING_LITERAL = /"([^"\\\n]*)"|'([^'\\\n]*)'|`([^`\\\n]*)`/g;
+
+/**
+ * Live segments of one HTML (or Svelte template) line: the copy-bearing
+ * attribute values (in place) and the visible text between tags.
+ *
+ * Svelte templates use this same reader (`svelte === true`), so the template
+ * text and copy attributes of `src/**\/*.svelte` are read by the path the
+ * page shell already uses. The only addition is the expression attribute form.
+ */
+function htmlSegments(line, svelte = false) {
   const segments = [];
   const hidden = new Array(line.length).fill(false);
   const hide = (from, to) => {
@@ -312,9 +328,32 @@ function htmlSegments(line) {
     segments.push({ text: value, offset: match.index + (at === -1 ? 0 : at) });
   }
 
+  if (svelte) {
+    SVELTE_EXPRESSION_ATTRIBUTE.lastIndex = 0;
+    while ((match = SVELTE_EXPRESSION_ATTRIBUTE.exec(line)) !== null) {
+      const name = match[1].toLowerCase();
+      const inner = match[2];
+      hide(match.index, match.index + match[0].length);
+      if (!copyAttributeNames.has(name)) continue;
+      // The expression ends at the closing brace, the last character of the match.
+      const innerStart = match.index + match[0].length - 1 - inner.length;
+      const literal = new RegExp(STRING_LITERAL.source, "g");
+      let lit;
+      while ((lit = literal.exec(inner)) !== null) {
+        const text = lit[1] ?? lit[2] ?? lit[3] ?? "";
+        if (text === "") continue;
+        segments.push({ text, offset: innerStart + lit.index + 1 });
+      }
+    }
+  }
+
   // Mask the remaining markup by spans, not by parsing: a tag that spans several
   // lines (`<meta` on one line, `content=` on the next) must not be read as prose.
-  for (const tag of line.matchAll(/<[^>]*>/g)) hide(tag.index, tag.index + tag[0].length);
+  // `<` opens markup only before a letter, `/`, `!` or `?` (the HTML tokenizer's
+  // rule). A Svelte expression such as `{n < 3}` is text, not a tag, and must not
+  // hide the copy after it.
+  for (const tag of line.matchAll(/<[A-Za-z/!?][^>]*>/g))
+    hide(tag.index, tag.index + tag[0].length);
 
   let start = -1;
   for (let index = 0; index <= line.length; index += 1) {
@@ -362,6 +401,12 @@ function maskHtmlRegions(line, state) {
     if (lt === -1) return { masked: out + line.slice(i), state };
     out += line.slice(i, lt);
     const rest = line.slice(lt);
+    // A `<` that cannot open markup (`{n < 3}`, `< 2`) is text: keep it visible.
+    if (!/^<[A-Za-z/!?]/.test(rest)) {
+      out += "<";
+      i = lt + 1;
+      continue;
+    }
     if (rest.startsWith("<!--")) {
       state = "comment";
       i = lt;
@@ -391,16 +436,29 @@ function isHtmlFile(file) {
 }
 
 /**
+ * Markup files: the HTML page shell and Svelte templates. Both are read through
+ * `maskHtmlRegions` (script/style/comment masked) and `htmlSegments`, so a
+ * `.svelte` file is not a second reader. Svelte's `<script>`/`<style>` bodies
+ * are code and CSS, not visitor copy, and are masked exactly as HTML's are.
+ */
+function isMarkupFile(file) {
+  return isHtmlFile(file) || file.endsWith(".svelte");
+}
+
+/**
  * The live-copy surfaces of a line, as `{ text, offset }` segments.
  *
- * - `src/**`: string literals only. A module named `catalogue` or a local
- *   `const catalog` is code, not copy; only the text a visitor can be shown is
- *   in scope.
+ * - `src/**\/*.svelte`: template text and copy-bearing attributes, read as
+ *   markup (see `htmlSegments`). Its `<script>` and `<style>` are masked.
+ * - `src/**` (other files): string literals only. A module named `catalogue` or
+ *   a local `const catalog` is code, not copy; only the text a visitor can be
+ *   shown is in scope.
  * - copy deck: the DE and EN value cells of a keyed row.
  * - HTML: copy-bearing attribute values and text nodes (see `htmlSegments`).
  * - other docs: quoted strings — `"…"`, `*"…"*`, and German „…“.
  */
 function liveSegments(line, file, relativeFile) {
+  if (file.endsWith(".svelte")) return htmlSegments(line, true);
   if (relativeFile === "src" || relativeFile.startsWith(`src${sep}`)) {
     const segments = [];
     const literal = /"([^"\\\n]{1,500})"|'([^'\\\n]{1,500})'|`([^`\\\n]{1,500})`/g;
@@ -655,12 +713,13 @@ function main() {
     const firstSegment = relativeFile.split(sep)[0];
     sources.set(file, lines);
     lineCount += lines.length;
-    // HTML only: script/style/comment bodies are masked before scanning, with the
-    // state carried across lines. `sources` keeps the raw text for the allowlist.
+    // Markup only (HTML, Svelte): script/style/comment bodies are masked before
+    // scanning, with the state carried across lines. `sources` keeps the raw
+    // text for the allowlist.
     let htmlState = "text";
     for (let index = 0; index < lines.length; index += 1) {
       let line = lines[index];
-      if (isHtmlFile(file)) {
+      if (isMarkupFile(file)) {
         const masked = maskHtmlRegions(line, htmlState);
         line = masked.masked;
         htmlState = masked.state;
