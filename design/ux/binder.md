@@ -129,7 +129,7 @@ answered, Escape/„Abbrechen" cancels). Nothing in the collection is undismissa
 |-------------|------------|-----------------|----------------------|-------|
 | Tap/Enter a tile | CardDetail | Modal open | photo id; URL gains `?photo=` | Tile stays scroll-anchored behind |
 | Dialog close | Back to the collection | Modal close | focus returns to the originating tile | §12 |
-| Toggle view (Alle Karten ↔ Nach Räumen) | Same section, other view | Crossfade (skipped reduced-motion) | view choice is session-only (not persisted — open question §15) | |
+| Toggle view (Alle Karten ↔ Nach Räumen) | Same section, other view | Instant swap (no crossfade; View Toggle pattern) | view choice is session-only (not persisted — open question §15) | |
 | "Von vorn" → confirm | Same section, reset state | Confirmation modal → instant reset | `lucky-elsa.*` cleared by persistence | See §6 Reset states |
 | "Nochmal versuchen" | Same section, retry load | In-place reload of the collection | — | Error state only |
 
@@ -161,7 +161,7 @@ answered, Escape/„Abbrechen" cancels). Nothing in the collection is undismissa
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│ DER KATALOG · NACH RÄUMEN   Du hast 15 von 24 gesammelt  [Räume|Alle]  │
+│ DIE SAMMLUNG · NACH RÄUMEN  Du hast 15 von 24 gesammelt  [Räume|Alle]  │
 │ Die Sammlung nach Räumen. Jeder Raum wächst für sich, in Ruhe.    │
 │ ┌──────────────────────────────────────────────────────────────┐   │
 │ │ 🐾 RUHESAAL · The Nap Wing              7 von 8 ▰▰▰▰▰▰▰░ 25%✦│   │
@@ -288,9 +288,9 @@ block.
 
 | Input | Platform | Action | Visual Response | Audio Cue | Notes |
 |-------|----------|--------|-----------------|-----------|-------|
-| Tab / Shift+Tab | Keyboard | Toggle → tiles (row by row) → Von vorn → (page flow) | Focus ring per tile | none | Tiles are buttons; DOM order = visual order per row |
-| `←` / `→` | Keyboard | Move focus between tiles within the current row (roving; wraps at row ends into the next row's first tile) | Focused tile lifts | none | Roving shortcut; Tab still steps one tile at a time. **Flag for library addition**: grid roving `←→↑↓` is a new pattern row |
-| `↑` / `↓` | Keyboard | Move focus a full row up/down | same | none | Only in grid/set tile focus |
+| Tab / Shift+Tab | Keyboard | Toggle → the grid (one Tab stop) → Von vorn → (page flow) | Focus ring per tile | none | The grid is a single tab stop; arrows move inside it (Catalogue Grid Roving Arrows) |
+| `←` / `→` / `↑` / `↓` | Keyboard | Move focus tile-to-tile in visual order (geometry-based); **stops at the grid edge, no wrap** | Focused tile lifts | none | Roving over the same order; `Tab` still enters and leaves the grid as one stop. Pattern: Catalogue Grid Roving Arrows |
+| `Home` / `End` | Keyboard | Jump focus to the first / last tile | Focus moves; tile scrolls into view | none | Grid focus only; covers the jumps the edge-stop withholds |
 | Scroll | Mouse/Touch/Keyboard | Page scroll | Native | none | Lazy tiles load ≥200px before viewport entry |
 | `Escape` | Keyboard | Closes an open child modal | Focus returns to the tile | none | No effect on the section itself |
 
@@ -300,7 +300,7 @@ block.
 |-------|----------|---------|--------|----------|-----------|-----------|-------|
 | Click / tap a tile | Mouse/Touch | any | Open CardDetail | Modal; URL gains `?photo=` | 200ms | tick | Card gets collected via the card system |
 | `Enter`/`Space` on tile | Keyboard | tile focused | same | same | same | same | Native button |
-| Click view toggle | Mouse/Touch/Keyboard | head | Switch view | Crossfade 180ms; instant reduced-motion | 180ms | none | Announced (§12) |
+| Click view toggle | Mouse/Touch/Keyboard | head | Switch view | Instant re-render (View Toggle pattern) | 0 | none | Announced (§12) |
 | Click "Von vorn" | Mouse/Touch/Keyboard | head | Open ResetConfirm | Modal blocks the section | 200ms | none | Never resets without confirmation |
 | Confirm "Alles löschen" / "Delete everything" | Mouse/Touch/Keyboard | modal | Clear everything | Reset state; announcement | instant | none | Persistence writes the clears; the confirm never reads "Ja" (library SSOT) |
 | Click "Nochmal versuchen" | Mouse/Touch/Keyboard | error state | Retry load chain | Loading state again | — | none | Max silent retries: 1 auto + manual |
@@ -356,7 +356,7 @@ block.
 | Transition | Trigger | Direction / Type | Duration (ms) | Easing | Interruptible? | Skipped by Reduced Motion? |
 |------------|---------|-----------------|---------------|--------|----------------|---------------------------|
 | Grid fill-in | Catalogue resolved | Tiles appear in place (no cascade in the collection — the room is already lit) | 0–150 | ease-out | Yes | Yes |
-| View switch | Toggle | Crossfade A↔B | 180 | ease | Yes | Yes — instant swap |
+| View switch | Toggle | Instant swap (no crossfade — View Toggle pattern) | 0 | — | n/a | n/a — nothing animates |
 | Tile hover | Pointer | Lift + foil tilt | spring | — | Yes | Yes — static |
 | Fresh-pull highlight | Return from pack | Soft ring pulse | ~1500, once | ease | Yes | Yes — static ring, no pulse |
 | Milestone marker change | First crossing | Marker swap (label + icon) | 200 | ease | Yes | Yes — instant |
@@ -371,7 +371,7 @@ block.
 
 **Keyboard**
 - [x] All interactive elements are reachable using Tab and arrow keys alone (toggle, every tile, reset, retry)
-- [x] Tab order follows visual reading order (head → first row's tiles left-to-right → subsequent rows → tools)
+- [x] Tab order follows visual reading order (head → the grid as one stop → tools); arrows move tile-to-tile inside the grid (Catalogue Grid Roving Arrows)
 - [x] Every action achievable by mouse is also achievable by keyboard
 - [x] Focus is visible at all times (tiles have per-tile rings, not just container rings)
 - [x] Focus does not escape the screen while it is open (n/a — section; child modals trap)
@@ -423,14 +423,15 @@ implementation blocker for this project.*
 
 1. View toggle — "Alle Karten"
 2. View toggle — "Nach Räumen"
-3. First row's tiles, left-to-right (flat view: the grid's first six tiles; set view: the first room's tiles)
-4. … all remaining rows in order
-5. "Von vorn" (head tools)
-6. (flat view:) the sequence restarts at the toggle only via Shift+Tab; page Tab continues to the footer
+3. The tile grid — **one Tab stop** (roving `tabindex`; the focused tile carries the ring)
+4. "Von vorn" (head tools)
+5. Natural page Tab continues to the footer
 
-Cycle: natural page order, no trap. Roving `←→↑↓` is a shortcut over the same
-order, never a replacement. When CardDetail or ResetConfirm opens, focus
-transfers into the modal and returns to the originating tile on close.
+Cycle: natural page order, no trap. `←→↑↓` move focus tile-to-tile **inside**
+the grid (geometry-based, edge-stop) and `Home`/`End` jump to the ends;
+`Tab` enters and leaves the grid without visiting every tile. When CardDetail
+or ResetConfirm opens, focus transfers into the modal and returns to the
+originating tile on close.
 
 **Screen reader announcements for key state changes**:
 
@@ -438,11 +439,11 @@ transfers into the modal and returns to the originating tile on close.
 |--------------|------------------|---------------------|
 | View switch | "Nach Räumen sortiert." / "Grouped by room." | After the swap |
 | New in the collection | "{n} neue Schmuckstücke sind da!" / "{n} new treasures have arrived!" | Once per visit |
-| Catalogue milestone first-crossed | "Sammlung-Meilenstein erreicht: {pct} Prozent — {outfit}." | On the count change that crosses it |
-| Set complete | "{Set} ist komplett." (the room's frame note is visible copy, `set.complete.note`, not an announcement) | On completion |
+| Catalogue milestone first-crossed | "Sammlung: {pct} Prozent geschafft — {outfit}." / "Collection: {pct} per cent done — {outfit}." | On the count change that crosses it |
+| Set complete | "{Set} ist komplett. Alle da." / "{set} is complete. All present." (the room's frame note is visible copy, `set.complete.note`, not an announcement) | On completion |
 | Everything complete | "Sammlung komplett. Elsas Ehrenmensch ist eingetragen." | Once, at 100 % |
 | Reset confirmed | "Von vorn. Alle Karten können wieder kommen." | Immediately |
-| Load failed | "Die Sammlung lädt nicht gerade." | On error state entry |
+| Load failed | "Die Sammlung kommt gleich wieder." | On error state entry |
 
 > *Copy-deck sync 2026-11-22 (D10–D13):* the announcements above are the deck's
 > single-source strings; the former "Die Sammlung: … Prozent gesammelt", "Ansicht:
@@ -498,7 +499,7 @@ requires comparison across rooms to act.
 
 **Input**
 - [ ] Keyboard-only pass: toggle both views, open three tiles, reach and cancel "Von vorn", confirm reset — all without a mouse
-- [ ] Roving arrows never leave the tile area; Tab and arrows never fight (arrows only when a tile has focus)
+- [ ] Roving arrows act only while the grid has focus, stop at the grid edge, and `Tab` enters/leaves the grid as one stop (no fight between Tab and arrows)
 - [ ] Reset never clears anything without an explicit confirm click (Escape and Abbrechen verified)
 
 **Events & Data**
