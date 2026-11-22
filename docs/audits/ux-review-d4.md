@@ -29,7 +29,7 @@ Line numbers in findings are **at the reviewed base `6b9c50a`**; the resolution 
 | `interaction-patterns.md` (cross-check) | CONCERNS | **CONSISTENT** | 4 | 6 | Carried the retired copy and the withdrawn confetti model |
 | Cross-document | — | — | 1 | 2 | Three pack copy keys are missing from the deck/registry |
 
-**Totals: 27 blocking, 21 advisory.** 13 advisory items were fixed in this PR; 8 remain open and are listed under *Deferred*.
+**Totals: 27 blocking, 22 advisory.** 14 advisory items were fixed in this PR; 8 remain open and are listed under *Deferred*.
 
 No dimension was **NOT ASSESSED**: the a11y tier is committed, the pattern library exists, `PRD.md` exists, and all four specs were readable.
 
