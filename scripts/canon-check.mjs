@@ -124,7 +124,7 @@ const RULES = [
     label:
       'English "catalogue"/"catalog"/compound naming the collection (canon: The Collection)',
     pattern:
-      /(?<![A-Za-z])(?:CATALOG(?:UE)?|[Cc]atalog(?:ue)?)s?(?![A-Za-z])|(?<![A-Za-z])[A-Z]?[a-z]+(?:catalogue|catalog)s?(?![A-Za-z])/g,
+      /(?<![A-Za-z])(?:[Cc][Aa][Tt][Aa][Ll][Oo][Gg](?:[Uu][Ee])?)s?(?![A-Za-z])|(?<![A-Za-z])[A-Z]?[a-z]+(?:catalogue|catalog)s?(?![A-Za-z])/g,
   },
   {
     id: "verb-de",
@@ -182,7 +182,7 @@ const INLINE_EXEMPTIONS = [
   // museum catalogue, archive catalogue, card catalogue
   /\b(?:museum|archive|card)[\s-]+catalogue\b/gi,
   // Katalog-Nummer / Katalog-Register / Katalog-Zertifikat
-  /\bKatalog(?:-|\s)+(?:Nummer|Register|Zertifikat|Eintrag|Karten)\b/g,
+  /\bKatalog(?:-|\s)+(?:Nummer|Register|Zertifikat|Eintrag|Karten|Karte)\b/g,
   // URL-shaped ids, not copy: `#katalog`, `/kartenkatalog`, `?catalog=1`.
   // The anchor ids in `design/ux/*` are identifiers even when quoted.
   /[#?&/][A-Za-z0-9_./-]*(?:katalog|catalogue|catalog)[A-Za-z0-9_./-]*/gi,
@@ -278,7 +278,7 @@ function insideSpans(index, length, spans) {
  * was written to close.
  */
 const HTML_ATTRIBUTE =
-  /(?:^|[\s<])([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*(?:"([^"\n]{1,500})"|'([^'\n]{1,500})')/g;
+  /(?:^|[\s<])([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*(?:"([^"\n]*)"|'([^'\n]*)')/g;
 const copyAttributeNames = new Set([
   "aria-description",
   "aria-label",
@@ -327,6 +327,65 @@ function htmlSegments(line) {
     start = -1;
   }
   return segments;
+}
+
+/**
+ * Mask the regions of an HTML file whose text is not visitor copy:
+ * `<script>` and `<style>` bodies and `<!-- … -->` comments.
+ *
+ * Why a state machine and not a tag regex: those regions span lines, and their
+ * bodies carry no markup at all, so a per-line tag mask reads them as text
+ * nodes — `content: "Der Katalog"` in a stylesheet and a German string in a
+ * module script both looked like page copy. The state is per file and is passed
+ * back in, so a block opened on one line stays masked until its close.
+ *
+ * Every masked character is replaced by a space, so byte offsets — and with
+ * them the reported columns — are identical to the raw line. The opening and
+ * closing delimiters are masked too; a stray `>` after a close is inert.
+ */
+function maskHtmlRegions(line, state) {
+  let out = "";
+  let i = 0;
+  while (i < line.length) {
+    if (state === "script" || state === "style" || state === "comment") {
+      const close = state === "comment" ? "-->" : `</${state}`;
+      const end = line.indexOf(close, i);
+      if (end === -1) return { masked: out + " ".repeat(line.length - i), state };
+      out += " ".repeat(end + close.length - i);
+      i = end + close.length;
+      state = "text";
+      continue;
+    }
+    const lt = line.indexOf("<", i);
+    if (lt === -1) return { masked: out + line.slice(i), state };
+    out += line.slice(i, lt);
+    const rest = line.slice(lt);
+    if (rest.startsWith("<!--")) {
+      state = "comment";
+      i = lt;
+      continue;
+    }
+    if (/^<script\b/i.test(rest)) {
+      state = "script";
+      i = lt;
+      continue;
+    }
+    if (/^<style\b/i.test(rest)) {
+      state = "style";
+      i = lt;
+      continue;
+    }
+    const gt = line.indexOf(">", lt);
+    if (gt === -1) return { masked: out + line.slice(lt), state };
+    out += line.slice(lt, gt + 1);
+    i = gt + 1;
+  }
+  return { masked: out, state };
+}
+
+/** Only the page shell is HTML; `.htm` is accepted because a host may serve it. */
+function isHtmlFile(file) {
+  return file.endsWith(".html") || file.endsWith(".htm");
 }
 
 /**
@@ -594,8 +653,16 @@ function main() {
     const firstSegment = relativeFile.split(sep)[0];
     sources.set(file, lines);
     lineCount += lines.length;
+    // HTML only: script/style/comment bodies are masked before scanning, with the
+    // state carried across lines. `sources` keeps the raw text for the allowlist.
+    let htmlState = "text";
     for (let index = 0; index < lines.length; index += 1) {
-      const line = lines[index];
+      let line = lines[index];
+      if (isHtmlFile(file)) {
+        const masked = maskHtmlRegions(line, htmlState);
+        line = masked.masked;
+        htmlState = masked.state;
+      }
       const lineNumber = index + 1;
       const hits = scanLine(line, file, firstSegment, lineNumber);
       if (file.endsWith("copy-deck.md")) {

@@ -37,7 +37,16 @@ describe("canon-check: seeded failure", () => {
     expect(report.status).toBe("violations");
     const rules = new Set(report.violations.map((violation) => violation.rule));
     expect(rules).toEqual(
-      new Set(["entity-de", "entity-en", "verb-en", "heft", "water-de", "water-en", "bang"]),
+      new Set([
+        "entity-de",
+        "entity-en",
+        "verb-de",
+        "verb-en",
+        "heft",
+        "water-de",
+        "water-en",
+        "bang",
+      ]),
     );
     expect(
       report.violations.some(
@@ -97,6 +106,86 @@ describe("canon-check: scanned surfaces (D12)", () => {
     const { code, report } = fixture("clean");
     expect(code).toBe(0);
     expect(report.scanned).toContain("index.html");
+  });
+});
+
+describe("canon-check: masked HTML regions (D12)", () => {
+  it("never reads a <style>, <script> or comment body as copy", () => {
+    const { code, report } = fixture("masked-regions");
+    expect(code).toBe(1);
+    const hits = report.violations.filter((violation) => violation.file === "index.html");
+    // Only the three live surfaces after the masked block: the <h1> text node,
+    // the alt and the aria-label. A hit on lines 5–17 would mean a masked region
+    // was read as copy — the blind spot this closes.
+    expect(hits.map((violation) => violation.line)).toEqual([20, 21, 22]);
+    expect(new Set(hits.map((violation) => violation.rule))).toEqual(new Set(["entity-de"]));
+  });
+
+  it("still fails real copy and copy attributes in the same file", () => {
+    const { report } = fixture("masked-regions");
+    const terms = report.violations
+      .filter((violation) => violation.file === "index.html")
+      .map((violation) => violation.term);
+    expect(terms).toContain("Kartenkatalog");
+    expect(terms).toContain("Katalog");
+  });
+
+  it("resets the masking state per file, not per run", () => {
+    const { report } = fixture("masked-regions");
+    expect(
+      report.violations.filter((violation) => violation.file === "design/a-open-comment.html"),
+    ).toEqual([]);
+    expect(
+      report.violations
+        .filter((violation) => violation.file === "design/b-live.html")
+        .map((violation) => violation.line),
+    ).toEqual([1]);
+  });
+});
+
+describe("canon-check: copy-bearing HTML attributes (D12)", () => {
+  it("reads alt, aria-label, title, placeholder and value", () => {
+    const { code, report } = fixture("html-attributes");
+    expect(code).toBe(1);
+    const hits = report.violations.filter((violation) => violation.file === "index.html");
+    // One per attribute, on the attribute's own line: a rule that reads only
+    // `content` would pass this file with a single hit.
+    expect(hits.map((violation) => violation.line)).toEqual([6, 8, 9, 10, 11]);
+    expect(hits.every((violation) => violation.rule === "entity-de")).toBe(true);
+    expect(hits.map((violation) => violation.term)).toEqual([
+      "Katalog",
+      "Katalog",
+      "Katalog",
+      "Katalog",
+      "Katalog",
+    ]);
+  });
+
+  it("reads an attribute value past the 500-character mark", () => {
+    const { code, report } = fixture("long-attribute");
+    expect(code).toBe(1);
+    const hits = report.violations.filter((violation) => violation.file === "index.html");
+    expect(hits.map((violation) => violation.term)).toContain("Kartenkatalog");
+    expect(hits[0]?.column).toBeGreaterThan(500);
+  });
+});
+
+describe("canon-check: bare-word case forms (D12)", () => {
+  it("flags CataLog and cataLOGUE", () => {
+    const { code, report } = fixture("case-forms");
+    expect(code).toBe(1);
+    const terms = report.violations
+      .filter((violation) => violation.rule === "entity-en")
+      .map((violation) => violation.term);
+    expect(terms).toContain("CataLog");
+    expect(terms).toContain("cataLOGUE");
+  });
+
+  it("leaves mixed-case identifiers alone", () => {
+    const { report } = fixture("case-forms");
+    // Only the two seeded lines; the `seedCatalogue`/`totalInCatalogue` line is
+    // code, and a case-insensitive rule must not turn it into copy.
+    expect(report.violations.map((violation) => violation.line)).toEqual([3, 4]);
   });
 });
 

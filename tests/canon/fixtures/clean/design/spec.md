@@ -11,6 +11,7 @@ The card catalogue is the archival instrument; the museum catalogue keeps the re
 The `seedCatalogue` helper fills a warm state, and `totalInCatalogue` must stay an integer.
 "Die Katalog-Nummer steht auf der Karte."
 "Die Katalogkarten sind gedruckt."
+"Die Katalog-Karte liegt im Regal."
 "Zur Sammlung (#katalog, next fold)."
 "Call seedCatalogue() before the first paint."
 "Every catalogue entry is dated."
