@@ -300,7 +300,6 @@ export const tokens = defineTokens({
     chip: value("12px"),
     sm: value("11px"),
     md: value("13px"),
-    lg: value("16px"),
     xl: value("19px"),
     display: value("clamp(52px, 6vw, 86px)"),
   },
@@ -371,12 +370,9 @@ export const tokens = defineTokens({
   },
 
   radii: {
-    sm: value("8px"),
     md: value("16px"),
     lg: value("24px"),
-    card: value("18px"),
     plate: value("12px"),
-    photo: value("8px"),
     pill: value("999px"),
   },
 
@@ -389,9 +385,14 @@ export const tokens = defineTokens({
     veil: value("12px"),
   },
 
-  shadows: {
-    card: value("0 24px 60px rgb(0 0 0 / 48%), inset 0 1px rgb(255 255 255 / 8%)"),
-  },
+  /**
+   * Deliberately empty, and load-bearing. The card's only shadow is now
+   * `--elsa-card-shadow` (#89, em-scaled with the rest of the card), and this
+   * key *replaces* the preset shadow scale rather than merging into it —
+   * deleting the key re-emits `preset-panda`'s nine-step shadow ladder into the
+   * bundle (measured: +596 B). Keep it as an empty tombstone.
+   */
+  shadows: {},
 
   gradients: {
     "foil-pearl": value(
@@ -415,6 +416,63 @@ export const tokens = defineTokens({
     ),
   },
 });
+
+/**
+ * The card em family — one root scale for everything inside the card (#89).
+ *
+ * Authority: `design/art/art-bible.md` §8 "Card anatomy — refactor spec"
+ * ("one root em scale … express **all** card-internal dimensions … in `em`")
+ * and §8 "Type & spacing scales". Adopted by `design/ux/card-detail.md` §5.3 E.
+ *
+ * Every value is the old px step ÷ **13.6**, which is `4cqw` of the 340 px
+ * reference card (`sizes.card-max`, aspect 0.70). So the ratified 340 px look
+ * is unchanged to well under a pixel, and at 180 px or 148 px the card is the
+ * same drawing at a smaller scale — the mechanism that makes the headless band
+ * percentages safe at any width.
+ *
+ * Published as `--elsa-card-*` rather than through a Panda token group for two
+ * reasons: these are *one* scale (Panda would split them across `sizes`,
+ * `fontSizes`, `radii`, `borderWidths` and `shadows`), and they **replace** the
+ * px tokens the card used to consume instead of sitting beside them — the
+ * refactor deletes the px entries below rather than adding a parallel system.
+ *
+ * The em is resolved against the element's own font-size, so the component
+ * keeps every box at the root step and gives type to leaf elements only. See
+ * `CardFace.svelte` for the two rules that follow from that.
+ */
+export const cardScale = {
+  /** 4 px — plate gaps, chip padding, story row gap. */
+  "space-1": "0.294em",
+  /** 8 px — band padding, the card face's own padding, flex gaps. */
+  "space-2": "0.588em",
+  /** 12 px — the printed frame's inset. */
+  "space-3": "0.882em",
+  /** 32 px — the printed crest's diameter. */
+  "space-6": "2.353em",
+  /** 11 px — the small print: number, mood, edition, serial, label, star. */
+  "text-sm": "0.809em",
+  /** 13 px — the sentence and the stat values. */
+  "text-md": "0.956em",
+  /** 19 px — the card's name. */
+  "text-xl": "1.397em",
+  /** 1 px — the card's hairline rule. */
+  rule: "0.074em",
+  /** 18 px — the card's outer radius. */
+  radius: "1.324em",
+  /** 8 px — inner radius: the stat chips. */
+  "radius-inner": "0.588em",
+  /** 8 px — the photo window. */
+  "radius-photo": "0.588em",
+  /** 999 px — chips and the printed crest. */
+  "radius-pill": "73.456em",
+  /** 24 px / 60 px of old, so a 148 px card does not wear a 60 px halo. */
+  shadow: "0 1.765em 4.412em rgb(0 0 0 / 48%), inset 0 0.074em rgb(255 255 255 / 8%)",
+} as const;
+
+/** The exact custom-property payload, merged into `globalCss[":root"]`. */
+export const cardCssVars = Object.fromEntries(
+  Object.entries(cardScale).map(([name, value]) => [`--elsa-card-${name}`, value]),
+) as Record<`--elsa-card-${keyof typeof cardScale}`, string>;
 
 /**
  * Declared usage pairs. The gate enumerates exactly this list — a token without

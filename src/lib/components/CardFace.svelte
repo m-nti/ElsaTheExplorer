@@ -76,7 +76,7 @@
         <span class="number">{rows.meta[0]}</span>
         <span class="mood">{rows.meta[1]}</span>
         <span class="chip">
-          {rows.meta[2]}
+          <span class="chip-label">{rows.meta[2]}</span>
           <span class="foil-chip" aria-hidden="true"></span>
         </span>
       </div>
@@ -92,9 +92,11 @@
             still has a text carrier.
           -->
           <span class="printed-plate" aria-hidden="true">
-            <span class="printed-mark">ELSA</span>
+            <span class="printed-mark"><span class="printed-mark-text">ELSA</span></span>
           </span>
-          <figcaption class="printed-caption">{model.photo.alt}</figcaption>
+          <figcaption class="printed-caption">
+            <span class="printed-caption-text">{model.photo.alt}</span>
+          </figcaption>
         {:else}
           <img
             class="photo"
@@ -120,7 +122,6 @@
     </div>
 
     <div class="zone story">
-      <p class="keyword">{model.keyword}</p>
       <p class="copy">{model.story}</p>
       <p class="print-line">{model.printLine}</p>
     </div>
@@ -151,15 +152,26 @@
 
 <style>
   /*
-   * CardFace — B1 anatomy only. This is the surface register's "CardFace foil
-   * stack" entry: every value below is a named token or a recipe-emitted
+   * CardFace — the seven-bay card. This is the surface register's "CardFace
+   * foil stack" entry: every value below is a named token or a recipe-emitted
    * `--tier-*` variable. No literal colour, length or opacity.
-   */
-  /*
-   * The shell owns the container and the card silhouette. The face is the em
-   * root (art-bible §8): `4cqw` must resolve against an ANCESTOR container,
-   * so putting `container-type` on the face itself would resolve `cqw` against
-   * the viewport instead of the plate.
+   *
+   * One root em scale (#89, art-bible §8). `.card-face` is the em root
+   * (`4cqw` of its container), and **every** card-internal length consumes the
+   * `card-*` em family: spacing, type, radii, border widths, the shadow. Band
+   * percentages are already scale-free; em is what makes the *content* inside
+   * them scale too. The one deliberate exception is
+   * `--elsa-tilt-perspective` — the 3D stage depth the motion sheet pins as a
+   * constant — plus the card's own width, which is the em root's input.
+   *
+   * Two rules follow from em and are load-bearing:
+   * 1. A box's `em` resolves against **its own** font-size, so no element that
+   *    carries padding, a border or a gap may also set `font-size`. Text nodes
+   *    own the type (`.chip-label`, `.edition`, `.serial`, `.star`, …); their
+   *    boxes stay at the root step. This is why the chip and the printed
+   *    caption have a label span.
+   * 2. A box that *contains* text it did not size needs `line-height: 0` so the
+   *    inherited strut cannot outgrow the label (`.chip`, `.printed-caption`).
    */
   .card-shell {
     container-type: inline-size;
@@ -172,10 +184,10 @@
     isolation: isolate;
     width: 100%;
     height: 100%;
-    padding: var(--elsa-spacing-2);
-    border-radius: var(--elsa-radii-card);
+    padding: var(--elsa-card-space-2);
+    border-radius: var(--elsa-card-radius);
     background: var(--elsa-gradients-foil-pearl);
-    box-shadow: var(--elsa-shadows-card);
+    box-shadow: var(--elsa-card-shadow);
     color: var(--elsa-colors-ink);
     font-family: var(--elsa-fonts-body);
     font-size: var(--elsa-sizes-card-root);
@@ -218,7 +230,7 @@
     position: relative;
     overflow: hidden;
     height: 100%;
-    border-radius: calc(var(--elsa-radii-card) - var(--elsa-spacing-1));
+    border-radius: calc(var(--elsa-card-radius) - var(--elsa-card-space-1));
     background: var(--elsa-gradients-plate-body);
   }
 
@@ -233,23 +245,43 @@
     display: grid;
     grid-template-rows: auto auto;
     align-content: center;
-    gap: var(--elsa-spacing-1);
-    padding: var(--elsa-spacing-2);
-    border-bottom: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line);
+    gap: var(--elsa-card-space-1);
+    padding: var(--elsa-card-space-2);
+    border-bottom: var(--elsa-card-rule) solid var(--elsa-colors-line);
     background: var(--elsa-gradients-plate-header);
   }
 
   .plate-meta {
     display: flex;
     align-items: center;
-    gap: var(--elsa-spacing-2);
+    gap: var(--elsa-card-space-2);
     min-width: 0;
+  }
+
+  /*
+   * One type step for every small line on the card — the number, the mood, the
+   * chip, the stars, the label, the stat keys and the foot. Declared once: it
+   * is one value from the em scale, and eleven copies of it was the sort of
+   * drift the scale exists to end. The boxes these sit in stay at the root
+   * font-size, because `em` padding resolves against the element's own type.
+   */
+  .chip-label,
+  .credit,
+  .edition,
+  .mood,
+  .number,
+  .print-line,
+  .printed-caption-text,
+  .printed-mark-text,
+  .serial,
+  .star,
+  .stat-key {
+    font-size: var(--elsa-card-text-sm);
   }
 
   .number {
     flex: none;
     color: var(--elsa-colors-print-number);
-    font-size: var(--elsa-font-sizes-sm);
     font-weight: var(--elsa-font-weights-semibold);
     letter-spacing: var(--elsa-letter-spacings-eyebrow);
     text-transform: uppercase;
@@ -260,12 +292,16 @@
     isolation: isolate;
     overflow: hidden;
     flex: none;
-    padding: var(--elsa-spacing-1) var(--elsa-spacing-2);
-    border: var(--elsa-border-widths-hairline) solid var(--tier-chip-border);
-    border-radius: var(--elsa-radii-pill);
+    padding: var(--elsa-card-space-1) var(--elsa-card-space-2);
+    border: var(--elsa-card-rule) solid var(--tier-chip-border);
+    border-radius: var(--elsa-card-radius-pill);
     background: var(--tier-chip-background);
     color: var(--tier-chip-color);
-    font-size: var(--elsa-font-sizes-sm);
+    /* The label owns the type; the box must not outgrow it (rule 2 above). */
+    line-height: 0;
+  }
+
+  .chip-label {
     font-weight: var(--elsa-font-weights-bold);
     letter-spacing: var(--elsa-letter-spacings-eyebrow);
     line-height: var(--elsa-line-heights-display);
@@ -278,7 +314,7 @@
     background-image: var(--tier-name-image);
     background-clip: text;
     filter: var(--tier-name-shadow);
-    font-size: var(--elsa-font-sizes-xl);
+    font-size: var(--elsa-card-text-xl);
     font-weight: var(--elsa-font-weights-bold);
     letter-spacing: var(--elsa-letter-spacings-display);
     line-height: var(--elsa-line-heights-card);
@@ -292,7 +328,6 @@
     overflow: hidden;
     min-width: 0;
     color: var(--elsa-colors-print-mood);
-    font-size: var(--elsa-font-sizes-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -307,9 +342,9 @@
     overflow: hidden;
     height: 100%;
     aspect-ratio: var(--elsa-aspect-ratios-window);
-    border-radius: var(--elsa-radii-photo);
+    border-radius: var(--elsa-card-radius-photo);
     background: var(--elsa-colors-surface);
-    box-shadow: inset 0 0 0 var(--elsa-border-widths-hairline) var(--elsa-colors-line);
+    box-shadow: inset 0 0 0 var(--elsa-card-rule) var(--elsa-colors-line);
   }
 
   .photo {
@@ -328,20 +363,22 @@
     place-items: center;
     width: 100%;
     height: 100%;
-    padding: var(--elsa-spacing-3);
+    padding: var(--elsa-card-space-3);
     background: var(--elsa-gradients-plate-header);
   }
 
   .printed-mark {
     display: grid;
     place-items: center;
-    width: var(--elsa-spacing-6);
-    height: var(--elsa-spacing-6);
-    border: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line-strong);
-    border-radius: var(--elsa-radii-pill);
+    width: var(--elsa-card-space-6);
+    height: var(--elsa-card-space-6);
+    border: var(--elsa-card-rule) solid var(--elsa-colors-line-strong);
+    border-radius: var(--elsa-card-radius-pill);
     color: var(--elsa-colors-metal);
     font-family: var(--elsa-fonts-print);
-    font-size: var(--elsa-font-sizes-sm);
+  }
+
+  .printed-mark-text {
     letter-spacing: var(--elsa-letter-spacings-eyebrow);
   }
 
@@ -349,10 +386,14 @@
     position: absolute;
     inset-inline: 0;
     bottom: 0;
-    padding: var(--elsa-spacing-2);
+    padding: var(--elsa-card-space-2);
     color: var(--elsa-colors-print-credit);
-    font-size: var(--elsa-font-sizes-sm);
+    line-height: 0;
     text-align: center;
+  }
+
+  .printed-caption-text {
+    line-height: var(--elsa-line-heights-card);
   }
 
   .foil-photo {
@@ -369,11 +410,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--elsa-spacing-2);
-    padding-inline: var(--elsa-spacing-2);
-    border-bottom: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line-strong);
+    gap: var(--elsa-card-space-2);
+    padding-inline: var(--elsa-card-space-2);
+    border-bottom: var(--elsa-card-rule) solid var(--elsa-colors-line-strong);
     color: var(--elsa-colors-print-line);
-    font-size: var(--elsa-font-sizes-sm);
   }
 
   .edition {
@@ -386,15 +426,11 @@
 
   .stars {
     display: flex;
-    gap: var(--elsa-spacing-1);
+    gap: var(--elsa-card-space-1);
     line-height: var(--elsa-line-heights-display);
   }
 
   /* Five slots on every card: the empty ones are the comparison. */
-  .star {
-    line-height: inherit;
-  }
-
   .star-filled {
     color: var(--tier-star-color);
   }
@@ -403,38 +439,34 @@
     color: var(--elsa-colors-star-empty);
   }
 
+  /*
+   * Band 4's D70 two-row plan (#70): the sentence (≤ 3 lines, ellipsised past
+   * the third) and the Fantasiewerte line as its last row — immediately above
+   * band 5's chips, so the disclaimer precedes the values in reading order and
+   * in the accessible name. 16 padding + 4 gap + 3 × 17.55 + 14.85 = 87.50 px
+   * of a 91.59 px band at the 340 px reference: 4.09 px of slack, and the
+   * keyword row that used to eat it is retired from the plate.
+   */
   .story {
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    gap: var(--elsa-spacing-1);
-    padding: var(--elsa-spacing-2);
-  }
-
-  .keyword {
-    overflow: hidden;
-    color: var(--elsa-colors-print-keyword);
-    font-size: var(--elsa-font-sizes-sm);
-    font-weight: var(--elsa-font-weights-semibold);
-    letter-spacing: var(--elsa-letter-spacings-eyebrow);
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: var(--elsa-card-space-1);
+    padding: var(--elsa-card-space-2);
   }
 
   .copy {
     display: -webkit-box;
     overflow: hidden;
     color: var(--elsa-colors-print-copy);
-    font-size: var(--elsa-font-sizes-md);
+    font-size: var(--elsa-card-text-md);
     -webkit-box-orient: vertical;
-    line-clamp: 1;
-    -webkit-line-clamp: 1;
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
   }
 
   .print-line {
     overflow: hidden;
     color: var(--elsa-colors-print-line);
-    font-size: var(--elsa-font-sizes-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -442,8 +474,8 @@
   .stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--elsa-spacing-1);
-    padding-inline: var(--elsa-spacing-2);
+    gap: var(--elsa-card-space-1);
+    padding-inline: var(--elsa-card-space-2);
   }
 
   .stat {
@@ -451,16 +483,15 @@
     flex-direction: column;
     justify-content: center;
     gap: 0;
-    padding: var(--elsa-spacing-1);
-    border: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line);
-    border-radius: var(--elsa-radii-sm);
+    padding: var(--elsa-card-space-1);
+    border: var(--elsa-card-rule) solid var(--elsa-colors-line);
+    border-radius: var(--elsa-card-radius-inner);
     background: var(--elsa-gradients-foil-rise);
   }
 
   .stat-key {
     overflow: hidden;
     color: var(--elsa-colors-print-stat-key);
-    font-size: var(--elsa-font-sizes-sm);
     line-height: var(--elsa-line-heights-display);
     letter-spacing: var(--elsa-letter-spacings-eyebrow);
     text-overflow: ellipsis;
@@ -470,7 +501,7 @@
 
   .stat-value {
     color: var(--elsa-colors-print-stat-value);
-    font-size: var(--elsa-font-sizes-md);
+    font-size: var(--elsa-card-text-md);
     line-height: var(--elsa-line-heights-display);
     font-weight: var(--elsa-font-weights-bold);
   }
@@ -479,11 +510,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--elsa-spacing-2);
-    padding-inline: var(--elsa-spacing-2);
-    border-top: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line);
+    gap: var(--elsa-card-space-2);
+    padding-inline: var(--elsa-card-space-2);
+    border-top: var(--elsa-card-rule) solid var(--elsa-colors-line);
     color: var(--elsa-colors-print-serial);
-    font-size: var(--elsa-font-sizes-sm);
+  }
+
+  .serial {
+    white-space: nowrap;
   }
 
   .credit {
@@ -506,7 +540,7 @@
 
   .foil-rim {
     z-index: 2;
-    padding: var(--elsa-spacing-1);
+    padding: var(--elsa-card-space-1);
     background: var(--elsa-gradients-foil-pearl);
     mask:
       linear-gradient(var(--elsa-colors-mask) 0 0) content-box,
@@ -564,17 +598,6 @@
     mix-blend-mode: screen;
     opacity: var(--tier-glint-opacity);
     animation: glint var(--tier-glint-duration) var(--elsa-ease-soft) infinite;
-  }
-
-  @container (max-width: 300px) {
-    .header {
-      gap: 0;
-      padding: var(--elsa-spacing-1);
-    }
-
-    .name {
-      font-size: var(--elsa-font-sizes-lg);
-    }
   }
 
   @keyframes glint {

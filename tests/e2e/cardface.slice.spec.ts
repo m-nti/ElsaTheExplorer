@@ -2,30 +2,27 @@
  * The B2 slice: five cards at five widths (#13, T9; ADR-0002 spike 1).
  *
  * This is the rendered proof the unit suite cannot give:
- * - **E-OVF-01/07/09** — no horizontal overflow at 320 and 1280, DE and EN; no
- *   card box paints past the viewport; the budget-length name truncates with an
+ * - **E-OVF-01/06/07/09** — no horizontal overflow at 320/390/768/1280/1920,
+ *   DE and EN; no card box paints past the viewport; no band is taller than its
+ *   grid row at any card width; the budget-length name truncates with an
  *   ellipsis instead of pushing its grid.
- * - **The copy clamp (#70), pinned at the reference width** — the story band
- *   affords exactly **two** whole lines at 340 px (38 px box ÷ 17.55 px line),
- *   and the component clamps to **one**. One home is a deliberate
- *   under-report, never a clipped line: the test fails if the clamp ever
- *   exceeds the band's capacity without an ADR changing the band.
+ * - **The story clamp (#70, D70)** — band 4 is two rows (sentence ≤ 3 lines,
+ *   then the Fantasiewerte line), so the reference card affords exactly
+ *   **three** whole lines and the component clamps to **three**: the third line
+ *   is painted, not clipped, and a longer sentence ellipsises.
+ * - **The em scale (#89)** — every card-internal length is em against the
+ *   `4cqw` root, so at 148/180/220/280/340 px every zone still fits its band and
+ *   the copy box still shows three whole lines. Before #89 the same run
+ *   measured +30 / +14 / +9 / +1 / 0 px of stats overflow and a 0 px copy box.
  * - **E-RM-03/08** — under `prefers-reduced-motion: reduce` the foil and the
  *   tilt are static across two samples 500 ms apart, and the content is
  *   identical to full motion.
  * - **E-IMG-09** — `renderable:false` renders the printed frame and issues no
  *   request for its `photo.src`.
  *
- * **Known blocker (#89).** Below 340 px the card's bands overflow: the em root
- * is set but every inner dimension is a px token, so the type does not scale
- * with the card (art-bible §8's em-scale refactor is unimplemented). At 220 px
- * the story copy box is 4 px — a clipped partial line — and the stats band is
- * 9 px short. The sub-reference test below asserts the contract and is marked
- * `test.fail` against #89; when the em scale lands it turns red ("passed
- * unexpectedly") until the marker is removed, which is the tripwire we want.
- * The 148 px row is the Binder tile's minimum width run through the *full*
- * column — the tile band column (`CARD_ZONES_TILE`) is B5's, so that row proves
- * width behaviour only.
+ * The 148 px row runs the *full* column through the Binder tile's minimum width
+ * — the tile band column (`CARD_ZONES_TILE`) is B5's, so that row proves width
+ * behaviour only.
  */
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -34,6 +31,8 @@ import { expect, test, type Page } from "@playwright/test";
 const WIDTHS = [148, 180, 220, 280, 340] as const;
 /** The art-bible reference width: the one the arithmetic is ratified against. */
 const REFERENCE_WIDTH = 340;
+/** The bands of art-bible §8, in the order they stack. */
+const ZONES = ["header", "photo-zone", "strip", "story", "stats", "foot"] as const;
 const CARD_IDS = [
   "haeufig-01",
   "selten-02",
@@ -53,6 +52,8 @@ const DE_NAMES = [
   "Blickkontakt-Expertin-der-Ersten-Auflage",
   "Unbelichtete Kandidatin",
 ] as const;
+/** The D70 clamp: three lines, both in the ruling and in the component. */
+const COPY_LINES = 3;
 
 interface ZoneMeasure {
   readonly className: string;
@@ -154,9 +155,29 @@ function cardsOf(measured: PageMeasure, width: number): readonly CardMeasure[] {
   return row!.cards;
 }
 
+/** Every zone of a card, in band order, so a missing band cannot pass. */
+function zonesOf(card: CardMeasure): ZoneMeasure[] {
+  // Svelte appends its scope hash to `class`, so match the band name rather
+  // than trusting the last token.
+  const byBand = new Map(
+    card.zones.map((zone) => [
+      zone.className.split(/\s+/).find((name) => (ZONES as readonly string[]).includes(name)),
+      zone,
+    ]),
+  );
+  return ZONES.map((band) => {
+    const zone = byBand.get(band);
+    expect(zone, `${card.id} renders the ${band} band`).toBeDefined();
+    return zone!;
+  });
+}
+
 for (const locale of ["de", "en"] as const) {
   for (const viewport of [
+    { width: 1920, height: 1080 },
     { width: 1280, height: 900 },
+    { width: 768, height: 1024 },
+    { width: 390, height: 844 },
     { width: 320, height: 640 },
   ] as const) {
     test(`no overflow and honest clamps — ${locale} at ${viewport.width} px`, async ({
@@ -181,23 +202,35 @@ for (const locale of ["de", "en"] as const) {
         expect(row.cards, `row ${row.width} card count`).toHaveLength(CARD_IDS.length);
 
         for (const card of row.cards) {
+          const where = `${locale}@${viewport.width} row ${row.width} ${card.id}`;
+
           // E-OVF-07: nothing paints past the viewport edge.
-          expect(
-            card.faceRight,
-            `${locale}@${viewport.width} row ${row.width} ${card.id}: right edge`,
-          ).toBeLessThanOrEqual(measured.innerWidth + 1);
+          expect(card.faceRight, `${where}: right edge`).toBeLessThanOrEqual(
+            measured.innerWidth + 1,
+          );
 
           // The card is never wider than the band under test (or the viewport).
           expect(card.faceWidth).toBeLessThanOrEqual(Math.min(row.width, viewport.width) + 1);
 
-          // The declared clamp is what ships: one line (#70). It is pinned at
-          // the reference width below; here it must at least be declared.
-          expect(card.copy.clamp, `${card.id} clamp`).toBe(1);
-          expect(card.copy.textLength, `${card.id} copy text`).toBeGreaterThan(0);
+          // E-OVF-06: every band fits its grid row at every width. This is the
+          // #89 contract — before the em scale the stats band overran by 30 px
+          // at 148 px and the copy box collapsed to 0 px.
+          for (const zone of zonesOf(card)) {
+            expect(
+              zone.scrollHeight,
+              `${where} ${zone.className}: scrollHeight ${zone.scrollHeight} vs clientHeight ${zone.clientHeight}`,
+            ).toBeLessThanOrEqual(zone.clientHeight + 1);
+          }
+
+          // #70/#89: the declared clamp is three lines, and the band affords
+          // three — no clipped third line at any card width.
+          expect(card.copy.clamp, `${where} clamp`).toBe(COPY_LINES);
+          expect(card.copy.capacity, `${where} whole lines`).toBeGreaterThanOrEqual(COPY_LINES);
+          expect(card.copy.textLength, `${where} copy text`).toBeGreaterThan(0);
 
           // The name is a one-line ellipsis everywhere.
-          expect(card.name.whiteSpace, `${card.id} name nowrap`).toBe("nowrap");
-          expect(card.name.textOverflow, `${card.id} name ellipsis`).toBe("ellipsis");
+          expect(card.name.whiteSpace, `${where} name nowrap`).toBe("nowrap");
+          expect(card.name.textOverflow, `${where} name ellipsis`).toBe("ellipsis");
         }
       }
 
@@ -208,13 +241,17 @@ for (const locale of ["de", "en"] as const) {
       expect(longName).toBeDefined();
       expect(longName!.name.scrollWidth).toBeGreaterThan(longName!.name.clientWidth);
 
-      // E-OVF-10: visual evidence, one per locale and viewport.
-      const shots = join("qa-shots", "cardface");
-      mkdirSync(shots, { recursive: true });
-      await page.screenshot({
-        path: join(shots, `slice-${locale}-${testInfo.project.name}-${viewport.width}.png`),
-        fullPage: true,
-      });
+      // E-OVF-10: visual evidence at the two viewports the #89 AC cites. The
+      // other three still assert; capturing all five × two locales × four
+      // engines starved the workers and turned green runs flaky.
+      if (viewport.width === 320 || viewport.width === 1280) {
+        const shots = join("qa-shots", "cardface");
+        mkdirSync(shots, { recursive: true });
+        await page.screenshot({
+          path: join(shots, `slice-${locale}-${testInfo.project.name}-${viewport.width}.png`),
+          fullPage: true,
+        });
+      }
     });
   }
 }
@@ -230,43 +267,44 @@ test("the reference card holds its bands (340 px, #70 pinned)", async ({ page })
     expect(card.faceWidth).toBeCloseTo(REFERENCE_WIDTH, 0);
 
     // E-OVF-06: no zone is taller than its band at the reference width.
-    for (const zone of card.zones) {
+    for (const zone of zonesOf(card)) {
       expect(
         zone.scrollHeight,
         `${card.id} ${zone.className}: scrollHeight vs clientHeight`,
       ).toBeLessThanOrEqual(zone.clientHeight + 1);
     }
 
-    // #70: the story band affords **two** whole lines here (38 px box at
-    // 17.55 px per line); the component clamps to **one**. A clamp of three —
-    // what art-bible §8 and UX §5.3 still claim — would paint a cut glyph, so
-    // raising the clamp needs the band ruling first, not a CSS edit.
-    expect(card.copy.capacity, `${card.id} whole lines in the story band`).toBe(2);
-    expect(card.copy.clamp, `${card.id} clamp`).toBe(1);
+    // #70/D70: band 4 is two rows, so it affords **three** whole lines and the
+    // component clamps to **three**. The old three-row plan afforded 2.16 lines
+    // and clipped the third mid-glyph; the keyword row that caused it is gone.
+    expect(card.copy.capacity, `${card.id} whole lines in the story band`).toBe(COPY_LINES);
+    expect(card.copy.clamp, `${card.id} clamp`).toBe(COPY_LINES);
     expect(card.copy.clamp).toBeLessThanOrEqual(card.copy.capacity);
   }
 });
 
-test("sub-reference widths honour the bands — expected failure until #89", async ({ page }) => {
-  // #89: the em scale from art-bible §8 is not applied, so below 340 px the
-  // type keeps its px size while the bands shrink. This test states the
-  // contract the slice owes; it fails today and is marked expected.
-  test.fail(true, "blocked by #89 — card-internal sizes are px, so the bands overflow below 340 px");
-
+test("sub-reference widths honour the bands (#89, em scale)", async ({ page }) => {
+  // #89: with every card-internal length in em against the `4cqw` root, a card
+  // at 148 px is the 340 px card at 0.435 × — the same fit, not a px layout in
+  // a smaller box. Before the refactor this run measured +30 px of stats
+  // overflow at 148 px and a 0 px copy box; the contract below is what failed.
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/?lang=de");
 
   const measured = await measure(page);
-  for (const width of WIDTHS.filter((entry) => entry < REFERENCE_WIDTH)) {
+
+  for (const width of WIDTHS) {
     for (const card of cardsOf(measured, width)) {
-      for (const zone of card.zones) {
+      for (const zone of zonesOf(card)) {
         expect(
           zone.scrollHeight,
           `${width}px ${card.id} ${zone.className}`,
         ).toBeLessThanOrEqual(zone.clientHeight + 1);
       }
       // Not even a sliver: a 4 px copy box is a glyph cut in half.
-      expect(card.copy.capacity, `${width}px ${card.id} whole lines`).toBeGreaterThanOrEqual(1);
+      expect(card.copy.capacity, `${width}px ${card.id} whole lines`).toBeGreaterThanOrEqual(
+        COPY_LINES,
+      );
     }
   }
 });

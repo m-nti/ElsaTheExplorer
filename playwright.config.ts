@@ -5,7 +5,14 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 4 : "100%",
+  /**
+   * Four, not "100%": this suite drives four engines over a five-by-five card
+   * matrix with full-page screenshots, and the card spec alone is 16 tests per
+   * project. On a 4-core host the default oversubscribes and the run ends in
+   * 30 s teardown timeouts that look like defects but are load. CI already uses
+   * four, so local and CI now mean the same thing.
+   */
+  workers: 4,
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "reports/playwright-html" }],
