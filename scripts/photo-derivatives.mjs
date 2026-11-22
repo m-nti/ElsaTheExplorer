@@ -43,6 +43,7 @@
 import { createHash } from "node:crypto";
 import {
   existsSync,
+  lstatSync,
   mkdirSync,
   readFileSync,
   readdirSync,
@@ -411,6 +412,25 @@ async function renderRung(source, rendition, format, ladder) {
   }
 }
 
+/**
+ * The output tree is generator-owned. A rung directory that exists but is not a real
+ * directory (a symlink, a file) is refused rather than followed — writing through a planted
+ * link would put derivative bytes outside the output tree, the same containment family as
+ * SEC-002 on the pruning side. A genuinely absent directory is created as usual.
+ */
+function ensureRungDirectory(dir) {
+  let stats = null;
+  try {
+    stats = lstatSync(dir);
+  } catch {
+    // absent — created below
+  }
+  if (stats !== null && !stats.isDirectory()) {
+    throw new PhotoError(`refusing to write into ${display(dir)}: it is a symlink, not a directory`);
+  }
+  mkdirSync(dir, { recursive: true });
+}
+
 /** Atomic write: temp file in the target directory, then rename (§13.3). */
 function writeAtomic(target, data) {
   const temporary = `${target}.${process.pid}.tmp`;
@@ -435,8 +455,12 @@ function writeAtomic(target, data) {
  *   - only inside `<out>/<rung>/`, only regular files, only `.jpg`/`.jpeg`/`.webp`
  *   - only when the file's stem is not the id of a photo in the current run
  *   - only on a clean run (a failed run touches nothing, not even stale files)
- * `.derived-state.json`, unknown extensions and subdirectories are left alone, so a stray
- * owner file in the output tree is never deleted by a generator run.
+ *   - never through a symlinked rung directory (SEC-002): the deletion is the one destructive
+ *     step in this script, so it must not follow a link out of the output tree
+ * What is kept: `.derived-state.json` (it lives above the rung directories), subdirectories,
+ * and any file whose extension is not `.jpg`/`.jpeg`/`.webp`. A `.jpg`/`.webp` sitting *inside*
+ * a rung directory is treated as a stale derivative and removed, whatever put it there — those
+ * directories are generator-owned, and an unowned image in one is still a servable URL.
  */
 function pruneStale(out, ids, { dryRun = false } = {}) {
   const removed = [];
@@ -444,6 +468,9 @@ function pruneStale(out, ids, { dryRun = false } = {}) {
   for (const rendition of RUNGS) {
     const dir = join(out, rendition);
     if (!existsSync(dir)) continue;
+    // A symlink is not a directory to lstat(), which is exactly the point: following one
+    // would let the cleanup delete `.jpg`/`.webp` outside the output tree (SEC-002).
+    if (!lstatSync(dir).isDirectory()) continue;
 
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isFile()) continue;
@@ -863,7 +890,7 @@ async function main(argv) {
 
         for (const format of FORMATS) {
           const target = photo.files[rendition][format];
-          mkdirSync(dirname(target), { recursive: true });
+          ensureRungDirectory(dirname(target));
 
           const rendered = await renderRung(source, rendition, format, ladder);
           if (rendered.width !== expected.width || rendered.height !== expected.height) {

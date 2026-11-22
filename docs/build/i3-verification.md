@@ -18,6 +18,11 @@
 > closed — stale derivatives are pruned on a clean run (§4.5); §6(e) corrected to match the
 > fail-loud behaviour; the acceptance caps (32 MP / 8000 px / 20 MiB) now have refusal tests
 > driven by a decompression bomb (§4.2, §6(l)).
+>
+> **Review round 3 (APPROVED at `5adbe10`, two LOW findings):** SEC-002 closed — a symlinked
+> rung directory is skipped by pruning and refused by the write path (§4.5, §6(n)); SEC-003
+> closed — the `pruneStale` comment now states what is actually kept; the T34 row in the
+> pipeline spec (§15) corrected from `exit 0, warn` to `exit 1`, no manifest written.
 
 ---
 
@@ -71,7 +76,7 @@ than shipping an oversized rung. §4 proves that with real files.
 | File | Status | Purpose |
 | --- | --- | --- |
 | `scripts/photo-derivatives.mjs` | new | sharp 0.35.5 generator: four rungs × JPEG/WebP, manifest v2, `--check` drift gate, byte table |
-| `tests/unit/photo-derivatives.test.ts` | new | 19 tests: manifest shape, orientation, budgets, metadata stripping, idempotency, drift, acceptance caps, stale-derivative pruning, input rejection, PHP parity |
+| `tests/unit/photo-derivatives.test.ts` | new | 20 tests: manifest shape, orientation, budgets, metadata stripping, idempotency, drift, acceptance caps, stale-derivative pruning, input rejection, PHP parity |
 | `docs/build/i3-verification.md` | new | this evidence |
 | `knip.json` | **modified, 2 lines** | `ignoreBinaries: ["php"]` (the parity harness) and the now-stale `sharp` entry removed from `ignoreDependencies` — sharp is imported by an entry script, so knip reports it as used. Gate config only; see §8(h). |
 
@@ -193,7 +198,7 @@ Three further refusal proofs, each its own test:
 ```
 $ npx vitest run --project unit tests/unit/photo-derivatives.test.ts
 
- ✓ |unit| tests/unit/photo-derivatives.test.ts (19 tests)
+ ✓ |unit| tests/unit/photo-derivatives.test.ts (20 tests)
    ✓ manifest v2 (4)
      ✓ emits the v2 document shape, four rungs per photo, and no transmitted srcset
      ✓ keeps width/height as the oriented source ratio and each rung's own w/h on that ratio
@@ -208,8 +213,9 @@ $ npx vitest run --project unit tests/unit/photo-derivatives.test.ts
      ✓ reports drift and exits non-zero when a derivative changed on disk
      ✓ reports drift when the ladder changed since the last run
      ✓ re-renders when a source changed and the new version reaches the manifest
-   ✓ stale derivative pruning (2)
+   ✓ stale derivative pruning (3)
      ✓ removes the rungs of a photo that left the source set and leaves the rest untouched   (SEC-001)
+     ✓ skips a symlinked rung directory instead of pruning outside the output tree (SEC-002)
      ✓ reports a stale derivative as drift in --check without deleting it
    ✓ input rejection (5)
      ✓ refuses the acceptance caps without decoding: 32 MP, 8000 px edge and 20 MiB
@@ -221,7 +227,7 @@ $ npx vitest run --project unit tests/unit/photo-derivatives.test.ts
      ✓ emits the same per-photo field set, ids, source dims and rung dims as ?list=1
 
  Test Files  1 passed (1)
-      Tests  19 passed (19)
+      Tests  20 passed (20)
 ```
 
 What the assertions pin, not just describe:
@@ -300,6 +306,19 @@ check: in sync — 1 photos, 8 files, every rung within its budget
 Scope of the deletion is narrow by design: only `<out>/<rung>/`, only regular files, only
 `.jpg`/`.jpeg`/`.webp`, only when the stem is not a current id, and **only on a clean run** — a
 failed run and `--check` never delete anything (`--check` reports the orphan as drift and exits 1).
+
+**A rung directory that is a symlink is skipped entirely (SEC-002).** Deletion is the one
+destructive step here, so it must not follow a link out of the output tree — a planted
+`<out>/pack → /somewhere` would otherwise let a generator run delete `*.jpg` in `/somewhere`.
+The same containment rule now applies to the write path: a rung directory that exists but is not
+a real directory is refused (`refusing to write into …: it is a symlink, not a directory`)
+instead of receiving derivative bytes through the link. The test proves both halves: the planted
+file survives a run, and forcing a render through the link exits 1 without writing.
+
+What pruning keeps: `.derived-state.json` (it sits above the rung directories), subdirectories,
+and any file whose extension is not `.jpg`/`.jpeg`/`.webp`. A `.jpg`/`.webp` *inside* a rung
+directory is removed whatever put it there — those directories are generator-owned, and an
+unowned image in one is still a servable URL.
 
 ### 4.6 Full gate set
 
@@ -426,6 +445,17 @@ therefore PHP's (§7.1 step 3): read the header with no pixel limit, then apply 
 32 MP and name the one that failed. Nothing is decoded by that read; the render pipeline keeps
 `limitInputPixels: MAX_SOURCE_PIXELS` as a second line of defence. Tested with a 68-byte PNG that
 declares 8000×8000 (§4.2).
+
+**(n) Review round 3 — SEC-002, SEC-003 and the T34 spec line.** A symlinked `<out>/<rung>`
+directory is now skipped by `pruneStale()` (`lstatSync(...).isDirectory()` is false for a link)
+and refused by `ensureRungDirectory()` on the write path — the second half is a disclosed
+hardening of the same containment family, not part of the reported finding: writing derivative
+bytes through a planted link is the same escape as deleting through it. The `pruneStale` comment
+now lists what is actually kept, instead of the false "a stray owner file … is never deleted"
+(a `.jpg` inside a rung directory *is* deleted, deliberately). `docs/photo-pipeline-implementation.md`
+T34 said `exit 0, warn` for a build without libheif; the code exits 1 and writes no manifest, so
+the row now says `exit 1, renderable:false warning` and names `node scripts/photo-derivatives.mjs`
+as the command (the `npm run photos` entry does not exist yet — see (m)).
 
 **(m) No `package.json` script entry**, per the ticket. The natural line is
 `"photos:derived": "node scripts/photo-derivatives.mjs"` and `"photos:check": "node scripts/photo-derivatives.mjs --check"`.

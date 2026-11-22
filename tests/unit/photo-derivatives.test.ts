@@ -1,12 +1,14 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  copyFileSync,
   existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -567,6 +569,44 @@ describe("stale derivative pruning", () => {
     // And the tree is back in sync.
     const check = generate(dirs, ["--check"]);
     expect(check.status, check.stderr).toBe(0);
+  }, 30_000);
+
+  it("skips a symlinked rung directory instead of pruning outside the output tree (SEC-002)", () => {
+    const dirs = runDir("symlink-rung", { fixtures: ["landscape"], captions: null });
+    expect(generate(dirs).status).toBe(0);
+
+    // A planted tree outside the output, holding one file that must survive.
+    const outside = join(tempRoot(), "outside-rungs");
+    mkdirSync(outside, { recursive: true });
+    const victim = join(outside, "victim.jpg");
+    writeFileSync(victim, readFileSync(rungFile(dirs, "landscape", "tile", "jpeg")));
+
+    // Replace the `pack` rung directory with a symlink to it. The current pack files are
+    // copied across first, so the run is still "fresh" and never writes through the link.
+    for (const format of FORMATS) {
+      copyFileSync(rungFile(dirs, "landscape", "pack", format), join(outside, `landscape.${EXT[format]}`));
+    }
+    const pack = join(dirs.out, "pack");
+    const parked = join(dirs.out, "pack-real");
+    renameSync(pack, parked);
+    symlinkSync(outside, pack);
+
+    const result = generate(dirs);
+    expect(result.status, result.stderr).toBe(0);
+
+    // The link was not followed: the planted file and the rung files behind it are intact.
+    expect(existsSync(victim)).toBe(true);
+    expect(existsSync(join(outside, "landscape.jpg"))).toBe(true);
+    expect(result.stdout).not.toContain("prune: removed");
+
+    // Hardening (same containment family): a render is refused rather than written through
+    // the link. Removing a rung file makes the run stale, so it must write — and must not.
+    rmSync(join(outside, "landscape.webp"));
+    const forced = generate(dirs);
+    expect(forced.status).toBe(1);
+    expect(forced.stderr).toContain("refusing to write into");
+    expect(existsSync(join(outside, "victim.jpg"))).toBe(true);
+    expect(existsSync(join(outside, "landscape.webp"))).toBe(false);
   }, 30_000);
 
   it("reports a stale derivative as drift in --check without deleting it", () => {
