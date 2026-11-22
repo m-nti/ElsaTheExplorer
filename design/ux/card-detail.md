@@ -138,7 +138,7 @@ Desktop (≥1120px, ≥850px tall — side-by-side layout, current behaviour kep
 ║   │  Noch ein    │   │ │ PLATE  Nr 04 · name (foil) │ │          ║
 ║   │  Pack        │   │ │        Laune · aus: Ruhesaal  │ │  ← plate │
 ║   │              │   │ ├────────────────────────────┤ │          ║
-║   │  Foto        │   │ │        PHOTO WINDOW        │ │  ~40–46% │
+║   │  Foto        │   │ │        PHOTO WINDOW        │ │  41.5% │
 ║   │  speichern   │   │ │      (focus-anchored)      │ │   height │
 ║   │              │   │ ├────────────────────────────┤ │          ║
 ║   │  Teilen      │   │ │ Elsa the Explorer · 1. Aul │ │  ← credit│
@@ -196,7 +196,7 @@ photograph is the only lit object, so it takes the largest content band.
 | 7 · gutters | **4.5** | five gaps, never collapses; the foil edge keeps its margin |
 
 At the 340 × 485.71 px reference the plate's inner height is 469.71 px and the photo window is
-**155.94 px wide (45.87 % of card width)**. Tile cards use the shelf column from §8
+**155.94 px wide (45.87 % of card width)**. Tile cards use the Binder-tile column from §8
 (15.5 / 44 / 5.5 / 16 / 9 / 5.5 / 4.5).
 
 **L1 — Fit formula owns the chrome, not a magic number.**
@@ -262,11 +262,11 @@ what follows is what the card should additionally adopt):
 | Component Name | Type | Zone | Purpose | Required? | Reuses Existing Component? |
 |----------------|------|------|---------|-----------|---------------------------|
 | `CardDetail` | **Svelte 5 component** (one line: dialog shell — chrome rows, card slot, chevrons, status/hint, focus + key handling) | dialog | The reading room | Yes | Refactor of `#card-dialog` |
-| `CardFace` (variant `card--full`) | **Svelte 5 component** (one line: the six-band card renderer shared with tiles/pack via size variants) | card slot | The full card | Yes | Refactor of `cardElement(size="full")` |
+| `CardFace` (variant `card--full`) | **Svelte 5 component** (one line: the seven-bay card renderer shared with tiles/pack via size variants) | card slot | The full card | Yes | Refactor of `cardElement(size="full")` |
 | `.card__plate` (+ number, name, mood, rarity chip) | Composite | band 1 | Identity | Yes | Yes |
 | `.card__set-chip` ("aus: {Set}") | Chip | band 1 | Set membership — **GDD R1, Vertical Slice** (also on drop cards); `new-acquisitions` cards show no chip | Yes (VS) | New |
 | `.card__stamp` ("2. Auflage") | Stamp chip | band 1 | Second-lap pulls — **GDD R6, Phase 3** (lap derived per R-H at pull time); decorative, the dialog stamp line is its text form | Phase 3 | New |
-| `.card__wing-frame` | Frame variant | card frame (band-independent) | **GDD R3b — completed-room frame variant on the six-band face (Vertical Slice)**: the same gilt frame the room's tiles wear, rendered around the dialog card; **decorative only (R10)** — announced nowhere, carries no state | Yes (VS) | Same frame tokens as `.shelf__gilt` |
+| `.card__wing-frame` | Frame variant | card frame (band-independent) | **GDD R3b — completed-room frame variant on the seven-bay face (Vertical Slice)**: the same gilt frame the room's tiles wear, rendered around the dialog card; **decorative only (R10)** — announced nowhere, carries no state | Yes (VS) | Same frame tokens as `.shelf__gilt` |
 | `.card__photo` (+ img, rays, frame, focus anchor) | Composite | band 2 | The photograph is the art | Yes | Yes |
 | `.card__strip` (credit + stars) | Band | band 3 | Edition + rarity stars | Yes | Yes (moved into its own band per L3) |
 | `.card__line` (Elsa-Moment, copy, "Im Bild") | Panel | band 4 | The card's story | Yes | Yes |
@@ -525,7 +525,7 @@ numbers are read (F2a), preventing misreading them as data.
 | Card name | catalog-driven | 24 (2 lines in band 1) | 40 % | n/a | Wraps to 2 lines; then font steps down one cqw clamp (never truncates a name) | Medium — **HIGH PRIORITY for localization**: band 1 is fixed |
 | Mood ("Laune: …") | catalog-driven | 20 | 40 % | n/a | Wraps inside band 1's mood row | Low |
 | Credit strip "Elsa the Explorer · 1. Auflage" | ~28 | 40 | 40 % | n/a | Fixed band per L3; letter-spacing steps down, then wraps to 2 short lines — **never** overlaps the photo | Medium — **HIGH PRIORITY**: the defect zone |
-| Elsa-Moment sentence | catalog-driven | 96 (band clamp) | 40 % | n/a | Wraps within band 4; band 4 clamps at 14% and the copy font steps down once; last resort drops the "Im Bild" line to keep the sentence | Medium — **HIGH PRIORITY** |
+| Elsa-Moment sentence | catalog-driven | 96 (band clamp) | 40 % | n/a | Wraps within band 4; band 4 is 19.5 % and the copy clamps at 3 lines; the font steps down once; last resort drops the "Im Bild" line to keep the sentence | Medium — **HIGH PRIORITY** |
 | "Im Bild: …" note | ~30 | 44 | 40 % | n/a | First thing to yield (see above); never the sentence | Low |
 | Fantasiewerte label ("Imaginary stats · just for fun" / "Fantasiewerte · nur zum Spaß") | 30 | 42 | 40 % | n/a | Wraps to 2 short lines above the chips | Low |
 | Stat keys + values | manifest-driven | key 12, value 4 | 40 % | n/a | Key wraps inside the chip (L4 reserves the value box) | Low |
@@ -555,7 +555,7 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] The dialog never scrolls at any listed viewport; all seven bays visible simultaneously
 - [ ] All §6 states render correctly (front, flipped, navigating, HEIC converting, image error, share states, completed-room frame, capstone plaque, reduced motion, deep link)
 - [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v2` write occurs
-- [ ] Photo crop honours the `focus` anchor; the display copy never exceeds 720px; "Foto speichern" delivers the original filename
+- [ ] Photo crop honours the `focus` anchor; the display copy never exceeds the band's 3-line clamp; "Foto speichern" delivers the original filename
 - [ ] Holo cards show the adopted halo + ground shadow dressing; reduced motion shows both static
 
 **Input**
