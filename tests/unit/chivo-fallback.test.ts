@@ -26,7 +26,9 @@ import { tokens } from "../../design/tokens/tokens";
 
 const faces = config.globalFontface as unknown as Record<string, Record<string, string>>;
 const fallback = faces["Chivo Fallback"];
+const labelFallback = faces["Chivo Label Fallback"];
 const body = tokens.fonts.body.value as string;
+const label = tokens.fonts.label.value as string;
 
 /** Chivo's hhea, read from `public/fonts/chivo-latin.woff2`: 940 / -250, upem 1000, lineGap 0. */
 const CHIVO_ASCENT = 94;
@@ -35,10 +37,21 @@ const CHIVO_DESCENT = 25;
 describe("Chivo fallback (#81)", () => {
   it("declares a fallback face that downloads nothing", () => {
     expect(fallback).toBeDefined();
-    expect(fallback?.src.startsWith("local(")).toBe(true);
+    expect(fallback?.src?.startsWith("local(")).toBe(true);
     expect(fallback?.src).not.toContain("url(");
     expect(fallback?.fontDisplay).toBe("swap");
     expect(fallback?.fontWeight).toBe("400 700");
+  });
+
+  it("declares a label fallback for tracked uppercase that downloads nothing", () => {
+    expect(labelFallback).toBeDefined();
+    expect(labelFallback?.src?.startsWith("local(")).toBe(true);
+    expect(labelFallback?.src).not.toContain("url(");
+    expect(labelFallback?.fontDisplay).toBe("swap");
+    expect(labelFallback?.fontWeight).toBe("400 700");
+    // Chivo's caps are narrower than Arial's while its sentence copy is wider,
+    // so the label face must shrink where the body face grows.
+    expect(Number.parseFloat(labelFallback?.sizeAdjust ?? "")).toBeLessThan(100);
   });
 
   it("puts the fallback immediately after Chivo in the body stack", () => {
@@ -47,12 +60,25 @@ describe("Chivo fallback (#81)", () => {
     expect(second).toBe('"Chivo Fallback"');
   });
 
+  it("puts the label fallback immediately after Chivo in the label stack", () => {
+    const [first, second] = label.split(",").map((family) => family.trim());
+    expect(first).toBe('"Chivo"');
+    expect(second).toBe('"Chivo Label Fallback"');
+  });
+
   it("derives the overrides from Chivo's hhea and the measured advance ratio", () => {
     const sizeAdjust = Number.parseFloat(fallback?.sizeAdjust ?? "");
     expect(sizeAdjust).toBeGreaterThan(100);
     expect((Number.parseFloat(fallback?.ascentOverride ?? "") * sizeAdjust) / 100).toBeCloseTo(CHIVO_ASCENT, 1);
     expect((Number.parseFloat(fallback?.descentOverride ?? "") * sizeAdjust) / 100).toBeCloseTo(CHIVO_DESCENT, 1);
     expect(fallback?.lineGapOverride).toBe("0%");
+  });
+
+  it("derives the label overrides from the same hhea", () => {
+    const sizeAdjust = Number.parseFloat(labelFallback?.sizeAdjust ?? "");
+    expect((Number.parseFloat(labelFallback?.ascentOverride ?? "") * sizeAdjust) / 100).toBeCloseTo(CHIVO_ASCENT, 1);
+    expect((Number.parseFloat(labelFallback?.descentOverride ?? "") * sizeAdjust) / 100).toBeCloseTo(CHIVO_DESCENT, 1);
+    expect(labelFallback?.lineGapOverride).toBe("0%");
   });
 
   it("keeps swap on Chivo and Ultra, and their bytes where they were", () => {

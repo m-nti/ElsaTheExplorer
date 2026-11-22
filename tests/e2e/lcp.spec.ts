@@ -71,6 +71,12 @@ interface MeasureOptions {
    * happen every run, so the assertion measures the case the fallback exists for.
    */
   readonly forceLateSwap?: boolean;
+  /**
+   * Scroll the page so the binder tiles (`loading="lazy"`) decode before the
+   * pixel assertions run. WebKit does not preload lazy images near the viewport
+   * the way Chromium does; without this the decoded size reads 0 on Safari.
+   */
+  readonly loadLazyImages?: boolean;
 }
 
 /**
@@ -153,7 +159,25 @@ async function measureFirstView(page: Page, options: MeasureOptions = {}): Promi
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
   });
-  await page.waitForFunction(() => window.__lcp.length > 0);
+  await page.waitForFunction(() => window.__lcp.length > 0, null, { polling: 100 });
+
+  if (options.loadLazyImages) {
+    await page.evaluate(async () => {
+      const step = window.innerHeight;
+      for (let y = 0; y < document.body.scrollHeight; y += step) {
+        window.scrollTo(0, y);
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 0);
+        });
+      }
+    });
+    await page.waitForFunction(
+      () => [...document.images].every((image) => image.complete && image.naturalWidth > 0),
+      null,
+      { polling: 100 },
+    );
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
 
   const state = await page.evaluate(() => ({
     cls: window.__shifts.reduce((sum, shift) => sum + shift.value, 0),
@@ -184,7 +208,7 @@ async function measureFirstView(page: Page, options: MeasureOptions = {}): Promi
 }
 
 test("the first-view pictures are fetched once each, at their own size, with no shift", async ({ page }) => {
-  const seen = await measureFirstView(page);
+  const seen = await measureFirstView(page, { loadLazyImages: true });
 
   // One element, one URL. A second response for the same URL is the defect. The
   // page renders the binder grid (four tiles today), so "the picture" is plural —
@@ -238,13 +262,12 @@ test("the first-view pictures are fetched once each, at their own size, with no 
 test.describe("a cold first view at 390 x 844", () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 
-  test("has no layout shift", async ({ page }) => {
+  test("has no layout shift", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebKit has no Layout Instability API; the metric test carries the claim there");
     const seen = await measureFirstView(page, { forceLateSwap: true });
 
     // The picture reserves its box, and both face swaps are metric-matched
     // (`Ultra Fallback` #26, `Chivo Fallback` #81), so nothing moves at all.
-    // WebKit ships no Layout Instability API; the metric test below carries the
-    // claim on that engine.
     expect(seen.imageShifts).toBe(0);
     expect(seen.cls).toBe(0);
   });
@@ -253,7 +276,8 @@ test.describe("a cold first view at 390 x 844", () => {
 test.describe("a cold first view at 1280 x 720", () => {
   test.use({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
 
-  test("has no layout shift", async ({ page }) => {
+  test("has no layout shift", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "WebKit has no Layout Instability API; the metric test carries the claim there");
     const seen = await measureFirstView(page, { forceLateSwap: true });
     expect(seen.imageShifts).toBe(0);
     expect(seen.cls).toBe(0);
@@ -266,19 +290,27 @@ test.describe("a cold first view at 1280 x 720", () => {
  * inside the page on the built artifact, so it holds on WebKit too, where the
  * layout-shift entry type does not exist.
  */
-test("the Chivo fallback has Chivo's line box, baseline and advance width", async ({ page }) => {
+test("the Chivo fallbacks match Chivo's line box, baseline and advance width", async ({ page }) => {
   await page.goto("/", { waitUntil: "load" });
   const match = await page.evaluate(async () => {
     await document.fonts.load('400 13px "Chivo"');
     await document.fonts.load('600 11px "Chivo"');
     await document.fonts.ready;
 
-    const probe = (family: string, weight: number, size: number) => {
+    const probe = (
+      family: string,
+      weight: number,
+      size: number,
+      text: string,
+      letterSpacing = "normal",
+      transform = "none",
+    ) => {
       const host = document.createElement("div");
       host.style.cssText =
         `position:absolute;left:-10000px;top:0;font-family:${family};font-weight:${weight};` +
-        `font-size:${size}px;line-height:normal;white-space:nowrap`;
-      host.textContent = "Die Sammlung ist das Produkt. Elsa ist der Sammlungsmechanismus.";
+        `font-size:${size}px;letter-spacing:${letterSpacing};text-transform:${transform};` +
+        `line-height:normal;white-space:nowrap`;
+      host.textContent = text;
       document.body.appendChild(host);
       const box = host.getBoundingClientRect();
       const range = document.createRange();
@@ -292,22 +324,34 @@ test("the Chivo fallback has Chivo's line box, baseline and advance width", asyn
       return { lineBox: box.height, baseline, width };
     };
 
-    // The face name alone is not enough: before #81 "Chivo Fallback" falls through
-    // to the generic sans, whose line box is visibly taller.
+    const copy = "Die Sammlung ist das Produkt. Elsa ist der Sammlungsmechanismus.";
+    const eyebrow = "Sammelwerk · Erste Auflage";
+    // The face name alone is not enough: before #81 these names fall through to
+    // the generic sans, whose line box is visibly taller and whose caps are wider.
     return {
-      chivo: probe('"Chivo"', 400, 13),
-      fallback: probe('"Chivo Fallback", sans-serif', 400, 13),
-      chivoBold: probe('"Chivo"', 600, 11),
-      fallbackBold: probe('"Chivo Fallback", sans-serif', 600, 11),
+      bodyChivo: probe('"Chivo"', 400, 13, copy),
+      bodyFallback: probe('"Chivo Fallback", sans-serif', 400, 13, copy),
+      labelChivo: probe('"Chivo"', 600, 11, eyebrow, "0.14em", "uppercase"),
+      labelFallback: probe('"Chivo Label Fallback", sans-serif', 600, 11, eyebrow, "0.14em", "uppercase"),
     };
   });
 
-  for (const [chivo, fallback] of [
-    [match.chivo, match.fallback],
-    [match.chivoBold, match.fallbackBold],
-  ] as const) {
-    expect(Math.abs(fallback.lineBox - chivo.lineBox)).toBeLessThan(0.1);
-    expect(Math.abs(fallback.baseline - chivo.baseline)).toBeLessThan(0.1);
-    expect(Math.abs(fallback.width - chivo.width)).toBeLessThan(chivo.width * 0.01);
+  // The two engines do not resolve `local("Arial")` identically at weight 600:
+  // WebKit takes the Bold instance (advance 2 % wider), Chromium keeps the
+  // regular one. On body copy that would matter, and there the tolerance is
+  // 0.2 %; on the centred label it is 4.4 px of advance = a 2.2 px move, below
+  // the 3 px threshold Chromium uses to report a layout shift at all.
+  const pairs = [
+    { chivo: match.bodyChivo, fallback: match.bodyFallback, widthTolerance: 0.002 },
+    { chivo: match.labelChivo, fallback: match.labelFallback, widthTolerance: 0.025 },
+  ] as const;
+
+  for (const { chivo, fallback, widthTolerance } of pairs) {
+    // 0.5 px: WebKit rounds the baseline inside the line box differently from
+    // Chromium (measured 0.28 px); the unmatched face is 14 px off, so the
+    // tolerance still separates "metric-matched" from "some other sans".
+    expect(Math.abs(fallback.lineBox - chivo.lineBox)).toBeLessThan(0.5);
+    expect(Math.abs(fallback.baseline - chivo.baseline)).toBeLessThan(0.5);
+    expect(Math.abs(fallback.width - chivo.width)).toBeLessThan(chivo.width * widthTolerance);
   }
 });
