@@ -138,7 +138,7 @@ Desktop (≥1120px, ≥850px tall — side-by-side layout, current behaviour kep
 ║   │  Noch ein    │   │ │ PLATE  Nr 04 · name (foil) │ │          ║
 ║   │  Pack        │   │ │        Laune · aus: Ruhesaal  │ │  ← plate │
 ║   │              │   │ ├────────────────────────────┤ │          ║
-║   │  Foto        │   │ │        PHOTO WINDOW        │ │  41.5% │
+║   │  Foto        │   │ │        PHOTO WINDOW        │ │  41.5%   │
 ║   │  speichern   │   │ │      (focus-anchored)      │ │   height │
 ║   │              │   │ ├────────────────────────────┤ │          ║
 ║   │  Teilen      │   │ │ Elsa the Explorer · 1. Aul │ │  ← credit│
@@ -238,8 +238,9 @@ scripted geometry checks, not by eyeballing.
 The photograph uses `object-fit: cover` with a **focus anchor**: the manifest's
 optional `focus` field `{x, y}` percentages, default `center 42%` (faces sit
 high in Elsa's photos). There is no in-card user zoom in this round — pinch
-zooms the page (browser default, allowed and unblocked). Display copies stay
-≤720px (`view`); the **original** is used only by "Foto speichern". A photo
+zooms the page (browser default, allowed and unblocked). Display copies are the
+`detail` rung (1200 px) per ADR-0008 — `view` is the deprecated download alias, not
+a display rendition; the **original** is used only by "Foto speichern". A photo
 zoom/magnify affordance is deliberately deferred (§15).
 
 **Holo / foil treatment — adopted from the reference study** (`holo-card-ref.html`,
@@ -555,7 +556,7 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] The dialog never scrolls at any listed viewport; all seven bays visible simultaneously
 - [ ] All §6 states render correctly (front, flipped, navigating, HEIC converting, image error, share states, completed-room frame, capstone plaque, reduced motion, deep link)
 - [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v2` write occurs
-- [ ] Photo crop honours the `focus` anchor; the display copy never exceeds the band's 3-line clamp; "Foto speichern" delivers the original filename
+- [ ] Photo crop honours the `focus` anchor; the card renders the `detail` rung (1200 px), never the original; "Foto speichern" delivers the original filename
 - [ ] Holo cards show the adopted halo + ground shadow dressing; reduced motion shows both static
 
 **Input**
