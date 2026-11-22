@@ -29,7 +29,7 @@
     credit: "Foto: Hausarchiv",
     photo: {
       src: "/img/photo-unavailable.webp",
-      alt: "Elsa blickt aufmerksam in die Kamera.",
+      alt: "Platzhalter — Foto folgt.",
       width: 540,
       height: 720,
       focus: "center 42%",

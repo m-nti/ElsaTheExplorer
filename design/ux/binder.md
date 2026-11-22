@@ -233,7 +233,7 @@ open question §15.
 | `#reset-lap` + `ResetConfirmDialog` | Button + **Svelte 5 modal component** (one line: accessible confirm before persistence wipes) | head | Start over with confirmation | Yes | Button exists; dialog is new |
 | `#album-count` | Live text | head | Total count | Yes | Yes |
 | `#demo-note` | Note | head | Sample/mixed notice | Yes | Yes |
-| `#live` live region | Status | body | Announcements | Yes | Yes |
+| `#live-status` live region | Status | body | Announcements | Yes | Yes |
 
 **Pattern references** (`design/ux/interaction-patterns.md`): Collection Grid
 Tile · Set Progress Line · Progress Bar · Reset with Confirmation ·
