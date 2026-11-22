@@ -326,11 +326,11 @@
   }
 </script>
 
-<main class="reading-room">
-  <header class="masthead">
-    <p class="eyebrow">Sammelwerk · Erste Auflage</p>
-    <h1 class="wordmark">Elsa the Explorer</h1>
-    <p class="tagline">Die Sammlung ist das Produkt. Elsa ist der Sammlungsmechanismus.</p>
+<main class="slice-room">
+  <header class="slice-masthead">
+    <p class="slice-eyebrow">Sammelwerk · Erste Auflage</p>
+    <h1 class="slice-wordmark">Elsa the Explorer</h1>
+    <p class="slice-tagline">Die Sammlung ist das Produkt. Elsa ist der Sammlungsmechanismus.</p>
   </header>
 
   <div class="slice-toolbar">
@@ -358,7 +358,7 @@
 </main>
 
 <style>
-  .reading-room {
+  .slice-room {
     display: grid;
     /*
      * One `minmax(0, 1fr)` column: the track is the viewport width, so the
@@ -376,14 +376,14 @@
     background-color: var(--elsa-colors-bg);
   }
 
-  .masthead {
+  .slice-masthead {
     display: grid;
     gap: var(--elsa-spacing-2);
     max-width: var(--elsa-sizes-content);
     text-align: center;
   }
 
-  .eyebrow {
+  .slice-eyebrow {
     color: var(--elsa-colors-metal);
     font-size: var(--elsa-font-sizes-sm);
     font-weight: var(--elsa-font-weights-semibold);
@@ -391,7 +391,7 @@
     text-transform: uppercase;
   }
 
-  .wordmark {
+  .slice-wordmark {
     color: var(--elsa-colors-ink);
     font-family: var(--elsa-fonts-print);
     font-size: var(--elsa-font-sizes-display);
@@ -400,7 +400,7 @@
     line-height: var(--elsa-line-heights-display);
   }
 
-  .tagline {
+  .slice-tagline {
     color: var(--elsa-colors-muted);
     font-size: var(--elsa-font-sizes-md);
   }
