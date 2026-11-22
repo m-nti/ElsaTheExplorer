@@ -366,6 +366,21 @@ describe("canon-check: the real tree (D12b)", () => {
     // two lists together (green), while a regression to markup-only drops entries
     // from `templates` only (red) — a literal list rotted on #80 instead (#90).
     const { report } = run([]);
+    expect(report.templates).toEqual(
+      report.scanned.filter((file) => file.endsWith(".svelte")).sort(),
+    );
+  });
+
+  it("reads every Svelte template on disk under src/", () => {
+    // Independent second opinion: if the gate stopped scanning `src/` altogether,
+    // both reported lists would shrink together and the assertion above would pass
+    // vacuously. The on-disk walk cannot shrink.
+    const { report } = run([]);
+    const onDisk = svelteTemplatesOnDisk();
+    expect(onDisk.length).toBeGreaterThan(0);
+    expect(
+      report.templates.filter((file) => file.startsWith("src/")),
+    ).toEqual(onDisk);
   });
 
   it("keeps the real tree clean and the baseline empty", () => {
