@@ -127,9 +127,21 @@ const { states, reason } = readPrStates();
 const violations = [];
 let mentions = 0;
 
-for (const entry of readdirSync(planRoot, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-  if (!entry.isFile() || !/\.mdx?$/i.test(entry.name)) continue;
-  const file = join(planRoot, entry.name);
+/** Every plan under `dir`, at any depth, sorted — a plan directory may nest. */
+function planFiles(dir) {
+  const found = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (!entry.name.startsWith(".")) found.push(...planFiles(full));
+    } else if (/\.mdx?$/i.test(entry.name)) {
+      found.push(full);
+    }
+  }
+  return found.sort();
+}
+
+for (const file of planFiles(planRoot)) {
   const lines = readFileSync(file, "utf8").split(/\r?\n/);
 
   for (let index = 0; index < lines.length; index++) {
