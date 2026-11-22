@@ -644,6 +644,141 @@ keys (AGENTS.md binding) → stores reset → fresh cycle announced.
 
 ---
 
+## PWA Layer (ADR-0009, owner decision D-01)
+
+Installable, offline-first, prompt-updating. No push, no analytics, no background sync of
+personal data (there is none: the collection state is first-party `localStorage` and never
+leaves the device). D-01 delegates the decision; ADR-0009 carries the reasoning and the
+alternatives; this section is the binding technical shape.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│PAGE (app)                                                            │
+│  src/lib/pwa/register.ts ── lazy import() after first paint ──┐      │
+│  src/lib/pwa/install.ts  ── 2 listeners at boot, no payload ──┤      │
+│                                                               ▼      │
+│                                        navigator.serviceWorker       │
+└───────────────────────────────────────────────────────────────┬──────┘
+                                                                │ postMessage
+┌───────────────────────────────────────────────────────────────▼──────┐
+│SERVICE WORKER  (dist/sw.js, scope "/", no third-party imports)       │
+│  install  → precacheAndRoute(self.__WB_MANIFEST)  [no skipWaiting]   │
+│  activate → purge stale elsa-* caches → clients.claim()              │
+│  fetch    → same-origin gate → cachePolicy → 4 strategies            │
+│  message  → { type: 'SKIP_WAITING' }                                 │
+└───────┬───────────────────┬───────────────────────┬──────────────────┘
+        │ precache          │ runtime data          │ derivatives
+        ▼                   ▼                       ▼
+  elsa-precache-<hash>  elsa-cat-v1          elsa-img-tile-v1 / elsa-img-large-v1
+  (shell, hashed JS/CSS, (snapshot, ≤2 MB)     (LRU 400/20 MB, 200/32 MB)
+   fonts, icons)                                + IDB elsa-cache-index
+```
+
+Build: `vite build` → `dist/` contains `sw.js`, `manifest.webmanifest`, `icons/`, hashed
+`assets/`, `fonts/`. `__BUILD_HASH__` (`git rev-parse --short=12 HEAD` + `-dirty`, or a content
+hash without git) names the precache cache and sets `data-version` on `<html>` (test seam).
+Deploy order: `assets/` → `icons/` + `fonts/` → `manifest.webmanifest` → `sw.js` → `index.html`
+last; a half-uploaded `sw.js` fails its install and the previous worker keeps serving.
+
+### SW lifecycle
+
+| Phase | Behaviour |
+| --- | --- |
+| `install` | Precache the shell atomically (Workbox `precacheAndRoute`). **No `skipWaiting()`.** A failed precache aborts the install; the previous worker (or no worker) keeps serving. |
+| `activate` | Delete every `elsa-*` cache whose `CACHE_SCHEMA` is not current, plus stale `elsa-precache-*`; then `clients.claim()` so the **first** visit becomes controllable and the app is offline-capable from visit 1. Claiming does not reload the page. |
+| `waiting` | Page detects on boot (`getRegistration().waiting`) and live (`updatefound` → `installed` + an existing controller). Shows the quiet `update.ready` affordance. Nothing reloads. |
+| confirm | Page posts `{ type: 'SKIP_WAITING' }` from a user gesture → `sw.skipWaiting()` → `controllerchange` → **one** reload (guarded by a per-build `sessionStorage` flag). |
+| checks | Boot, and `visibilitychange` → visible, throttled to once per 60 min per session. Registration uses `updateViaCache: 'none'`. |
+
+Non-negotiables (D-01): no automatic reload; no `skipWaiting` without a user action; no update
+chrome over the cards — the affordance is a reserved footer line, dismissed per build
+(`lucky-elsa.update.v1`).
+
+### Cache schema
+
+`CACHE_SCHEMA` (`src/lib/pwa/schema.ts`) versions every runtime cache; bumping it is the whole
+migration. Names are `elsa-` prefixed so `activate` and the reset flow can enumerate them.
+
+| Cache / store | Contents | Hard bound | Versioned by |
+| --- | --- | --- | --- |
+| `elsa-precache-<buildHash>` | `index.html`, hashed `assets/*.js|css`, `/fonts/*.woff2`, `/icons/*`, `manifest.webmanifest` | **≤ 400 KB** compressed | build hash (old caches deleted) |
+| `elsa-cat-v1` | Validated catalogue snapshot (key `/photos.php?list=1`), last `photos.json` body (key `/photos.json`) | ≤ **2 MB**, 2 entries | `CACHE_SCHEMA` |
+| `elsa-img-tile-v1` | `tile` derivatives only | **≤ 400 entries / ≤ 20 MB** | `CACHE_SCHEMA` |
+| `elsa-img-large-v1` | `pack` + `detail` derivatives | **≤ 200 entries / ≤ 32 MB** | `CACHE_SCHEMA` |
+| IDB `elsa-cache-index` v1 | `{url, cache, bytes, lastAccess, ver}` | ≤ image entry count | `CACHE_SCHEMA` |
+| *never cached* | `?download=`, `?view=`, `?capabilities=1`, non-GET, `Range`, cross-origin, non-200, opaque | — | — |
+
+Device total **≤ 54 MB**. Two image pools on purpose: browsing detail cards must never evict the
+binder's tiles, because the offline *catalogue* is the product and detail browsing is the habit.
+
+### Strategy per resource
+
+| Resource | Match | Strategy | Never |
+| --- | --- | --- | --- |
+| App shell | `request.mode === 'navigate'` | Precache cache-first (`index.html`) | Re-fetch the shell behind the visitor; new code arrives only via the update flow |
+| JS / CSS | `/assets/*-<hash>.{js,css}` | Precache, cache-first, immutable | — |
+| Fonts | `/fonts/*.woff2` | Precache, cache-first | — |
+| Icons / manifest | `/icons/*`, `/manifest.webmanifest` | Precache, cache-first | — |
+| Photo derivatives | same origin + `photos.php?image=…&size=tile|pack|detail`, `photos/thumbs/*`, `photos/derived/*` | Runtime **cache-first**, 5-gate admission, LRU by bytes+count | Store an original, a non-image, or a body over its rendition ceiling |
+| Manifest (runtime) | `/photos.php?list=1` (`ts` and other params ignored) | **Network-first, 2.5 s deadline → snapshot**; the in-flight request keeps running and refreshes the snapshot | Break FTP-drop freshness: every online boot tries the network first |
+| Manifest (no snapshot) | same | Pass through to the network (no SW-level timeout) | Double-race the app's own 3 s / 4 s chain |
+| Static fallback | `/photos.json` | **Stale-while-revalidate** | Override a newer `?list=1` snapshot |
+| Downloads / retired | `?download=`, `?view=`, `?capabilities=1` | **Not intercepted** | Handle `Content-Disposition` or 302 in the SW |
+| Anything else, same origin | — | Pass through, not stored | Default-allow |
+| Cross-origin | — | Pass through, not stored | Cache a third-party response |
+
+The snapshot is **application data, not an HTTP cache entry**: `?list=1` is `no-store`, so the SW
+parses and validates the body and stores its own serialization. A malformed body never replaces
+a good snapshot. Freshness is protected by: network-first on every online boot; the 2.5 s
+deadline leaving the slow request running; one immediate revalidation on `online`; and an
+explicit "Aktualisieren" on the offline badge using `cache: 'reload'`.
+
+### Offline error taxonomy
+
+`navigator.onLine` is a hint, never the authority — a fetch outcome decides.
+
+| State | Trigger | Behaviour | Copy |
+| --- | --- | --- | --- |
+| `shell-cold` | Shell cached, no snapshot, network down | Shell + "no catalogue yet", one online visit needed; one retry action, disabled 10 s after a failure; no spinner | `state.offline.nocache` |
+| `catalogue-warm` | Snapshot exists, live request failed or exceeded 2.5 s | Full binder from snapshot, explicit offline badge with the snapshot date; pack, reveal, detail, language, progress and reset all work | `state.offline.badge`, `state.offline.date` |
+| `catalogue-stale` | Warm **and** snapshot age > 24 h | As warm, badge states the age plainly; still no error chrome | `state.offline.age` |
+| `image-miss` | Derivative not cached **and** offline | Card frame + name plate + printed text + foil; art window shows the neutral plate — never an empty box, never a dialog | — (silent, per `state.image.failed`) |
+| `update-waiting` | New SW in `waiting` | Quiet footer affordance, dismissible per build, no reload | `update.ready` / `update.reload` / `update.dismiss` |
+| `online-restored` | `online` event or a successful request | Badge clears, one manifest revalidation, one polite announcement per transition | `state.online.restored` |
+
+A true first visit with no prior connection cannot render anything — no web page can. `shell-cold`
+is the reachable state (installed or previously visited, catalogue never loaded), and the
+architecture promises exactly that.
+
+### Install UX
+
+One quiet offer, never a nag. Shown only when **all** hold: visits ≥ 2
+(`lucky-elsa.visits.v1`, counted once per tab session via `sessionStorage`
+`lucky-elsa.session.v1`), not already standalone, not dismissed (`lucky-elsa.install.v1`), and
+either a captured `beforeinstallprompt` or iOS. It is a reserved footer line with a dismiss
+control — no banner, no modal, no auto-opening dialog. `prompt()` runs only from the user's click;
+`userChoice === 'dismissed'` is permanent; `appinstalled` removes the affordance. iOS gets a
+one-time instruction sheet (`Teilen → Zum Home-Bildschirm`) at most once ever.
+
+### Privacy and cache-safety invariants
+
+| Invariant | Mechanism |
+| --- | --- |
+| Same-origin only | `url.origin !== self.location.origin` → pass through, never stored |
+| No third-party requests | Self-contained built SW; no remote `importScripts`; `privacy.spec.ts` still asserts zero |
+| Cache partitioning | Origin-scoped Cache Storage, app never framed — relied on, not worked around |
+| No credentials in cache | Bypass on `request.credentials === 'include'`, an `Authorization` header, or `Set-Cookie` in the response |
+| `Vary` correctness | Key = full URL (`?list=1` drops `ts` only). A response whose `Vary` names anything but `Accept-Encoding`, or `Vary: *`, is not cached. Format is URL-encoded (`format=jpeg|webp`), so a WebP body cannot answer a JPEG URL |
+| Originals inadmissible | (1) URL allowlist, (2) 200 + non-opaque + GET, (3) `Content-Type: image/*`, (4) size ≤ rendition ceiling + 8 KB, (5) no `Set-Cookie`, `Vary` clean. A 4 MB source fails gate 4 before it becomes an entry |
+| Clear cache in reset | `reset.cache.cta` in the reset dialog, own confirmation: deletes `elsa-cat-*`, `elsa-img-*`, the IDB index and the snapshot; **keeps the app shell** and the registration; `reset.body` untouched (D-05) |
+| Schema change | `CACHE_SCHEMA` bump → new names → `activate` deletes the old; an older-schema snapshot is discarded, never read |
+
+Storage keys added by this layer (all `lucky-elsa.*`, all cleared by reset): `visits.v1`,
+`install.v1` (dismissal + iOS sheet shown), `update.v1` (dismissed build hash). ADR-0003 must
+include them in the ratified key list.
+
+---
+
 ## Accessibility Architecture (Tier: Standard, committed)
 
 | Concern | Mechanism |
@@ -676,6 +811,11 @@ keys (AGENTS.md binding) → stores reset → fresh cycle announced.
 | Third-party | none, ever: no CDN fonts (Chivo self-hosted), no analytics, no external requests (PRD §5/§7) | Playwright request-block audit |
 | HEIC decoder | dynamic `import()` only when a HEIC src is actually needed | heic.ts |
 | Bundle hygiene | no runtime i18n/image/utility dependencies — dictionary and helpers are first-party code | dependency audit in review |
+| PWA precache (compressed) | ≤ **400 KB** total (shell, hashed JS/CSS, fonts, icons, manifest) | CI reads the injected `__WB_MANIFEST` + emitted files |
+| Service worker bundle | ≤ **25 KB** gzip (`dist/sw.js`) | CI size check |
+| SW registration | **0 bytes before first paint** — lazy `import()` on `requestIdleCallback` (2 s fallback) | Playwright: no `sw.js`/precache request in the LCP window |
+| Device app data (offline) | ≤ **54 MB** (400 KB precache + 2 MB snapshot + 20 MB tiles + 32 MB pack/detail) | cache-bounds test sums entries in `caches` |
+| Repeat-visit shell requests | **0** | Playwright request log on an offline reload |
 
 JS budget rationale: the entire v1 app was 1780 lines of unminified vanilla JS
 (~55 KB); the Svelte 5 rewrite must not exceed it materially. If it does, the
@@ -693,6 +833,9 @@ theatre animation code.
 | | `empty` | valid manifest, 0 photos **and** no demo set | owner-directed instructions (F15) |
 | | `network-error` | both fetches failed/timed out/non-JSON | "can't reach the archive" + retry button |
 | | `invalid` | manifest parsed but > 0 entries dropped | ready + inline count: "N cards were skipped (malformed)" |
+| Manifest — offline path | `shell-cold` / `catalogue-warm` / `catalogue-stale` | SW active, network down, snapshot absent / present / > 24 h old | See "Offline error taxonomy" in the PWA Layer — six states, each with bilingual copy or deliberate silence |
+| Service worker | `unsupported` / `installing` / `active` / `waiting` / `quota-exceeded` | registration result, lifecycle state, storage failure | `unsupported` and `quota-exceeded` are silent (the app works online-only); `waiting` → quiet update affordance; never an error dialog |
+| Install affordance | `unavailable` / `available` / `prompted` / `dismissed` / `installed` / `ios-instructions` | visit count, `beforeinstallprompt`, `userChoice`, `appinstalled`, platform | Shown only from visit 2; dismissal is permanent; iOS sheet at most once; no auto-opening dialog exists |
 | Single image (CardTile/Detail) | `loaded` | — | — |
 | | `derivative-failed` | `?image=` returns 404/415/413 | one retry against the next-smaller rendition (detail → pack → tile); if that also fails, the placeholder state below. Never falls back to the source |
 | | `unavailable` | `?image=` returns 503 (+ `Retry-After`) | same downgrade chain; the card renders its printed text, no error chrome |
@@ -737,7 +880,12 @@ Per-concern keys, each value a self-versioned envelope:
 
 ```
 EhrenElsa/
-├─ index.html                  # shell: <html lang="de">, meta/og, noscript, font preload
+├─ index.html                  # shell: <html lang="de">, meta/og, noscript, font preload,
+│                              # <link rel="manifest">, apple-touch-icon, theme-color
+├─ public/
+│  ├─ manifest.webmanifest     # name/short_name/id/start_url/scope/display/lang; theme+background
+│  │                           # colours generated from design/tokens (ADR-0009)
+│  └─ icons/                   # 192 + 512 any, 512 maskable, apple-touch 180
 ├─ photos.php                  # runtime: ?list=1 (manifest) + ?image= (tile|pack|detail)
 │                              # + ?thumb= (720 alias) ?download= (1600) ?view= (302 → download)
 ├─ photos.json                 # static manifest fallback (same v1.1 shape; PHP optional)
@@ -762,7 +910,11 @@ EhrenElsa/
 │  │  ├─ data/                 # types.ts, normalize.ts, manifest.ts, rarity.ts,
 │  │  │                        # pack.ts, cardView.ts, budgets.ts
 │  │  ├─ io/                   # share.ts, heic.ts
+│  │  ├─ pwa/                  # register.ts, install.ts, cachePolicy.ts (pure), limits.ts,
+│  │  │                        # schema.ts — ADR-0009
 │  │  └─ a11y/                 # focus.ts, announcer.svelte.ts, motion.svelte.ts
+│  ├─ sw/                      # sw.ts (lifecycle + dispatch), catalogue.ts, derivatives.ts,
+│  │                           # cacheIndex.ts — built to dist/sw.js by vite-plugin-pwa
 │  ├─ i18n/                    # schema.ts, de.ts (master), en.ts (satisfies Dictionary)
 │  └─ styles/                  # base.css (page shell, font loading) — tokens/recipes
 │                              # live in design/tokens + panda.config.ts, consumed via var()
@@ -776,7 +928,9 @@ EhrenElsa/
 │                              # make-og.mjs; qa.mjs → superseded by Playwright
 ├─ tests/
 │  ├─ unit/                    # Vitest: pack rules, rarity, normalize, migration, i18n parity
+│  │  └─ pwa/                  # cachePolicy, limits, manifest validation (ADR-0009)
 │  └─ e2e/                     # Playwright: flows, keyboard, reduced motion, error states
+│     └─ pwa/                  # offline, update, cache bounds, install, no-original
 ├─ docs/                       # architecture.md, adr/
 └─ design/                     # GDDs, UX, art bible, accessibility-requirements.md,
                                # tokens/ (typed token source, see above)
@@ -814,7 +968,6 @@ no kit needed).
   trusted to pass anything.
 
 **Playwright 1.65 — flows on the built app (`vite preview` + mocked routes).**
-
 - Open pack: 5 cards reveal, dialog opens, focus returns to the pack button (F20).
 - Keyboard-only run: `P`, `←/→`, `Esc`, tab through the binder — no pointer events.
 - `prefers-reduced-motion: reduce` emulation: no reveal animation, all five at
@@ -840,6 +993,13 @@ no kit needed).
 - a11y: axe-core pass (WCAG 2.2 AA) on the built bundle, verifying the contrast
   gate's token math holds in rendered output.
 - Privacy: zero third-party requests on a clean run (request-block audit).
+- **PWA (ADR-0009), a separate Playwright project with `serviceWorkers: 'allow'`** (the other
+  suites keep `'block'` for determinism): offline cold shell, offline warm catalogue + badge,
+  offline image-miss frame, two-build update flow (no reload without confirm, pack survives),
+  cache byte/count bounds and LRU order, no original in any cache (key scan + body hashes),
+  install affordance rules (visit 1 silent, visit 2 visible, dismissal permanent), CDP
+  `Page.getInstallabilityErrors` empty on Chromium, and manifest/icon validation with sharp.
+  Full test IDs: `docs/test-plan.md` §6.12.
 
 **Test-plan conflicts — resolved (follow UX v2, not the old test plan).** Three conflicts
 flagged against the earlier test plan are settled by the UX v2 documents and ADR-0003 scope;
@@ -864,8 +1024,11 @@ tests must assert the v2 behaviour, and a v1-derived assertion is a defect, not 
 - CSS byte budget in the bundle check (includes generated `styled-system/` output).
 
 CI order: `svelte-check --tsgo` + `tsc --noEmit` → Stylelint + cross-file diff +
-knip → Vitest (incl. contrast gate) → build + bundle-budget check → image-derivative
-byte assertion (`php -S`) → Playwright. `scripts/qa.mjs`'s checks are absorbed here.
+knip → Vitest (incl. contrast gate + PWA cache policy) → build + bundle-budget check →
+image-derivative byte assertion (`php -S`) → Playwright → **PWA gate** (precache ≤ 400 KB,
+`sw.js` ≤ 25 KB gzip, manifest/icon validation, CDP installability, `pwa` Playwright project);
+Lighthouse runs advisory only — its PWA category has not existed since Lighthouse 12.
+`scripts/qa.mjs`'s checks are absorbed here.
 
 ---
 
@@ -877,9 +1040,11 @@ byte assertion (`php -S`) → Playwright. `scripts/qa.mjs`'s checks are absorbed
 | IO (`manifest.ts`, `io/*`, `persistence`) | exactly one external API each | domain rules |
 | Stores | domain + their IO adapter | DOM outside `App`-owned `$effect`s |
 | Components | store reads + typed callbacks | `fetch`, `localStorage`, `AudioContext`, direct rarity computation |
+| Service worker (`src/sw/*`) | exactly one external API each: `caches`, `fetch`, `indexedDB`; pure policy from `lib/pwa` | Domain rules, manifest content parsing beyond shape checks, any cross-origin URL, `skipWaiting` without a message |
 
 External contracts (frozen, change only via ADR): `photos.php` endpoints and
-manifest shape above; the `lucky-elsa.*` storage namespace.
+manifest shape above; the `lucky-elsa.*` storage namespace; the `elsa-*` cache names,
+`CACHE_SCHEMA` and the five admission gates (ADR-0009).
 **This v1.1 revision *is* the ADR-0008 change** (`docs/adr/ADR-0008-image-derivatives.md`):
 the endpoint set in the derivative-contract table and the manifest shape carrying `ver` +
 `images` are the new frozen contract; `?view=`-as-original is withdrawn, and no future change
@@ -898,6 +1063,12 @@ ADR-0008.
 | Thumbnail endpoint fell through to `serveFile($path)` → a *thumbnail* request delivered the 3.98 MB original (measured 2026-11-22; the reading-room original is replaced by ≤ 210 KB JPEG / ≤ 150 KB WebP, ≈ 19–27×) | Closed parameter surface (only `tile`/`pack`/`detail`/`download` exist; no `w=`/`h=`/`q=`) + **no-original rule** (every error path returns an error body or placeholder) + `ver`-keyed immutable derivative cache + CI byte-bound assertion (`Content-Length ≤ ceiling` **and** `≠ filesize(source)`) + Playwright assertion that no request targets `photos/<file>` |
 | `--quiet` contrast below 4.5:1 | Typed token source `design/tokens/` (single corrected value); Vitest contrast gate over `tokens.ts` fails the build on any sub-4.5:1 token (with a negative test against the v1 value); stylelint `var()`-only bars off-token colors; axe-core verifies rendered output |
 | Copy promised swipe navigation that doesn't exist | Interaction-copy audit test: every interaction word in copy must map to a handler; swipe removed from copy (feature not planned) |
+| A deploy reloads the page under an open pack, destroying the reveal | No `autoUpdate`, no reload on `controllerchange` without a recorded user confirmation, no `skipWaiting` on install; dismissal per build; Playwright update test asserts the pack survives a waiting worker |
+| An original enters the offline cache (the no-original rule broken at the cache boundary) | Five-gate admission in the SW (URL allowlist, 200/non-opaque, `image/*`, size ≤ rendition ceiling + 8 KB, clean `Vary`/no `Set-Cookie`); `E-PWA-06` enumerates every cache key and samples bodies against the recorded source hashes |
+| Offline shows an empty box where a photo belongs | `image-miss` state renders frame + plate + printed text (never an empty art window, never a dialog); asserted on a card that was never fetched |
+| Offline silently serves a stale catalogue as if it were live | Offline badge + snapshot date on every warm render; network-first on every online boot; 2.5 s deadline keeps the slow response running; `online` revalidation; explicit `cache: 'reload'` refresh action |
+| Install nagging (banner every visit, auto-opened modal) | Visibility rule (visit ≥ 2, not standalone, not dismissed), permanent dismissal, `prompt()` only from a user gesture, and a "no auto-opening dialog exists" test |
+| An update never lands (stale `sw.js` from the host's 1-hour JS expiry) | `updateViaCache: 'none'` + `.htaccess` `no-cache` for `sw.js`; build-hash precache names; `activate` deletes stale caches; Playwright two-build swap test |
 
 ---
 
@@ -907,10 +1078,15 @@ ADR-0008.
 | --- | --- | --- |
 | ADR-0001 | Stack: Svelte 5 + Vite 8 + TypeScript 7 + Vitest/Playwright | Accepted (owner decision, 2026-11-22) |
 | ADR-0002 | Styling system: Panda CSS 2.0 typed tokens/recipes + scoped-CSS foil art + enforcement belt | Accepted (owner decision, 2026-11-22, 3-specialist panel) |
+| ADR-0008 | Image derivatives: fixed rendition ladder, no-original rule, `ver`-keyed cache | Accepted (owner decision, 2026-11-22) |
+| ADR-0009 | PWA: installable, offline-first catalogue with a bounded, versioned cache | Accepted (owner decision 2026-11-22, D-01) |
 
-No conflicts: ADR-0002 refines ADR-0001's styling consequences (hand-authored
-tokens → typed token source; toolchain fallback ladder for the styling layer is
-recorded in ADR-0002).
+No conflicts. ADR-0002 refines ADR-0001's styling consequences (hand-authored tokens → typed
+token source; toolchain fallback ladder for the styling layer is recorded in ADR-0002).
+ADR-0008 and ADR-0009 compose: the derivative contract supplies the immutable, `ver`-keyed URLs
+the SW caches, and ADR-0009's admission gates enforce ADR-0008's no-original rule at the cache
+boundary rather than only at the request boundary. ADR-0009 additionally binds
+`manifest.webmanifest`'s colours to ADR-0002's token source.
 
 ## Required ADRs (to be written before implementation of their layer)
 
@@ -919,12 +1095,11 @@ ratification (2026-11-22); the list below is shifted accordingly.
 
 | ADR | Topic | Why it needs its own record |
 | --- | --- | --- |
-| ADR-0003 | State & persistence schema (envelopes, migration, wipe) | Data-loss risk lives here |
+| ADR-0003 | State & persistence schema (envelopes, migration, wipe) | Data-loss risk lives here; must ratify the PWA keys `lucky-elsa.{visits,install,update}.v1` added by ADR-0009 |
 | ADR-0004 | Manifest contract v2 (`set` / `focus` / `chase`) | Cross-team contract with the owner's FTP flow |
 | ADR-0005 | Card frame & content budgets | The overflow fix is a component-level contract |
 | ADR-0006 | A11y runtime architecture (announcer, focus, motion) | Committed Standard tier |
 | ADR-0007 | Test architecture & CI gates | Budget enforcement needs a home |
-| ADR-0008 | Image derivative & manifest contract (`?image=` renditions, `ver`, no-original rule, cache) | The owner's FTP flow, the runtime image path and the byte budget all meet here; required before the derivative layer ships |
 
 ## Architecture Principles
 
@@ -968,6 +1143,16 @@ during the first build phase (ADR-0001 Consequences; ADR-0002 Spike Items):
 6. **Derivative cache placement + host capability probe**: probe writability above the
    webroot, GD `imagewebp`/`imageavif`, `memory_limit`, and `.htaccess` deny support on
    IONOS; record results in the ADR-0008 Consequences (HOST-VERIFIED-PENDING).
+7. **PWA host + deploy probe (ADR-0009)**: confirm IONOS serves `application/manifest+json`
+   for `.webmanifest`, that `sw.js` arrives with `Cache-Control: no-cache` despite the global
+   `application/javascript` expiry, that HTTPS is on (SW requires it, `localhost` excepted), and
+   that the documented upload order never leaves a `sw.js` naming a missing asset. Any deviation
+   is recorded in ADR-0009 Consequences.
+8. **First PWA build measurement**: precache ≤ 400 KB compressed, `dist/sw.js` ≤ 25 KB gzip, and
+   no precache request before first paint. If over, the first suspects are the full Chivo weight
+   set and the maskable-icon duplicates — trim those, never the budget.
+9. **iOS manual pass**: install from the home screen via the instruction sheet, offline reload,
+   and one observation of the ~7-day eviction path (`shell-cold` → one online visit restores).
 
 ## Open Questions
 
@@ -999,3 +1184,16 @@ Image-contract follow-ups (ADR-0008; do not block the derivative layer, but land
    "sharp generates `photos/thumbs/` + `derivatives/` for dev/QA and the static fallback;
    `photos.php` renders the fixed runtime renditions". Owner edit — AGENTS.md is binding for
    every agent, so it must not drift from this architecture.
+
+PWA follow-ups (ADR-0009):
+
+9. **PRD §7 assumption 2 must be restated.** It currently reads "No build pipeline, no
+   database, **no service worker**". D-01 supersedes the service-worker clause; owner edit to
+   `PRD.md` §7 (architecture cannot edit the PRD). Until it lands, this document and ADR-0009
+   are the binding version.
+10. **Manifest `screenshots`** (wide 1280×720 + narrow 1080×1920) would make the Android install
+    dialog richer. Deferred, not blocking: it needs art-direction assets and a decision about
+    showing the card faces before install. Owner/art-director.
+11. **iOS eviction is not solvable here.** If the owner finds the `shell-cold` recovery
+    confusing in practice, the answer is onboarding copy ("one online visit"), not a storage
+    trick. Revisit after the first real-device month.

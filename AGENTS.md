@@ -62,6 +62,29 @@ on the author's own say-so. Before merge:
    and lines; blockers get `--request-changes`.
 4. No merge until blockers are cleared and the review is recorded on the PR.
 
+## Standing rule — agent-owned PR lifecycle (no human approval gate)
+
+The owner does not review or approve. A PR steward agent owns the lifecycle end to end:
+
+1. **Review**: reviewer agents (`cs-code-auditor`, `cs-architecture-reviewer`, plus a
+   domain reviewer where relevant) post findings with `gh pr review`.
+2. **Resolve**: after any fix push, the steward posts **one resolution comment** mapping
+   every finding to its fix and evidence — `file:line`, commit SHA, and the command output
+   that proves it. Deferred items are listed with the reason. "Everything fixed" is only
+   said with that table attached.
+3. **Re-review**: the steward requests a fresh review from the same reviewer set.
+4. **Merge**: when blockers are cleared and the gates pass, the steward merges (admin bypass
+   is allowed where branch protection requires a second approval).
+5. **If a gate cannot run, do not merge** — say which gate and why.
+
+No merge without a recorded review and a resolution comment. No waiting on the owner.
+
+## Standing rule — commit and PR cadence
+
+Work is committed in coherent checkpoints and pushed regularly; features land as reviewed
+PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
+resolution status in a comment.
+
 ## Standing rule — no small-project bias
 
 Treat this as a production product, always. When choosing tooling, architecture or
