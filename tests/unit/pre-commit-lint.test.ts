@@ -153,4 +153,18 @@ describe("pre-commit lint hook (#103)", () => {
     const listing = runGit(repoRoot, ["ls-files", "-s", ".githooks/pre-commit"]).stdout.trim();
     expect(listing.split(/\s+/)[0]).toBe("100755");
   });
+
+  it("is installed by the hook-path step of `npm run prepare`", () => {
+    const { dir } = makeRepo("precommit-");
+    dirs.push(dir);
+
+    const result = spawnSync(process.execPath, [join(repoRoot, "scripts/git-hooks.mjs")], {
+      cwd: dir,
+      env: gitEnv(),
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(runGit(dir, ["config", "core.hooksPath"]).stdout.trim()).toBe(".githooks");
+  });
 });

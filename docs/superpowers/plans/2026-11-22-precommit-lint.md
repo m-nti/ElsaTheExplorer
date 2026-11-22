@@ -92,12 +92,13 @@ git commit -m "test(#103): share the git fixture between hook suites"
 
 - [ ] **Step 1: Write the failing tests**
 
-Five cases: a seeded unused import is rejected with the path and `line:col` (real
+Five hook cases: a seeded unused import is rejected with the path and `line:col` (real
 `eslint.config.js`, reached through a `node_modules` junction in the fixture); a clean staged
 file passes; a stage holding only `.md`/`.css` exits 0 without starting ESLint; an unstaged
 file with an unused variable does not block a clean staged file; a stub ESLint records its
-argv and proves the four extensions are selected; `git ls-files -s .githooks/pre-commit`
-reports mode `100755`.
+argv and proves the four extensions are selected. Two installation cases: `git ls-files -s
+.githooks/pre-commit` reports mode `100755`, and `scripts/git-hooks.mjs` run in a fixture
+repository writes `core.hooksPath .githooks`.
 
 - [ ] **Step 2: Run the suite to verify it fails for the right reason**
 
@@ -133,7 +134,7 @@ splitting and globbing disabled. Missing `node` or missing ESLint exits 1 with t
 - [ ] **Step 2: Run the suite to verify green**
 
 Run: `npx vitest run tests/unit/pre-commit-lint.test.ts`
-Expected: PASS, 6 passed.
+Expected: PASS, 7 passed.
 
 - [ ] **Step 3: Make the file executable in the index**
 
@@ -168,9 +169,9 @@ git commit -m "feat(#103): lint the staged files before a commit"
 ## Self-Review
 
 - **Spec coverage:** AC1 reject with file:line → Task 2 case 1. AC2 clean stage commits → case
-  2. AC3 no-op stage passes → case 3. AC4 installed by `prepare` + documented → Task 3 steps 4
-  and 6, plus the existing `toolchain.test.ts` case. AC5 test proves both paths, seeded first
-  → Tasks 2 and 3 in that order.
+  2. AC3 no-op stage passes → case 3. AC4 installed by `prepare` + documented → the two
+  installation cases, `toolchain.test.ts`, Task 3 step 4. AC5 test proves both paths, seeded
+  first → Tasks 2 and 3 in that order.
 - **Step scan:** every step names a command and the output that means it passed.
 - **Type consistency:** `GitOutput` is the only new type and both suites consume it.
 - **Review Focus:** each line has a test or a verification step above — the space case is
