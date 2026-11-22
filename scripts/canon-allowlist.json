@@ -298,12 +298,6 @@
       "reason": "Canon rule row: the water constraint's acceptance check."
     },
     {
-      "file": "design/player-journey.md",
-      "match": "\"What's new in the Catalogue?\"",
-      "status": "allowed",
-      "reason": "Narrative paraphrase of the visitor's question, not a shipped string; the journey row describes the session start."
-    },
-    {
       "file": "design/ux/binder.md",
       "match": "no wet-dog, rain, mud or bathing content exists",
       "status": "allowed",
