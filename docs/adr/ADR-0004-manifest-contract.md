@@ -1,6 +1,6 @@
 # ADR-0004: Manifest contract v2 — `ver`/`images`/`set`/`focus`/`chase`, additive and compatible
 
-- **Status**: **Accepted (owner decision, 2026-11-22)**
+- **Status**: **Accepted (owner decision, 2026-11-22)** — amended **A-1** (2026-11-22): the `focus` row default is restated as `center 42%` (§5, ticket #63; ADR-0011 R4)
 - **Deciders**: owner (final), technical-director (author)
 - **Amends**: `docs/architecture.md` v1.2 — "Manifest shape", "Manifest v2 extension", "Resolution chain"; ratifies the manifest half of ADR-0008 and the amendment `docs/photo-pipeline-implementation.md` §14.4 requests (`pipeline`, `ladder`, `renderable`, `ver`, `images`, width/height — and settles `srcset`).
 - **Related**: `ADR-0008` (rendition ladder, no-original rule), `ADR-0001` (PHP optional, FTP flow), `docs/decisions.md` D-02/D-07, `design/gdd/collection-meta.md` R-G
@@ -47,16 +47,10 @@ aspect-ratio authority). Optional, every one defaulted:
 | `alt`,`name`,`mood`,`description` | `string \| Localized` | `Localized = string \| {de,en}`; missing `en` falls back to `de` **and counts**. |
 | `rarity` | `'' \| 'common' \| 'rare' \| 'holo'` = `''` | `''` ⇒ stable id hash (F3); an override wins and never changes photo bytes. |
 | `set` | `string \| null` = `null` | Grouping tag; absent/unknown ⇒ *Neuzugänge* (D-07). |
-| `focus` | `{x,y}` = `{0.5,0.5}` | Clamped to 0..1; a wrong **type** drops the entry. |
+| `focus` | `{x,y}`, each a number 0..1 — no default object | Absent ⇒ no opinion: the renderer uses **`center 42%`** (`object-position`; ADR-0011 R4, art-bible §7, `sizes.photo-anchor`), never `50% 50%`. Explicit values clamp to 0..1; a wrong **type** drops the entry. |
 | `chase` | boolean = `false` | Content marker only: never feeds the rarity hash, never overrides F3. One per manifest; extras ignored and counted. |
 | `renderable` | boolean = `true` | Computed by `?list=1` from size/pixel caps **without decoding**; `false` renders the printed frame, never an image request. |
 | `demo`,`heic`,`filename` | bool/bool/string | v1 metadata retained (`demo` drives sample-card copy). |
-
-> **Note (ticket #56, ADR-0011 R4 — not an edit of the `focus` row):** the `focus` default above is the
-> drift R4 names. The one "no opinion" anchor is `center 42%` (art-bible §7, `sizes.photo-anchor`),
-> and an absent `focus` renders as that value. This row's default is not changed here: changing a
-> field default is a semantics change under §5 change control, so the restatement is tracked
-> separately in #63.
 
 Unknown fields are ignored, never an error — that is what makes the contract additive.
 
@@ -86,6 +80,16 @@ break the typed ratio that CLS 0 depends on. The photo-pipeline `srcset` hook is
 "Manifest shape" + this ADR are the contract. Changing field semantics, rendition names or error
 statuses requires superseding this ADR or ADR-0008, not a PHP patch. Additive optional fields are
 the normal path: a table row here plus a normalize rule.
+
+#### A-1 — `focus` default restated as `center 42%` (2026-11-22, ticket #63)
+
+The `focus` row used to state a 0.5 / 0.5 centre pair as the absent-value default. That was the
+manifest-neutral anchor, not the value the design renders: ADR-0011 R4 ruled one "no opinion"
+anchor, `center 42%` (art-bible §7, `sizes.photo-anchor`, `CardFace.svelte`), because faces sit
+high in Elsa's photographs. The field keeps no default object — absent still means *no opinion* —
+and the renderer supplies `center 42%`. Type, the 0..1 clamp and the wrong-type drop rule are
+unchanged, so no emitter, normalizer or consumer behaviour moves; the restatement is recorded
+here because §5 makes a default change a semantics change.
 
 ## Consequences
 
