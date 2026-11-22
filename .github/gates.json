@@ -2,6 +2,7 @@
   "enforced": [
     { "id": "canon", "script": "canon" },
     { "id": "canon-self-test", "script": "test:canon" },
+    { "id": "table-integrity", "script": "gate:tables" },
     { "id": "typecheck", "script": "check:ts" },
     { "id": "svelte-check", "script": "check" },
     { "id": "stylelint", "script": "stylelint" },
