@@ -667,7 +667,9 @@ kbd { display: inline-flex; min-width: 22px; min-height: 22px; align-items: cent
   grid-template-rows: auto auto auto auto auto;
   align-content: center;
   justify-items: center;
-  gap: 10px;
+  /* One base unit between the close button, card and status/hint. The card to
+     button gap is stepped up on .lightbox__actions below. */
+  gap: var(--space-2);
   overflow: hidden;
   padding: 20px 24px 22px;
 }
@@ -699,11 +701,12 @@ kbd { display: inline-flex; min-width: 22px; min-height: 22px; align-items: cent
   align-items: center;
   justify-content: center;
   gap: 8px;
-  /* Room to breathe between the card and the controls below it. */
-  margin-top: var(--space-5);
+  /* Card -> buttons is the one deliberate large step (8px row gap + 16px).
+     Buttons, status and hint then tighten into a single control group. */
+  margin-top: var(--space-4);
 }
 .lightbox__actions .button { width: auto; min-height: 42px; }
-.print__status { grid-column: 1; grid-row: 4; min-height: 1.1em; text-align: center; }
+.print__status { grid-column: 1; grid-row: 4; min-height: 1.1em; margin-top: var(--space-1); text-align: center; }
 .print__hint { grid-column: 1; grid-row: 5; max-width: none; text-align: center; }
 
 /* A clear, repeatable physical opening: packet arrives, flexes, tears on one
@@ -800,7 +803,9 @@ kbd { display: inline-flex; min-width: 22px; min-height: 22px; align-items: cent
   .lightbox__close { grid-column: 1 / -1; grid-row: 1; }
   .lightbox__actions { grid-column: 2; grid-row: 2; display: grid; width: 150px; justify-self: start; align-self: center; margin-top: 0; }
   .lightbox__actions .button { width: 100%; }
-  .print__status { grid-column: 2; grid-row: 3; justify-self: start; text-align: left; }
+  /* Side-by-side layout: the 24px column gap is the card/control separation,
+     so the rows stay evenly spaced. */
+  .print__status { grid-column: 2; grid-row: 3; justify-self: start; margin-top: 0; text-align: left; }
   .print__hint { grid-column: 2; grid-row: 4; justify-self: start; text-align: left; }
 }
 @media (max-width: 760px) {

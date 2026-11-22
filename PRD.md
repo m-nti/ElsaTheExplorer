@@ -1,5 +1,31 @@
 # Elsen — Product Requirements Document
 
+> **REVISION NOTE — 2026-11-22 (v2.1 direction change).** The owner has approved a full
+> refactor. Three things on this page are superseded; everything else still binds:
+>
+> 1. **Title & positioning.** The product is now **Elsa the Explorer** — a *card library*
+>    (Sammelwerk) about Elsa, where the collection itself is the product and Elsa is the
+>    collection mechanism. The visitor is an explorer/reader of the archive, not the recipient
+>    of a gift. Museum-catalogue register, warm dry humor, unchanged.
+> 2. **Stack.** The "no build pipeline" assumption (line 15) is replaced by an approved
+>    toolchain, newest majors (verified 2026-11-22): **Svelte 5.59.1 + Vite 8.3.8 +
+>    TypeScript 7.0.2 (strict) + Vitest 5.1.1 + Playwright 1.65.1**, built locally and
+>    deployed as static files to IONOS. Assumption 3 survives intact: `photos.php` remains the
+>    runtime manifest source, so dropping photos on the server and reloading stays the whole
+>    owner workflow. Node/sharp scripts generate thumbnails and crop anchors for local dev/QA
+>    only.
+> 3. **Collection meta is approved in full**: six themed sets + loose cards ("Neuzugänge"),
+>    holo-last reveal order, "2. Auflage" stamps, per-set frame unlocks, 25/50/75 % milestones,
+>    Das Entdecker-Diplom / The Explorer's Diploma at 100 %, one chase card (Das
+>    Hauptporträt). The binder becomes **Der Katalog / The Catalogue**; copy shifts from
+>    "gesehen" to "katalogisiert". Storage stays first-party `localStorage` (`lucky-elsa.*`),
+>    no accounts, no analytics.
+>
+> Binding normative sources for the refactor: `AGENTS.md` (project facts),
+> `design/game-brief.md`, `design/gdd/collection-meta.md`, `docs/architecture.md`,
+> `design/accessibility-requirements.md` (committed tier: Standard). §5 (privacy) and
+> §7 (scope/constraints) remain binding except where explicitly replaced above.
+
 **Product:** Elsen, a static website where you open a pack and get five collectible cards of the
 dog Elsa. Each card pairs one supplied photo with its bilingual, photo-specific name, mood and
 caption; optional `/10` values are manually matched jokes, visibly marked as imaginary.
