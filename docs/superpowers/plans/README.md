@@ -14,19 +14,24 @@ Committed implementation plans, written with the `writing-plans` skill and execu
    `.superpowers/sdd/<slug>/progress.md` — never here.
 4. The final review passes, the ledger is deleted, the plan stays as the record.
 
-**Required header**
+**Required header** (verbatim from `writing-plans`)
 
 ```markdown
-# <Feature> — implementation plan
+# <Feature> Implementation Plan
 
-> **Ticket:** Closes #N · **Branch:** feat/<slug> · **Base:** <sha>
-> **Spec:** <path> (§…) · **Status:** draft | executing | done
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** [one sentence: what this builds]
+**Architecture:** [2–3 sentences on the approach]
+**Tech Stack:** [key technologies/libraries with versions]
+**Spec:** [path to the spec/design doc this plan implements — it travels with the plan]
 
 ## Global Constraints
 - stack, budgets, canon rules, a11y tier that every task must honour
 
 ## Review Focus
-- what the reviewers must check beyond "tests pass"
+- the five failure modes the spec implies but no task test covers, most likely first,
+  each with the test that pins it in the task that owns the code
 ```
 
 **Task shape**
