@@ -181,32 +181,23 @@ everything fits from 320×480 up.
 The card face is a **fixed set of proportional bands**. These requirements are
 binary and testable; they exist to kill the reported defect permanently.
 
-**Wireframe — the six bands (percentages of card inner height):**
+**Bands — seven bays (six content + gutters), percentages of the card plate's inner height.**
+These are the D12a values from `design/art/art-bible.md` §8, which is the authority; the
+photograph is the only lit object, so it takes the largest content band.
 
-```
-┌────────────────────────────────┐  ─┐
-│ ███ PLATE ███                  │   │ 1 · plate — auto, ≤18%
-│   Nr 04 · KARTENNAME (≤2 ln)   │   │   number, name, mood, rarity chip,
-│   Laune: messiwoll · aus: Ruhesaal│   │   set chip, 2.-Auflage stamp (r2)
-├────────────────────────────────┤  ─┤
-│                                │   │ 2 · photo window — flexible,
-│         PHOTOGRAPH             │   │   min 34% of card height;
-│         (cover, focus anchor)  │   │   nothing ever overlaps it
-│                                │   │
-├────────────────────────────────┤  ─┤
-│ Elsa the Explorer · 1. Auflage │   │ 3 · credit strip — fixed band
-│ ●●●●○ (stars, own row)         │   │   (~7%): edition credit + stars;
-├────────────────────────────────┤  ─┤   never painted over the photo
-│ ELSA-MOMENT                    │   │ 4 · Elsa-Moment — keyword +
-│ sentence (wraps in band)       │   │   sentence + "Im Bild" note,
-│ Im Bild: …                     │   │   clamp 14% max
-├────────────────────────────────┤  ─┤
-│ FANTASIEWERTE · NUR ZUM SPASS  │   │ 5 · Fantasiewerte label +
-│ [7/10]  [9/10]  [3/10]         │   │   3 stat chips (~12%); every
-├────────────────────────────────┤  ─┤   value fully inside its chip
-│ 04/24         Elsa the Ex · 1A │   │ 6 · serial foot — fixed ≥5%:
-└────────────────────────────────┘  ─┘   serial + credit + edition
-```
+| Bay | % | Content and clamp |
+|---|---|---|
+| 1 · plate | **15.5** | row 1: name, **one line with ellipsis**; row 2: number, mood (one line), rarity chip |
+| 2 · photo window | **41.5** | 4:5 window filling its band (no block padding), `object-position` from the focus anchor; nothing overlaps it |
+| 3 · credit strip | **5.5** | edition credit + stars, own row, never painted over the photo |
+| 4 · story | **19.5** | keyword + sentence (≤ 3 lines) + "Im Bild" note |
+| 5 · stats | **8.5** | Fantasiewerte label + 3 stat chips, every value inside its chip |
+| 6 · foot | **5.0** | serial + credit + edition |
+| 7 · gutters | **4.5** | five gaps, never collapses; the foil edge keeps its margin |
+
+At the 340 × 485.71 px reference the plate's inner height is 469.71 px and the photo window is
+**155.94 px wide (45.87 % of card width)**. Tile cards use the shelf column from §8
+(15.5 / 44 / 5.5 / 16 / 9 / 5.5 / 4.5).
 
 **L1 — Fit formula owns the chrome, not a magic number.**
 The card slot width is `min(340px, 38vw, (100svh − chrome) × 0.70)` where
@@ -218,10 +209,9 @@ Rationale: the defect class "stat clipped at the bottom" comes from the slot
 being sized for a chrome estimate that broke at small heights.
 
 **L2 — Every zone is a band in a fixed grid.**
-`card--full` keeps `aspect-ratio: 0.70` (0.58 below 380px width) and lays its
-six zones out on `grid-template-rows` with the proportions above; zones may
-shrink their *inner* font (§5.3 zone rules) but may never push, overlap or
-starve a neighbour. Absolute positioning inside a band may not escape the
+`card--full` keeps `aspect-ratio: 0.70` (the 0.58 narrow-width variant is retired, ADR-0011 R5)
+and lays its seven bays out on `grid-template-rows` with the proportions above; zones may
+shrink their *inner* font (§5.3 zone rules) but may never push, overlap or starve a neighbour. Absolute positioning inside a band may not escape the
 band. Decorative foil layers (rays, glitter, glare) may cover the card but
 never carry content.
 
@@ -562,7 +552,7 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] Card navigation swap completes within 150ms of the keypress (library SSOT)
 
 **Layout & Rendering**
-- [ ] The dialog never scrolls at any listed viewport; all six bands visible simultaneously
+- [ ] The dialog never scrolls at any listed viewport; all seven bays visible simultaneously
 - [ ] All §6 states render correctly (front, flipped, navigating, HEIC converting, image error, share states, completed-room frame, capstone plaque, reduced motion, deep link)
 - [ ] A deep link with an id that is not in the collection (removed or mistyped photo) opens **no dialog**: the stage renders intact, focus remains on `#open-pack`, and no `seen.v2` write occurs
 - [ ] Photo crop honours the `focus` anchor; the display copy never exceeds 720px; "Foto speichern" delivers the original filename
