@@ -413,21 +413,9 @@
     },
     {
       "file": "docs/test-plan.md",
-      "match": "| 1a | Canon / vocabulary |",
-      "status": "allowed",
-      "reason": "CI contract row: a rule declaration that enumerates the vocabulary this gate forbids (same class as the copy deck's own banned-word lists)."
-    },
-    {
-      "file": "docs/test-plan.md",
       "match": "No water vocabulary in either dictionary",
       "status": "allowed",
       "reason": "Test row (U-I18N-15) that asserts the water ban this gate enforces."
-    },
-    {
-      "file": "docs/test-plan.md",
-      "match": "(\"no catalogue yet\", one online visit needed)",
-      "status": "allowed",
-      "reason": "Test description quoting the offline copy paraphrase; the key `state.offline.nocache` owns the string."
     },
     {
       "file": "docs/test-plan.md",
