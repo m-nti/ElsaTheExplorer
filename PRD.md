@@ -38,7 +38,9 @@ caption; optional `/10` values are manually matched jokes, visibly marked as ima
 1. The site is personal and private by default: friends and family get a link, search engines get
    nothing.
 2. Hosting is the existing IONOS webspace with FTP and the webspace explorer, plus PHP if the host
-   offers it. No build pipeline, no database, no service worker.
+   offers it. A local build pipeline exists (Vite/Svelte — ADR-0001), the deploy target is still
+   static files, and an installable offline shell (PWA) is approved (ADR-0009). No database. Owner
+   drops photos by FTP and reloads; `photos.php` remains the runtime manifest source.
 3. Photos arrive by FTP, through the IONOS webspace explorer, or later through a visitor upload.
    Dropping the file and reloading the page stays the whole workflow.
 4. **German is the default language; English is a full second language, switchable in the header.**

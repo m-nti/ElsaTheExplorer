@@ -67,7 +67,7 @@ There is **no disabled print button in any state**: at zero the button prints a 
 | Cancel | browser dialog "Cancel" / `Esc` | native | `Esc` |
 | Return | `afterprint` → focus back on the print button | same | same |
 
-**Flow:** the sheet is always built in the DOM (`display:none` on screen), so the click handler calls `window.print()` **synchronously** — no `await`, no image decode, no fetch between gesture and dialog (Safari/iOS silently drop print calls after an async gap). `@media print` reveals it; the crest SVG is **inlined** for the same reason. Flipping `print:toggle` re-derives the sheet in the same task (a mode change must be visible before the gesture, never inside it). On `beforeprint`, set `document.title` to `Sammelbogen-Elsa-{date}`; on `afterprint`, restore the title and focus. `n = 0` → the button **does** open the dialog and prints the crest sheet; `absent` (empty manifest) → there is no button to press.
+**Flow:** the sheet is **built on intent** — the print button's `pointerdown`/`focus` starts building it (hidden on screen) so the click handler can still call `window.print()` **synchronously** (Safari/iOS silently drop print calls after an async gap). If the build is not finished at click time, print opens with the crest and text and the images fill on the next print; no fetch ever sits between the gesture and the dialog. `@media print` reveals it; the crest SVG is **inlined** for the same reason. Flipping `print:toggle` re-derives the sheet in the same task (a mode change must be visible before the gesture, never inside it). On `beforeprint`, set `document.title` to `Sammelbogen-Elsa-{date}`; on `afterprint`, restore the title and focus. `n = 0` → the button **does** open the dialog and prints the crest sheet; `absent` (empty manifest) → there is no button to press.
 
 ## 5. Print CSS Contract
 
@@ -77,13 +77,13 @@ There is **no disabled print button in any state**: at zero the button prints a 
   .masthead, .stage, .catalogue__tools, .print-controls, .print-toggle,
   dialog, .live-region, .no-print { display: none !important; }
   .print-sheet { display: block; }                 /* hidden on screen, sole print surface */
-  .print-sheet { --paper: #f7f4ee; --paper-ink: #1c1a20; background: var(--paper); color: var(--paper-ink); }
+  .print-sheet { background: var(--elsa-colors-print-paper); color: var(--elsa-colors-print-ink); }
   .print-grid { display: grid; grid-template-columns: repeat(4, 43mm); grid-auto-rows: 58mm; gap: 4mm; }
   .print-card { break-inside: avoid; }             /* a card never splits across pages */
   .print-page { break-inside: avoid; page-break-inside: avoid; overflow: visible; height: auto; min-height: 0; }
   .print-page + .print-page { break-before: page; break-after: auto; } /* one wrapper per page, no break after the last */
   .print-card img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .print-crest { color: var(--paper-ink); }        /* one ink, currentColor: no gradient, foil, filter or raster */
+  .print-crest { color: var(--elsa-colors-print-ink); }        /* one ink, currentColor: no gradient, foil, filter or raster */
   .print-sheet *, .print-sheet *::before, .print-sheet *::after { animation: none !important; transition: none !important; }
   a[href]::after { content: none; }                /* no URL spill */
 }
@@ -92,8 +92,8 @@ There is **no disabled print button in any state**: at zero the button prints a 
 - **Layout:** A4 portrait, 12 mm margins, **fixed 4-column grid** (not `1fr`): `repeat(4, 43mm)` columns of **58 mm** rows, 4 mm gutter — 16 cells per page, arithmetic in §2. Header block ~18 mm (crest 30 mm page 1, left of the title block), footer ~8 mm. Caption under each cell: `print:number`, name, then **room as the label line**, together ≥ 7 pt; the name may wrap to two lines, the room line shrinks first, **no ellipsis** (print has no hover for a tooltip).
 - **Page wrappers break correctly:** the builder emits one `.print-page` per 16 cells and nothing relies on browser flow; `break-before: page` only on wrappers *after* the first, `break-inside: avoid` on the wrapper and on every cell, and every `100svh`/scroll ancestor is neutralised (`overflow: visible`, `height: auto`, `min-height: 0`) — the classic clipped-last-page bug.
 - **What prints:** header title, brand, **the crest (page 1 only, one seal per document — `motif-sheet.md` §2.8)**, `print:count`, per card `print:number`, name, room label; footer `print:page`, `print:date`. At `n = 0`: crest (12 mm mark) + `print:empty` instruction line, **never an empty grid and never a lone header on a blank sheet**. Nothing else prints — no buttons, **no placeholder toggle or any other control (`print-controls`, `print-toggle` are print-hidden and must also be absent from the DOM copy the print sheet renders)**, no foil, no dialogs, no progress bars, no "2. Auflage" stamps (pull history, not collection state).
-- **Colour decision:** the sheet is a light paper document, not the dark parlour — a full-bleed `#111017` page is an ink flood and prints poorly on home printers. `--paper #f7f4ee` / `--paper-ink #1c1a20` are two tokens scoped to `.print-sheet` (≈ 15.7:1, one palette, not two), so a dark sheet is a token change if the owner overrules. Photos keep exact colour; rarity is a printed word, never colour. `print-color-adjust: exact` on `<img>` only — never on surfaces, never on the crest (it uses `currentColor`).
-- Images are built eagerly (not `loading="lazy"`) with width/height set, so `window.print()` does not race the network; 43 mm ≈ 508 px at 300 dpi, which the existing 2× sharp thumb covers.
+- **Colour decision:** the sheet is a light paper document, not the dark parlour — a full-bleed `#111017` page is an ink flood and prints poorly on home printers. `print-paper #f7f4ee` / `print-ink #1c1a20` are Palette tokens (`design/tokens/tokens.ts`, gated by the `print-ink-on-paper` contrast pair at ≥7:1 — measured ≈15.7:1), so a dark sheet is a token change if the owner overrules. Photos keep exact colour; rarity is a printed word, never colour. `print-color-adjust: exact` on `<img>` only — never on surfaces, never on the crest (it uses `currentColor`).
+- Images load **on intent**, not on page load: only inside the prepared sheet, `loading="eager"` + `fetchpriority="low"`, width/height set. **Byte budget:** ≤ 16 tiles × 55 KB JPEG (≈880 KB) or ≤ 576 KB WebP; oversize or failed images print the card frame + name + room (never the original, never a blank cell). 43 mm ≈ 508 px at 300 dpi, covered by the 360 tile rung at 2×.
 
 ## 6. Accessibility
 

@@ -19,6 +19,7 @@
 
 import { defineRecipe, defineTokens } from "@pandacss/dev";
 import type { ContrastPair } from "../../src/lib/domain/contrast";
+import type { RarityTier } from "../../src/lib/domain/rarity";
 import { motionCssVars } from "./motion";
 
 const value = <T>(input: T): { value: T } => ({ value: input });
@@ -57,6 +58,9 @@ export const palette = {
 
   // Card print colours, measured against their plate stops.
   printName: "#fbf5ed",
+  /** Print sheet paper + ink (light document, not the dark parlour). */
+  printPaper: "#f7f4ee",
+  printInk: "#1c1a20",
   printNumber: "#c4b7aa",
   printMood: "#c5b8c6",
   printRarity: "#e5d7c6",
@@ -77,8 +81,6 @@ export const palette = {
 } as const;
 
 /** The typed rarity tier table (art-bible §4). Values are the §8 numeric ranges. */
-export type RarityTier = "common" | "rare" | "holo";
-
 export interface RarityTierSpec {
   readonly label: Readonly<{ de: string; en: string }>;
   /** Foil edge-ring opacity — 0 / 0.28 / 0.42–0.56 (art-bible §8). */
@@ -206,6 +208,17 @@ function tierVars(tier: RarityTier): Record<`--tier-${string}`, string> {
 }
 
 /**
+ * Exhaustiveness guard: a new member of `RarityTier` without a matching tier
+ * spec and variant is a TypeScript error here. This is the compile-time
+ * replacement for the three drifting holo values the v1 stylesheets shipped.
+ */
+const rarityVariants = {
+  common: tierVars("common"),
+  rare: tierVars("rare"),
+  holo: tierVars("holo"),
+} satisfies Record<RarityTier, Record<`--tier-${string}`, string>>;
+
+/**
  * The ONLY sanctioned variant mechanism for rarity (ADR-0002).
  * Class names come from `styled-system/recipes`; the variant set is exhaustive
  * at compile time, so a fourth tier cannot ship without being added above.
@@ -215,11 +228,7 @@ export const rarityRecipe = defineRecipe({
   description: "Rarity tier: the typed home of foil ring, photo, glitter and glow physics.",
   base: {},
   variants: {
-    rarity: {
-      common: tierVars("common"),
-      rare: tierVars("rare"),
-      holo: tierVars("holo"),
-    },
+    rarity: rarityVariants,
   },
   defaultVariants: {
     rarity: "common",
@@ -255,6 +264,8 @@ export const tokens = defineTokens({
     "plate-body-to": value(palette.plateBodyTo),
 
     "print-name": value(palette.printName),
+    "print-paper": value(palette.printPaper),
+    "print-ink": value(palette.printInk),
     "print-number": value(palette.printNumber),
     "print-mood": value(palette.printMood),
     "print-rarity": value(palette.printRarity),
@@ -326,6 +337,11 @@ export const tokens = defineTokens({
     "photo-anchor": value("center 42%"),
     "photo-focus-x": value("50%"),
     "photo-focus-y": value("42%"),
+    "card-root": value("4cqw"),
+    "glitter-size": value("10em 7.5em"),
+    "glitter-mask-stop": value("70%"),
+    "glint-from": value("-35%"),
+    "glint-to": value("35%"),
   },
 
   aspectRatios: {
@@ -373,6 +389,9 @@ export const tokens = defineTokens({
       "linear-gradient(180deg, var(--elsa-colors-plate-body-from), var(--elsa-colors-plate-body-to))",
     ),
     "foil-rise": value("linear-gradient(180deg, transparent, rgb(0 0 0 / 28%))"),
+    glint: value(
+      "linear-gradient(115deg, transparent 44%, rgb(255 255 255 / 55%) 50%, transparent 56%)",
+    ),
   },
 });
 
@@ -450,6 +469,7 @@ export const contrastPairs: readonly ContrastPair[] = [
   ]),
 
   // Card header plate (lightest stop #2c2636) and body plate (lightest #25212d).
+  { id: "print-ink-on-paper", fg: palette.printInk, bg: palette.printPaper, minimum: 7, role: "text" },
   { id: "print-name-on-header", fg: palette.printName, bg: palette.plateHeaderFrom, minimum: 4.5, role: "text" },
   { id: "print-number-on-header", fg: palette.printNumber, bg: palette.plateHeaderFrom, minimum: 4.5, role: "text" },
   { id: "print-mood-on-header", fg: palette.printMood, bg: palette.plateHeaderFrom, minimum: 4.5, role: "text" },

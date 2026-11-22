@@ -1096,7 +1096,7 @@ photo that fails at render time still 415s, and the client's error path covers i
 
 - ADR-0004 (manifest v2 contract) must be **amended** with `pipeline`, `ladder`,
   `renderable`, `ver`, `images`, `srcset` and the changed `width`/`height` semantics.
-- A new ADR (next free number) records: rendition ladder, no-original rule, cache
+- **ADR-0008** (Accepted) records: rendition ladder, no-original rule, cache
   strategy, GD/Imagick detection order, sharp-for-parity. The fallback ladder is:
   Imagick-only → GD-only → static `photos.json` + `photos/derived` (PHP can be absent
   entirely, per `architecture.md`).
