@@ -1,168 +1,193 @@
-# Elsen
+# Elsa the Explorer
 
-A small static site where you open a pack and get five collectible cards of Elsa — each
-with its own bilingual photo caption, mood and clearly imaginary, photo-matched play values.
-One card in every pack gets a holographic finish. Made to share with
-friends and family. Everything a visitor sees comes out of one folder, so it can be
-dropped on any IONOS webspace over FTP.
+A card library about one dog. The shape it settled into: a pack holds **four cards**, revealed
+one after another; German is what a visitor sees first and English is one tap away; everything is
+built in the repo and ships as static files to an IONOS webspace, where nothing is built or run
+except `photos.php` when the host has PHP.
 
-- **German is the default.** Visitors can switch to English with the `DE` / `EN` toggle in the
-  header; the choice is remembered and can also be forced with `?lang=de` or `?lang=en`.
-- **No build step for the visitor.** Plain HTML, CSS and JavaScript, self-hosted fonts, no
-  framework, no cookie banner, no tracking.
-- **A velvet-gallery look with opal foil.** Deep plum-black surfaces and pearl-metal frames keep
-  Elsa's photos central; rainbow foil, glitter and glare are reserved for the cards and pack.
+**Die Sammlung / The Collection** is the product; Elsa is the collection mechanism, and cards are
+*gesammelt* / *collected*. The terms are fixed in both languages: **Die Sammlung / The
+Collection**, **gesammelt / collected**, **Der Abfahrtsaal / The Departure Hall**.
 
-## What is in here
+No accounts, no analytics, no third-party requests. The only data stored anywhere is on the
+visitor's own device.
 
-```
-index.html              the page
-assets/css/style.css    dark gallery, pack stage, collection, navigation and dialog
-assets/js/app.js        pack and card logic, German and English copy, sharing, keyboard
-assets/js/card-bank.js  the bank of German and English card names, lines, moods and rarities
-assets/css/cards.css    the card itself: holographic foil, rarity and photo-matched details
-assets/fonts/           Chivo, self-hosted
-assets/og.png           preview image for shared links
-demo/                   eight sample cards so the site works out of the box
-photos/                 your real photos go here (empty until you fill it)
-photos.php              optional live photo list for FTP-only hosting
-photos.json             generated list of what the site should show
-scripts/                local helpers (not uploaded to the server)
-```
+## Status: v2 in progress
 
-## Look at it locally
+The app is being rebuilt on Svelte 5 + Vite 8 + TypeScript + Panda CSS. The v1 vanilla
+implementation is archived in `legacy/` — kept as reference, not built, not deployed.
+
+What exists in this tree today:
+
+- **B0 scaffold:** toolchain, Panda codegen, ESLint/Stylelint/knip/jscpd, the CI gate chain and
+  `npm run verify`. Record: `docs/build/b0-b1-verification.md`.
+- **B1 tokens and gates:** the typed token source, rarity recipes, and the contrast gate with its
+  negative proofs.
+- A shell that renders **one sample card** (`src/App.svelte` is a B1 fixture), plus in-memory
+  collection/audio/i18n stores and a handful of pure domain functions under `src/lib/domain/`.
+
+The pack theatre, the collection, the reading room, the meta layer and the PWA are **not built
+yet**. They are phases B2 to B8, one ticket each, tracked in `docs/action-plan.md` §3. Design,
+copy and architecture are settled and binding; the build catches up to them. The gates that
+cannot run yet are declared pending in `.github/gates.json` and are listed under *Gates* below.
+
+Read `docs/action-plan.md` §0 before contributing: it is the delivery harness — a worktree per
+ticket, a committed plan, TDD (or a named gate for a docs task), review by a dedicated agent, and
+pasted evidence before any claim.
+
+## Stack
+
+Versions are pinned in `package.json` and `package-lock.json`; `.nvmrc` pins Node.
+
+| Piece | Version | Notes |
+| --- | --- | --- |
+| Node | 26 (`.nvmrc`, `engines: >=26`) | npm 11.6.2 declared in `packageManager` |
+| Svelte | 5.59.1 | runes-based stores; no SvelteKit, no SSR |
+| Vite | 8.3.8 | plain app build, with `@sveltejs/vite-plugin-svelte` 7.3.1 |
+| TypeScript | 7.0.2 | native compiler via the `@typescript/native` alias, strict |
+| TypeScript (check) | 6.0.3 | **required alongside TS 7**: `svelte-check --tsgo` puts the native compiler in charge and still loads the TS 6 API |
+| Panda CSS | 2.6.0 | typed tokens and rarity recipes, static output, no runtime CSS-in-JS |
+| Vitest | 5.1.1 | two projects: `unit` and `canon` |
+| Playwright | 1.65.1 | end-to-end against `vite preview`; the suite is pending (#24) |
+| sharp | 0.35.5 | **dev-only** image generator for local QA, never shipped |
+
+Also present: ESLint 10, Stylelint 18, knip 6, jscpd 5.
+
+## Local workflow
 
 ```bash
-npm install       # only needed for the helper scripts (puppeteer-core)
-npm run serve     # serves the folder at http://localhost:4173
+npm ci            # pinned install; the lockfile must install on linux/x64 too
+npm run dev       # Vite dev server on http://localhost:5173
+npm run verify    # every enforced gate, in CI order, stopping at the first failure
 ```
 
-Open <http://localhost:4173> and click the pack. The wrapper tears, five cards rise into view, and
-you can open one to flip it or save and share the photo.
+`npm run verify` reads `.github/gates.json` and runs the scripts CI runs; `npm run ci:gates`
+proves the two lists agree, so a gate cannot be skipped by a typo. Paste its last line when you
+report — a green run is evidence, an intended run is not. Every command exits non-zero on
+failure; `npm run verify` stops at the first failing gate and names it.
 
-There is also `PRD.md`: why the site exists, what it promises, what it deliberately does not do,
-and which skills and agents own which part of it.
+| Command | What it does |
+| --- | --- |
+| `npm run build` | `panda codegen && vite build` → `dist/` |
+| `npm run preview` | serves `dist/` on <http://127.0.0.1:4173> (Playwright's base URL) |
+| `npm run check` | `svelte-check --tsgo` |
+| `npm run check:ts` | `tsc --noEmit` |
+| `npm run test:unit` | Vitest `unit` project with coverage |
+| `npm run test:canon` | the canon gate's own self-tests |
+| `npm run canon` | the vocabulary/canon gate (see *Canon*) |
+| `npm run canon:strict` | the same gate as a ratchet: the known-defect baseline fails it |
+| `npm run photos` | the sharp derivative generator — **not implemented yet**; it fails loudly until I3 (#21) |
 
-## Get the photos in
+### Pre-push hook
 
-1. Copy Elsa's photos into `photos/` — JPG, PNG, WebP, GIF, AVIF or HEIC (straight from an
-   iPhone), flat, no subfolders.
-2. Run:
+`npm run prepare` sets `git config core.hooksPath .githooks`, so every push runs
+`.githooks/pre-push`:
 
-   ```bash
-   npm run photos
-   ```
+1. the working tree must be clean — the hook verifies the tree, but the push sends the commit;
+2. `npm run lockfile:check` proves the lockfile still installs on CI's linux/x64 platform;
+3. `npm run verify` runs the full enforced gate set.
 
-   This writes `photos.json`, makes 720 px thumbnails in `photos/thumbs/`, and rewrites the
-   manifest. Run it again whenever photos change.
-3. Upload everything to the server (except `node_modules/`, `scripts/` and `qa-shots/`).
+A deliberate bypass is `SKIP_VERIFY=1 git push`. It is for a hotfix, and it must be named in the
+pull request; a red CI run on work pushed with the hook skipped is attributed, not shrugged at.
 
-HEIC files from an iPhone are converted to JPEG once, into `photos/converted/`, because most
-browsers cannot show HEIC. On the server `photos.php` does the same through Imagick when your
-hosting has it; if it does not, the visitor's own browser converts the photo instead, so nothing
-is missing either way.
+## Gates
 
-If `photos/` holds fewer than eight photos, sample cards fill the set up to eight. Once there
-are eight real ones the samples drop out on their own.
+Twelve gates are enforced and run by `npm run verify`: `canon` · `canon-self-test` · `typecheck`
+· `svelte-check` · `stylelint` · `selector-diff` · `unused-css` · `eslint` · `knip` · `jscpd` ·
+`unit` · `build`.
 
-Names, moods, descriptions and screen-reader alt text are set per photo in `photos/captions.json`,
-keyed by filename. Keep German and English text together so a card still describes the same moment
-after someone changes languages:
+Four are **pending** in `.github/gates.json` with their ticket, and cannot report success:
+`e2e` and `axe` (#24), `budget` (#25), `pwa` (#19). Nothing in this README claims them.
 
-```json
-{
-  "elsa-im-garten.jpg": {
-    "name": { "de": "Garten-Inspektorin", "en": "Garden Inspector" },
-    "mood": { "de": "aufmerksam", "en": "alert" },
-    "description": {
-      "de": "Der Garten ist geprüft. Ein zweiter Rundgang schadet trotzdem nie.",
-      "en": "The garden has been checked. A second round never hurts."
-    },
-    "alt": {
-      "de": "Elsa steht im Garten und schaut in die Kamera.",
-      "en": "Elsa stands in the garden and looks at the camera."
-    },
-    "rarity": "rare"
-  }
-}
-```
+## Photos
 
-See `photos/captions.example.json`. `rarity` is optional; allowed values are `common`, `rare` and
-`holo`. Without it, the photo keeps its stable id-based rarity.
+Photos are **runtime data**, not release content. The owner drops new files into `photos/` over
+FTP and reloads; nothing is rebuilt and nothing is redeployed.
 
-### If you only want to drag photos onto the server
+- `photos.php` is the runtime manifest source, implemented to the contract in
+  `docs/photo-pipeline-implementation.md` §3 and `docs/adr/ADR-0008-image-derivatives.md`:
+  `?list=1` returns the manifest, `?image=NAME&size=tile|pack|detail&format=jpeg|webp` returns a
+  derivative, `?download=NAME` is the 1600 px rung. `?thumb=` is the 720 alias; `?view=` is
+  retired and answers with a redirect, never bytes.
+- **No-original rule:** no code path returns an unprocessed source byte — a failure is a status
+  code, never a file. Originals are never served to the UI, and a release never overwrites,
+  deletes or syncs `photos/`.
+- The ladder is fixed at 360 / 720 / 1200 / 1600 px, JPEG with WebP where the host can encode it.
+  Numeric `size=` values are rejected by design.
+- Per-photo copy — bilingual name, mood, `description` (the caption), alt text, optional rarity —
+  lives in `photos/captions.json`; `photos/captions.example.json` shows the shape.
+- `scripts/photos.mjs` is the Node/sharp counterpart for **local dev and QA only** and is never
+  uploaded. It is a fail-loud placeholder until the sharp ladder and manifest v2 land in I3
+  (#21); the specification is the same document as above.
+- `npm run dev` and `npm run preview` serve `/photos/*` through a dev-only Vite middleware with
+  the same containment rules as the PHP layer, so local QA needs no PHP at all.
 
-Leave `photos.php` on the server next to `index.html`. The site asks `photos.php?list=1` first and
-uses its answer when there are photos in `photos/`; otherwise it falls back to `photos.php`'s empty
-answer and then to `photos.json`. With PHP enabled you can drop new images into `photos/` over FTP
-and they appear after a reload, with thumbnails built by PHP on first request. With PHP disabled
-the site still works from `photos.json` alone.
+## Deploy
 
-`photos/.htaccess` blocks directory listing and any script execution inside `photos/`.
+The artefact is `dist/` from `npm run build`, uploaded to the IONOS document root over FTP. No
+staging, no shell, no cron, no database, one operator.
 
-## Deploy to IONOS
+1. The server-side files versioned in the repo — `photos.php`, `photos/.htaccess` and the
+   derivative-cache skeleton (`photos/.cache/`, committed with its deny file) — safe at any
+   time.
+2. `assets/` (content-hashed), then `fonts/` and `img/` — what `npm run build` emits today,
+   alongside `index.html` and `favicon.svg`.
+3. **Pending (B8, #19):** `icons/` and `manifest.webmanifest`, then `sw.js` — only after every
+   asset it precaches. None of the three exists yet; the build produces no `sw.js` and the PWA
+   gate is pending, so they are not upload steps today.
+4. `index.html` **last**, because it names the new bundle.
 
-Upload these to the document root of the domain:
+Never delete and upload in one pass; keep the previous build's hashed assets for one release.
+Rollback is re-uploading the previous `release/<version>-<hash>/` artefact. Release unit, version
+identity and live checks: `docs/adr/ADR-0007-release-deploy.md`; PWA deploy order:
+`docs/adr/ADR-0009-pwa.md`.
 
-```
-index.html
-photos.php
-robots.txt
-.htaccess
-assets/          (css, js, fonts, favicon.svg, og.png) and assets/vendor/heic2any/
-photos/          (your photos, plus photos/thumbs/, photos/converted/, photos/.htaccess,
-                  and photos/.cache/.htaccess — the cache deny file)
-demo/            (only while photos/ holds fewer than eight photos)
-photos.json      (only when you rely on the static manifest)
-```
-
-Nothing else. Leave `scripts/`, `node_modules/`, `package.json` and `qa-shots/` on the Mac.
-
-Two things to know:
-
-- **Shared links need an absolute URL.** `og:image` currently points at `assets/og.png`, which is
-  fine for most messengers once the page itself is reachable, but WhatsApp and Facebook like a full
-  address. Replace it in `index.html` with `https://yourdomain/assets/og.png` to be safe.
-- **The site asks not to be indexed.** `robots.txt` and the `noindex` meta tag keep Elsa out of
-  search engines and out of image search. If you want it findable later, remove both.
+`photos.php` is the only server-side code, and it is only used when the host has PHP. Its host
+capabilities (GD/WebP/Imagick, memory limit, writable cache directory) are external facts
+verified on the webspace at first deploy (I4, #22), not knowable from the repo. The PWA (offline
+shell, derivative cache, quiet update) is specified in ADR-0009 but its gate is pending (#19), so
+treat it as a plan, not a shipped feature.
 
 ## Privacy
 
-There is nothing to declare. No login, no cookies, no analytics, no third-party requests. The only
-data stored is on the visitor's own device: which photos were already seen and whether sound and
-German or English are preferred (`localStorage`). Nothing leaves the browser.
+Storage is first-party `localStorage` only, under the `lucky-elsa.*` namespace (ADR-0003): what
+was already opened, language, sound, milestones. No accounts, no cookies, no analytics, no
+tracking, no external fonts or CDNs. Reset clears every key it owns, after a confirmation. The
+guarantees and the non-goals are `PRD.md` §5/§7. Persistence attaches to the stores in a later
+phase; today the store is in-memory (see *Status*).
 
-Because it is a family site with personal photos, the default stays private: no indexing, no
-directory listing, no script execution inside `photos/`.
+## Canon
 
-## Helper scripts
+- The entity is **Die Sammlung / The Collection**; the progress verb is **gesammelt /
+  collected**. No other name is used for it.
+- A pack holds **four cards**, none repeated inside the pack, at least one rare or holographic.
+- German addresses the reader as *du* — the informal you, never *Sie*; English is plain and warm.
+  No marketing voice, no invented measurements.
+- **No water content.** Elsa hates water: no water-themed cards, copy, jokes or rooms. The sixth
+  room is **Der Abfahrtsaal / The Departure Hall**.
 
-| Command          | What it does                                                     |
-| ---------------- | ---------------------------------------------------------------- |
-| `npm run photos` | Writes `photos.json` and thumbnails for everything in `photos/`   |
-| `npm run demo`   | Rebuilds the eight sample cards in `demo/`                        |
-| `npm run og`     | Rebuilds `assets/og.png`, the share preview image                 |
-| `npm run serve`  | Serves the folder at <http://localhost:4173>                      |
-| `npm run qa`     | Runs UI/interaction checks and writes screenshots to `qa-shots/`  |
-| `npm run check`  | Syntax check for `assets/js/app.js`                               |
+`npm run canon` enforces that vocabulary in `design/`, `docs/`, `src/`, `PRD.md` and `AGENTS.md`,
+with reasoned exemptions in `scripts/canon-allowlist.json`. It does not scan this README, so the
+rules here hold by care, not by gate.
 
-`npm run qa` needs `npm run serve` running in another terminal. It checks bilingual photo content,
-pack/reveal behavior, card flip and opaque back, modal geometry at desktop and compact viewports,
-keyboard focus, silent binder opens, deep links, the empty state, and the no-JS notice.
+## Where the documents live
 
-## How the pack behaves
+| Path | What is in it |
+| --- | --- |
+| `AGENTS.md` | the binding project instructions: canon, workflow, reviews, board |
+| `PRD.md` | why this exists, personas, scope, non-functional requirements |
+| `design/` | game brief, GDDs, UX specs, art bible, copy deck, tokens, accessibility tier |
+| `design/tokens/tokens.ts` | the typed token source of truth; WCAG ratios are computed and gated here |
+| `docs/architecture.md` | layers, data contracts, persistence, PWA, performance budget, folder structure |
+| `docs/adr/` | ADR-0001 to ADR-0009: stack, styling, persistence, manifest, i18n, testing, release, images, PWA |
+| `docs/action-plan.md` | the harness (§0) and every phase, ticket and status |
+| `docs/superpowers/plans/` | one committed plan per ticket, with the mandatory header |
+| `docs/test-plan.md` | test IDs, fixtures, gate order, definition of done |
+| `docs/decisions.md` | owner rulings (D-01 to D-09) |
+| `docs/photo-pipeline-implementation.md` | the `photos.php` endpoint contract and the static generator |
+| `docs/build/` | build-phase verification records |
 
-- One pack holds five cards, drawn from the ones the visitor has not seen yet, and at least one of
-  them is rare or holographic.
-- A photo keeps the same bilingual name, mood and caption. `/10` play values are manually matched
-  editorial jokes, visibly labelled as imaginary; they are not measurements of Elsa.
-- Once every photo has been drawn the set starts over on its own, so no one runs out of cards.
-- Cards can be opened from the pack or from the binder below, walked through with `←` and `→`, saved
-  or shared as a link. Press `P` to open a pack.
-- Unknown real photos get neutral copy until a bilingual caption is supplied. Optional play values
-  are photo-specific jokes, never generated pseudo-measurements.
-- Rarity is stable per photo, with at least one holo per pack; holo foil shifts with pointer tilt.
-- Every pack tears open with a foil rip and a confetti burst, and a card opening gets its own small
-  burst and a short chime. Confetti is a canvas drawn in the set's own colours — no library, no
-  image, and nothing at all when sound is off or motion is reduced.
-- Reduced-motion preferences are respected: cards appear without the stagger, the foil keeps still.
+## Licence and content
+
+Private project. The photographs are personal and are not part of the repository; no licence to
+them is granted or implied.
