@@ -5,6 +5,8 @@ on:
     branches: [main]
   push:
     branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -26,29 +28,57 @@ jobs:
       - name: Install
         run: npm ci || npm install
 
+      - name: Scaffold presence
+        run: |
+          missing=""
+          for f in index.html src/main.ts vite.config.ts panda.config.ts; do
+            [ -e "$f" ] || missing="$missing $f"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::scaffold incomplete — missing:$missing"
+            exit 1
+          fi
+
+      # Gate order follows ADR-0006: typecheck first, then styling/lint/dead
+      # code, then tests, then the build. Fast failures come first.
       - name: Canon / vocabulary gate
         run: npm run --if-present canon
+
+      - name: Typecheck (tsc)
+        run: npm run --if-present check:ts
+
+      - name: Typecheck (svelte-check --tsgo)
+        run: npm run --if-present check
+
+      - name: Stylelint
+        run: npm run --if-present stylelint
+
+      - name: Cross-file selector diff
+        run: npm run --if-present gate:selectors
+
+      - name: Unused CSS (Svelte compiler)
+        run: npm run --if-present gate:unused-css
 
       - name: Lint (ESLint)
         run: npm run --if-present lint
 
-      - name: Stylelint + selector diff
-        run: npm run --if-present stylelint
-
       - name: Dead code (knip)
         run: npm run --if-present knip
 
-      - name: Typecheck (tsc + svelte-check)
-        run: npm run --if-present check
+      - name: Duplicate code (jscpd)
+        run: npx --yes jscpd --config jscpd.json .
 
-      - name: Unit tests (Vitest)
+      - name: Unit tests + contrast gate (Vitest)
         run: npm run --if-present test:unit
 
       - name: Build
         run: npm run --if-present build
 
-      - name: Duplicate code (jscpd)
-        run: npx --yes jscpd --config jscpd.json .
-
       - name: E2E (Playwright)
-        run: npm run --if-present test:e2e
+        run: |
+          if compgen -G "tests/e2e/*.spec.ts" > /dev/null; then
+            npx playwright install --with-deps chromium
+            npm run test:e2e
+          else
+            echo "No Playwright specs yet (arrive in B2+) — skipped."
+          fi

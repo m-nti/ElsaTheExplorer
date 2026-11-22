@@ -85,6 +85,13 @@ Work is committed in coherent checkpoints and pushed regularly; features land as
 PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
 resolution status in a comment.
 
+## Standing rule — watch CI on every push; red is not allowed to sit
+
+After every push: `gh pr checks <n>`; on failure read `gh run view <run-id> --log-failed`.
+Fix small in-scope failures in the same PR; otherwise ticket with the failure output and say
+in the PR that it is expected-red until that ticket lands. The steward watches before merge
+and reports the final run. A daily scheduled run checks `main`; red on `main` is P0.
+
 ## Standing rule — fix small debt now; ticket only with evidence
 
 Before declaring anything "out of scope", run the gate:

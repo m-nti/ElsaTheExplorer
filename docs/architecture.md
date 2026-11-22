@@ -226,9 +226,9 @@ the slot's presented rarity; from the binder or deep link, intrinsic rarity.
 Actions: save (`images.download` → 1600 px compressed JPEG; the source is never
 downloadable through the UI), share (`share.ts`: `navigator.share` →
 clipboard fallback → visible confirmation state), "another pack".
-**Keyboard: `P` opens a pack, `←`/`→` step cards, focus returns to the pack button
-on close (F20). No swipe gestures — if copy once promised swiping, that copy is
-wrong, not the feature (see defect matrix).**
+**Keyboard: `P` opens a pack, `←`/`→` step cards, focus returns to the pack
+button on close (F20). Chevrons, `←`/`→` and horizontal swipe all call the same
+`navigateCard(±1)` path (interaction-patterns v2 governs; C2 settled).**
 
 ### `Diplom.svelte` — cycle-complete milestone
 
@@ -1078,6 +1078,11 @@ ADR-0008.
 | --- | --- | --- |
 | ADR-0001 | Stack: Svelte 5 + Vite 8 + TypeScript 7 + Vitest/Playwright | Accepted (owner decision, 2026-11-22) |
 | ADR-0002 | Styling system: Panda CSS 2.0 typed tokens/recipes + scoped-CSS foil art + enforcement belt | Accepted (owner decision, 2026-11-22, 3-specialist panel) |
+| ADR-0003 | State & persistence schema (envelopes, migration, wipe) | Accepted (owner decision, 2026-11-22) |
+| ADR-0004 | Manifest contract v2 (`ver`/`images`/`set`/`focus`/`chase`) | Accepted (owner decision, 2026-11-22) |
+| ADR-0005 | i18n: typed dictionary, DE/EN parity, no runtime library | Accepted (owner decision, 2026-11-22) |
+| ADR-0006 | Test architecture & CI gates | Accepted (owner decision, 2026-11-22) |
+| ADR-0007 | Release & static deploy (IONOS, versioning, rollback) | Accepted (owner decision, 2026-11-22) |
 | ADR-0008 | Image derivatives: fixed rendition ladder, no-original rule, `ver`-keyed cache | Accepted (owner decision, 2026-11-22) |
 | ADR-0009 | PWA: installable, offline-first catalogue with a bounded, versioned cache | Accepted (owner decision 2026-11-22, D-01) |
 
@@ -1088,18 +1093,15 @@ the SW caches, and ADR-0009's admission gates enforce ADR-0008's no-original rul
 boundary rather than only at the request boundary. ADR-0009 additionally binds
 `manifest.webmanifest`'s colours to ADR-0002's token source.
 
-## Required ADRs (to be written before implementation of their layer)
+## Required ADRs (remaining)
 
-Numbering note: ADR-0002 was assigned to the styling system at owner
-ratification (2026-11-22); the list below is shifted accordingly.
+Written and accepted: 0001–0009 (see the audit above; ADR-0003 also ratifies the PWA
+keys `lucky-elsa.{visits,install,update}.v1`).
 
 | ADR | Topic | Why it needs its own record |
 | --- | --- | --- |
-| ADR-0003 | State & persistence schema (envelopes, migration, wipe) | Data-loss risk lives here; must ratify the PWA keys `lucky-elsa.{visits,install,update}.v1` added by ADR-0009 |
-| ADR-0004 | Manifest contract v2 (`set` / `focus` / `chase`) | Cross-team contract with the owner's FTP flow |
-| ADR-0005 | Card frame & content budgets | The overflow fix is a component-level contract |
-| ADR-0006 | A11y runtime architecture (announcer, focus, motion) | Committed Standard tier |
-| ADR-0007 | Test architecture & CI gates | Budget enforcement needs a home |
+| ADR-0010 | A11y runtime architecture (announcer, focus manager, motion gate) | Committed Standard tier; runtime, not per-screen |
+| ADR-0011 | Card frame & content budgets | The overflow fix is a component-level contract |
 
 ## Architecture Principles
 

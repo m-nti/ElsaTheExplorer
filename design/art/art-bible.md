@@ -3,7 +3,7 @@
 > **Status**: Draft · Reframe 3 (reveal camera; four-card pack)
 > **Owned By**: art-director
 > **Last Updated**: 2026-11-22
-> **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-22 — gate run: CONCERNS with five findings, all fixed in the same pass: §4 `--quiet` `#978fa0` + credit `#9a8da0`; §2/§6 Sammlung naming; §6/§7 wing progress line, "aus:" chip and "In der Sammlung" badge specified; §5 LOD rung; §7 rays tokenised (`--elsa-dur-rays`). Re-run pending.
+> **Art Director Sign-Off (AD-ART-BIBLE)**: APPROVED 2026-11-22 — gate re-run clean (5 findings + 3 residues fixed)
 
 Scope note: this is a **refinement** of the shipped dark parlour look, not a redesign —
 but the *product definition* has been sharpened, and with it every visual sentence below.
