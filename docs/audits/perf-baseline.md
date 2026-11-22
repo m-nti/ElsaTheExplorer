@@ -26,12 +26,12 @@
 | Asset | Raw B | Gzip B |
 |---|---:|---:|
 | `index.html` | 11,760 | 3,464 |
-| `assets/css/style.css` + `cards.css` | 65,034 | 15,711 |
-| `assets/js/app.js` + `card-bank.js` | 71,517 | 20,248 |
+| `legacy/assets/css/style.css` + `cards.css` | 65,034 | 15,711 |
+| `legacy/assets/js/app.js` + `card-bank.js` | 71,517 | 20,248 |
 | `chivo-latin.woff2` | 33,252 | 33,187 (pre-compressed) |
 | `ultra-latin.woff2` | 15,248 | 15,098 |
 | `photos/thumbs/elsa-01.jpg` | 111,795 | 107,644 |
-| `assets/og.png` | 466,442 | 464,689 |
+| `legacy/assets/og.png` | 466,442 | 464,689 |
 | `vendor/heic2any` | 1,351,840 | 337,743 (dynamic only) |
 
 ## Cold thumbnail generation (serialized, temp copy)

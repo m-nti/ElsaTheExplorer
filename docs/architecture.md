@@ -8,7 +8,7 @@
 - Host: IONOS shared webspace, static deploy, PHP optional (`photos.php`), never required
 - Requirements Source: `PRD.md` §3–§7 (binding); `design/accessibility-requirements.md` (committed, Standard tier). GDDs/UX/art specs are being authored concurrently and are not yet reviewed here — traceability review (`/architecture-review`) runs once they land.
 - ADRs Referenced: `docs/adr/ADR-0001-stack.md` (Accepted), `docs/adr/ADR-0002-styling-system.md` (Accepted), `docs/adr/ADR-0008-image-derivatives.md` (Accepted), `docs/adr/ADR-0009-pwa.md` (Accepted, owner decision 2026-11-22).
-- Path note: the studio skill template names `docs/architecture/architecture.md`; AGENTS.md binds `docs/architecture.md` for this project. AGENTS.md wins.
+- Path note: the studio skill template names `docs/architecture.md`; AGENTS.md binds `docs/architecture.md` for this project. AGENTS.md wins.
 
 ---
 
@@ -1028,7 +1028,7 @@ knip → Vitest (incl. contrast gate + PWA cache policy) → build + bundle-budg
 image-derivative byte assertion (`php -S`) → Playwright → **PWA gate** (precache ≤ 400 KB,
 `sw.js` ≤ 25 KB gzip, manifest/icon validation, CDP installability, `pwa` Playwright project);
 Lighthouse runs advisory only — its PWA category has not existed since Lighthouse 12.
-`scripts/qa.mjs`'s checks are absorbed here.
+`legacy/scripts/qa.mjs`'s checks are absorbed here.
 
 ---
 

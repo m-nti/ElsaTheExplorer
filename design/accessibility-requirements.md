@@ -12,7 +12,7 @@
 > - PlayStation Accessibility — N/A (no console release)
 > - Apple / Google Accessibility Guidelines — N/A as platform requirements (web only); OS screen readers are supported through the browser and are in scope via the screen-reader rows below.
 > **Accessibility Consultant**: None engaged
-> **Linked Documents**: `PRD.md` (§4.1 F17–F22, §5 Accessibility, §9 Open Questions), `index.html`, `assets/js/app.js`, `assets/css/style.css`, `assets/css/cards.css`
+> **Linked Documents**: `PRD.md` (§4.1 F17–F22, §5 Accessibility, §9 Open Questions), `index.html`, `legacy/assets/js/app.js`, `legacy/assets/css/style.css`, `legacy/assets/css/cards.css`
 > **Template**: Accessibility Requirements
 
 > **Why this document exists**: Per-screen annotations live in the code and the PRD; this

@@ -15,7 +15,7 @@
   `docs/adr/ADR-0002-styling-system.md` (`theme_color`/`background_color` must derive from
   `design/tokens/tokens.ts`), `docs/adr/ADR-0008-image-derivatives.md` (fixed rendition
   ladder, `ver`-keyed immutable URLs, no-original rule), `PRD.md` §5 (privacy, performance)
-  and §7 (static host, owner FTP flow), `AGENTS.md` (privacy, water canon), `design/decisions.md`
+  and §7 (static host, owner FTP flow), `AGENTS.md` (privacy, water canon), `docs/decisions.md`
   D-01/D-08.
 
 ## Context

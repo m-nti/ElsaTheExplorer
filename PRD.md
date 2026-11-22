@@ -181,10 +181,10 @@ without pretending to be a product. Each supplied photo gets its own title and c
 | **Compatibility** | Current Safari, Chrome, Firefox, Edge; iOS Safari and Android Chrome. Graceful, understandable degradation without JavaScript. |
 | **Performance** | No layout shift on load, no blocking third-party requests, thumbnails lazy-loaded in the binder, display copies capped at 720 px. Feels instant on mobile data. |
 | **Accessibility** | WCAG 2.2 AA target: keyboard operable, visible focus, `aria-pressed` on toggles, live regions, reduced motion honoured, readable contrast, German and English declared per element where it matters. |
-| **Bilingual** | UI copy lives in `assets/js/app.js` (`COPY.de`, `COPY.en`); supplied-photo descriptions live in `photos/captions.json`; the bank is only fallback/demo content. German is what a first-time visitor sees. |
+| **Bilingual** | UI copy lives in `legacy/assets/js/app.js` (`COPY.de`, `COPY.en`); supplied-photo descriptions live in `photos/captions.json`; the bank is only fallback/demo content. German is what a first-time visitor sees. |
 | **Privacy** | No cookies, no analytics, no third-party embeds, no external fonts or CDNs. Local storage only, on the visitor's device. Photos are not indexed or listable. |
 | **Security** | No executable code in `photos/`; PHP resolves real paths inside `photos/` only and refuses anything that is not an image; `X-Content-Type-Options: nosniff`, `Referrer-Policy`, no directory indexing. |
-| **Maintainability** | Five files carry the product: `index.html`, `assets/css/style.css`, `assets/css/cards.css`, `assets/js/app.js`, `assets/js/card-bank.js`. Everything else is a helper or generated. Adding a photo is a file drop. |
+| **Maintainability** | Five files carry the product: `index.html`, `legacy/assets/css/style.css`, `legacy/assets/css/cards.css`, `legacy/assets/js/app.js`, `legacy/assets/js/card-bank.js`. Everything else is a helper or generated. Adding a photo is a file drop. |
 | **Design** | Dark velvet gallery, soft overhead spotlight, pearl-metal card frames, indigo-black plates, layered iridescent foil, diagonal glare and procedural glitter. Elsa's photographs remain the art. Rarity changes the foil strength, not the photo. The pack tears open in the center of the viewport and cards reveal one at a time. |
 | **Tone of voice** | Family-and-friends register in both languages. German card text addresses the reader as *du*, never *Sie*. No marketing voice, no invented numbers, no testimonials, no exclamation-mark confetti. English is plain and warm. |
 
@@ -313,7 +313,7 @@ of this document's plan.
 | `copy-editing` | Final read of both languages for drift, length and consistency |
 | `senior-frontend` | The file architecture, the copy deck pattern, no-build constraint |
 | `a11y-audit` | WCAG 2.2 AA checks: keyboard, focus, live regions, contrast, reduced motion |
-| `qa-browser-automation` | `scripts/qa.mjs`, the smoke test and screenshots |
+| `qa-browser-automation` | `legacy/scripts/qa.mjs`, the smoke test and screenshots |
 | `privacy-compliance` | Noindex, no cookies, hardened `photos/`, nothing leaving the browser |
 | `seo-analyst` | Only in the negative direction here: title, description, OG image, and staying unlisted |
 | `launch-playbook` | FTP deployment checklist, OG domain note, post-upload verification |
