@@ -3,7 +3,7 @@
   "entries": [
     {
       "file": "design\\spec.md",
-      "match": "\"Das Sammelheft hat Zuwachs.\" is retained",
+      "match": "\"Das Heft hat Zuwachs.\" is kept",
       "status": "baseline",
       "issue": 85,
       "reason": "fixture: baselined row reached through a key written with the Windows separator"
