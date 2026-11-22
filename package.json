@@ -27,7 +27,7 @@
     "canon:strict": "node scripts/canon-check.mjs --strict",
     "test:canon": "vitest run --project canon",
     "photos": "node scripts/photos.mjs",
-    "prepare": "panda codegen && { git config core.hooksPath .githooks || true; }",
+    "prepare": "panda codegen && node scripts/git-hooks.mjs",
     "gate:unused-css": "node scripts/gate-svelte-css.mjs",
     "jscpd": "jscpd --config jscpd.json .",
     "ci:gates": "node scripts/ci-gates.mjs",
