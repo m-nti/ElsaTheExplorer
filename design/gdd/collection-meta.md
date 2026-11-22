@@ -456,7 +456,7 @@ manifest handling, feel knobs in the copy deck / CSS, so the Vitest and Playwrig
 - `design/ux/interaction-patterns.md` — the pattern library; its Set Progress Line "omit" rule backs the empty-section rule in E4.
 - `PRD.md` — F3 (rarity by photo id), F4 (promotion pity), F5/F6 (no dupes, deck walk), F2a (imaginary-stats label), §5 (privacy, tone, design), §10.4 (uploads deferred). Note: PRD terminology ("Sammelheft", "Erste Auflage") predates the Elsa the Explorer reframe; the copy decisions here supersede it pending a PRD revision.
 - `/private/var/folders/.../holo-card-ref.html` — approved foil reference study (layered repeating-linear-gradients with em stops, conic rainbow bloom, pointer radial mask, tilt/flip).
-- `assets/js/card-bank.js` — the copy register this document's German strings must match (port intact through the refactor).
+- `legacy/assets/js/card-bank.js` — the copy register this document's German strings must match (port intact through the refactor).
 - Future GDDs: Reveal Theatre (holo-last ordering + foil pass), Catalogue wing-grouping spec — extract from refactor stories if they grow beyond one sitting.
 
 ## Acceptance Criteria

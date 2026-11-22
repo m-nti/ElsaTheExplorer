@@ -24,6 +24,8 @@
     "gate:selectors": "node scripts/selector-diff.mjs",
     "canon": "node scripts/canon-check.mjs",
     "gate:tables": "node scripts/table-integrity.mjs",
+    "check:paths": "node scripts/check-paths.mjs",
+    "gate:plan-status": "node scripts/plan-status.mjs",
     "canon:strict": "node scripts/canon-check.mjs --strict",
     "test:canon": "vitest run --project canon",
     "photos": "node scripts/photos.mjs",

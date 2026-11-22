@@ -7,7 +7,7 @@
 
 ## Context
 
-v1 was verified by `scripts/qa.mjs` — a Puppeteer smoke script with screenshots and eyeballed
+v1 was verified by `legacy/scripts/qa.mjs` — a Puppeteer smoke script with screenshots and eyeballed
 assertions. It did not catch what shipped (copied rarity, collapsed error states, a sub-4.5:1
 token, an original served on a thumbnail request), because each defect was structural rather than
 a missing check. The answer is not more manual QA but **placements**:

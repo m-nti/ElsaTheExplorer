@@ -39,7 +39,7 @@ Audio follows the same curve: v1 ships **no ambience and no music** (the room is
 ## 2. Audio Event Table
 
 All events are one-shots. "Duration" is the audible envelope, not the scheduled stop time.
-Legacy implementation names (`playRip`, `playTick`, `playWin` in `assets/js/app.js`) map onto the new keys in §6.
+Legacy implementation names (`playRip`, `playTick`, `playWin` in `legacy/assets/js/app.js`) map onto the new keys in §6.
 
 | Event key | Trigger | Synthesis recipe · duration | Pri | Reduced motion | Type |
 | --- | --- | --- | --- | --- | --- |
