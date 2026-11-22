@@ -190,6 +190,7 @@ function tierVars(tier: RarityTier): Record<`--tier-${string}`, string> {
     "--tier-photo-foil": String(spec.photo),
     "--tier-glitter-opacity": String(spec.glitter),
     "--tier-glow-size": spec.glow,
+    "--tier-glow-opacity": String(spec.ring),
     "--tier-foil-strength": String(spec.foilStrength),
     "--tier-glint-duration": spec.glint.duration,
     "--tier-glint-opacity": String(spec.glint.opacity),
@@ -286,6 +287,8 @@ export const tokens = defineTokens({
   },
 
   fontSizes: {
+    label: value("13px"),
+    chip: value("12px"),
     sm: value("11px"),
     md: value("13px"),
     lg: value("16px"),

@@ -186,7 +186,7 @@ glow to be noticed, the hierarchy is wrong — promote it or delete it.
 `#c4b7aa`, mood `#c5b8c6`, rarity text `#e5d7c6`, keyword `#f0d5bd`, copy `#d6cdd7`,
 print-line `#b7aab8`, stat-key `#b8adbb`, stat-value `#f6eee5`, serial `#b7aaba`,
 credit `#9a8da0`, stats-label `#bfb1ca`, kind `#c2b7c5`. All measured ≥ 4.5:1 against
-their plate except the credit (4.56:1 — pass, but flagged small; see §7).
+their plate. The credit is `#9a8da0` — **5.02:1 on the body plate, 4.65:1 on the lightest header stop**; the retired `#928697` measured 4.23:1 there and is not used (see §7).
 
 ### Semantic usage
 
@@ -423,7 +423,9 @@ state it louder than the cards do.
 - **Type scale (px, not rem — root-size independence and print parity):** display 86 / 52 / 34; card name 19
   (drop 13–16, full 16–22 `cqw` clamp); lede 19; body 16; UI small 13/12; captions 11;
   metadata floor 9 (see UX view for the 8px flag); eyebrows 10 with `0.14em` uppercase
-  tracking. Line-height: display ≤ 1.0, card body 1.3–1.4, UI body 1.5.
+  tracking; **Label 13/500** (`0.01em`, room progress lines and "In der Sammlung");
+  **Chip 12/600** (`0.02em`, the "aus: [Wing]" chip). Both emitted from `tokens.ts`
+  `fontSizes.label` / `fontSizes.chip`. Line-height: display ≤ 1.0, card body 1.3–1.4, UI body 1.5.
 
 **Iconography.** One family only: 24-grid, 2px round-cap strokes (close, speaker waves
 and slash) plus exactly one filled mark — the paw crest. On-card the only permitted
@@ -473,13 +475,12 @@ Contrast measured against shipped values (WCAG relative-luminance):
 
 Rules and flags:
 
-1. **`--quiet` raised (owner decision, 2026-11-22).** The token must pass 4.5:1 like
+1. **`--quiet` resolved (owner decision, 2026-11-22).** The token must pass 4.5:1 like
    every other text token — **no decorative or redundant-text exemption class exists.**
-   Its final hex is measured at the build-phase token spike and must pass the belt; until
-   that measurement lands, the shipped `#756e7d` (3.86:1) is out of spec, and its users
-   (`progress__note`, `stage__hint`, `print__hint`) simply inherit the raised token —
-   no string moves anywhere, and no string is exempt. *Corrective guidance for the next
-   CSS pass.*
+   The value is now **`#978fa0`** (6.08:1 on `--bg`, 5.62 raised, 5.30 surface, 4.66
+   surface-light); the Vitest contrast belt enforces it. The retired `#756e7d` (3.86:1)
+   is out of spec and unused. Its users (`progress__note`, `stage__hint`, `print__hint`)
+   inherit the raised token — no string moves, and no string is exempt.
 2. **Metadata floor.** 8px text (`.card__credit`, drop-card stat keys at 7px) is below
    what the Oma persona should have to read. Floor: 9px for anything on a card, 10px for
    anything a control depends on. Recommend raising drop stat-keys 7→9px at the next pass.
@@ -596,7 +597,7 @@ distinct from the **safety caps** — 20 MiB compressed input, 32 MP acceptance,
 
 | Rung | Longest edge | Served to | WebP ceiling | JPEG ceiling | Loading |
 | --- | --- | --- | --- | --- | --- |
-| **tile** | 360 px | binder grid tiles; pack-seal preview | **≤ 36 KB** | **≤ 55 KB** | lazy — except the one preloaded seal preview |
+| **tile** | 360 px | Sammlung grid tiles; pack-seal preview | **≤ 36 KB** | **≤ 55 KB** | lazy — except the one preloaded seal preview |
 | **pack** | 720 px | card face in the pack reveal / pack theatre | **≤ 80 KB** | **≤ 110 KB** | eager on pack open |
 | **detail** | 1200 px | reading room (card detail dialog) | **≤ 150 KB** | **≤ 210 KB** | eager on open |
 | **download** | 1600 px | optional "save to device" | **≤ 350 KB** | **≤ 500 KB** | on demand only — never preloaded |
@@ -671,7 +672,7 @@ measured, the ladder's runtime half is a proposal, not a fact.
 
 **What this costs the owner:** nothing new in the workflow — same FTP drop, same
 manifest, ladder generated on first request. The bytes it buys: reading-room detail
-**3,983,035 B → ≤ 210 KB JPEG (−94.6%)**; ten binder tiles **517.5 KB → ≤ 360 KB
+**3,983,035 B → ≤ 210 KB JPEG (−94.6%)**; ten Sammlung tiles **517.5 KB → ≤ 360 KB
 worst case (−30%)** and less still as WebP; LCP seal preview **61.9 KB → ≤ 55 KB JPEG,
 ≤ 36 KB WebP**. Eight cached files per photo — four rungs × WebP and JPEG — instead of
 one, trivial against the host quota, and the reason the ceilings can be hard.
@@ -772,7 +773,7 @@ with one 720px copy serving every surface — and still overran its own 45KB tar
 61.9KB per thumb while handing 3.98MB originals to the reading room. The four-rung
 ladder keeps the owner's zero-tooling workflow (same FTP drop, no redeploy, ladder
 generated on first request) **and** takes back the bytes: −94.6% on the reading-room
-detail, −30% worst case on ten binder tiles. The cost paid is encoder capability and
+detail, −30% worst case on ten Sammlung tiles. The cost paid is encoder capability and
 four cached files per photo instead of one; the cost no longer paid is shipping
 originals as if they were card art.
 
