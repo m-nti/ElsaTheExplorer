@@ -28,12 +28,13 @@
     ],
     serial: "ELSA · 0001 / 0001",
     credit: "Foto: Hausarchiv",
+    renderable: true,
     photo: {
       src: "/img/photo-unavailable.webp",
       alt: "Platzhalter — Foto folgt.",
       width: 540,
       height: 720,
-      focus: "center 42%",
+      focus: { x: 0.5, y: 0.42 },
     },
   };
 </script>

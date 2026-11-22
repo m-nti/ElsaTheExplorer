@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CardFaceModel } from "$lib/domain/card";
   import { STAR_SCALE_MAX, starLabel } from "$lib/domain/card-stars";
+  import { focusToObjectPosition } from "$lib/domain/card-photo";
   import { i18n } from "$lib/stores/i18n.svelte";
   import { rarity as rarityRecipe } from "styled-system/recipes/rarity";
 
@@ -40,7 +41,7 @@
           alt={model.photo.alt}
           width={model.photo.width}
           height={model.photo.height}
-          style:object-position={model.photo.focus ?? "var(--elsa-sizes-photo-anchor)"}
+          style:object-position={focusToObjectPosition(model.photo.focus)}
           decoding="async"
         />
         <span class="photo-foil" aria-hidden="true"></span>
