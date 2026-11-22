@@ -27,3 +27,7 @@ the blank line closes the first one and the next line opens the second (#75):
 | Field | Value |
 | --- | --- |
 | b | 2 |
+
+An indented four-space block is code, so a pipe line inside it is not a row:
+
+    | not | a | row |

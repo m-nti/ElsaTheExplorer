@@ -41,6 +41,7 @@ const MARKDOWN = /\.mdx?$/i;
 const FENCE = /^\s*(```|~~~)/;
 const DELIMITER = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/;
 const HEADING = /^\s{0,3}#{1,6}(?:\s|$)/;
+const INDENTED_CODE = /^(?:\t| {4})/;
 
 
 /** Directories that hold build output, dependencies or archived sources. */
@@ -82,8 +83,8 @@ function markdownFiles(root) {
 
 /**
  * Audit one file. Table = header row, delimiter row, then rows until a line that
- * is not a table row; fenced code blocks are skipped, so a Markdown example
- * inside a fence is not mistaken for the document's own table. A row-looking
+ * is not a table row; fenced and four-space-indented code blocks are skipped, so
+ * a Markdown example is not mistaken for the document's own table. A row-looking
  * line outside any table, in a section that already showed one, is an orphan:
  * prose ended the table, so its cells render as plain text.
  *
@@ -105,6 +106,7 @@ function audit(file, root) {
       continue;
     }
     if (fenced) continue;
+    if (INDENTED_CODE.test(lines[i])) continue;
     if (HEADING.test(lines[i])) {
       sectionHasTable = false;
       continue;
@@ -126,7 +128,7 @@ function audit(file, root) {
     sectionHasTable = true;
     const header = fields(lines[i]);
     let row = i + 2;
-    for (; row < lines.length && lines[row].trimStart().startsWith("|"); row++) {
+    for (; row < lines.length && !INDENTED_CODE.test(lines[row]) && lines[row].trimStart().startsWith("|"); row++) {
       const actual = fields(lines[row]).length;
       if (actual !== header.length) {
         violations.push({
