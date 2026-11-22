@@ -61,11 +61,15 @@ for (const gate of pending) {
   }
 }
 
-if (/--if-present/.test(workflow)) {
-  errors.push("ci.yml uses --if-present: a missing script would report success");
-}
-if (/\|\|\s*true/.test(workflow)) {
-  errors.push("ci.yml uses `|| true`: a failure would report success");
+for (const [pattern, why] of [
+  [/--if-present/, "ci.yml uses --if-present: a missing script would report success"],
+  [/\|\|\s*(?:true|:)\b/, "ci.yml uses `|| true`/`|| :`: a failure would report success"],
+  [/\|\|\s*exit\s+0\b/, "ci.yml uses `|| exit 0`: a failure would report success"],
+  [/^\s*continue-on-error:\s*true/m, "ci.yml sets continue-on-error: a failing gate would report success"],
+  [/^\s*if:\s*(?:false|\$\{\{\s*false\s*\}\})/m, "ci.yml gates a step on `if: false`: a gate that never runs would report success"],
+  [/npm run [A-Za-z0-9:_-]+\s*\|/, "ci.yml pipes a gate through another command: the pipe's status hides the failure"],
+]) {
+  if (pattern.test(workflow)) errors.push(why);
 }
 
 if (errors.length > 0) {

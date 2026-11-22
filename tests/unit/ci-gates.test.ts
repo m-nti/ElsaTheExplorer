@@ -64,6 +64,40 @@ describe("gate manifest", () => {
     expect(result.stderr).toContain("--if-present");
   });
 
+  it("fails on continue-on-error", () => {
+    const result = run(
+      fixture({
+        workflow: "steps:\n  - run: npm run canon\n    continue-on-error: true\n",
+      }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("continue-on-error");
+  });
+
+  it("fails when a gate step is gated on `if: false`", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon\n    if: false\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("if: false");
+  });
+
+  it("fails on `|| exit 0`", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon || exit 0\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("exit 0");
+  });
+
+  it("fails when a gate is piped through another command", () => {
+    const result = run(
+      fixture({ workflow: "steps:\n  - run: npm run canon | tee canon.log\n" }),
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("pipes a gate");
+  });
+
   it("fails when a pending gate names no issue", () => {
     const result = run(
       fixture({

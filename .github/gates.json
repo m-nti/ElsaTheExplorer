@@ -1,23 +1,78 @@
 {
   "enforced": [
-    { "id": "canon", "script": "canon" },
-    { "id": "canon-self-test", "script": "test:canon" },
-    { "id": "table-integrity", "script": "gate:tables" },
-    { "id": "typecheck", "script": "check:ts" },
-    { "id": "svelte-check", "script": "check" },
-    { "id": "stylelint", "script": "stylelint" },
-    { "id": "selector-diff", "script": "gate:selectors" },
-    { "id": "unused-css", "script": "gate:unused-css" },
-    { "id": "eslint", "script": "lint" },
-    { "id": "knip", "script": "knip" },
-    { "id": "jscpd", "script": "jscpd" },
-    { "id": "unit", "script": "test:unit" },
-    { "id": "build", "script": "build" }
+    {
+      "id": "gate-manifest",
+      "script": "ci:gates"
+    },
+    {
+      "id": "canon",
+      "script": "canon"
+    },
+    {
+      "id": "canon-self-test",
+      "script": "test:canon"
+    },
+    {
+      "id": "table-integrity",
+      "script": "gate:tables"
+    },
+    {
+      "id": "typecheck",
+      "script": "check:ts"
+    },
+    {
+      "id": "svelte-check",
+      "script": "check"
+    },
+    {
+      "id": "stylelint",
+      "script": "stylelint"
+    },
+    {
+      "id": "selector-diff",
+      "script": "gate:selectors"
+    },
+    {
+      "id": "unused-css",
+      "script": "gate:unused-css"
+    },
+    {
+      "id": "eslint",
+      "script": "lint"
+    },
+    {
+      "id": "knip",
+      "script": "knip"
+    },
+    {
+      "id": "jscpd",
+      "script": "jscpd"
+    },
+    {
+      "id": "unit",
+      "script": "test:unit"
+    },
+    {
+      "id": "build",
+      "script": "build"
+    }
   ],
   "pending": [
-    { "id": "e2e", "issue": 24 },
-    { "id": "axe", "issue": 24 },
-    { "id": "budget", "issue": 25 },
-    { "id": "pwa", "issue": 19 }
+    {
+      "id": "e2e",
+      "issue": 24
+    },
+    {
+      "id": "axe",
+      "issue": 24
+    },
+    {
+      "id": "budget",
+      "issue": 25
+    },
+    {
+      "id": "pwa",
+      "issue": 19
+    }
   ]
 }

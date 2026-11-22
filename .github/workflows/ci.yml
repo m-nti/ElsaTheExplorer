@@ -18,11 +18,13 @@ jobs:
   verify:
     name: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           # Newest major, matching .nvmrc and package.json engines. Node 26
           # ships npm 11, the version that generates package-lock.json; npm 10
@@ -93,15 +95,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      # Pending gate e2e/#24: skipped only while no spec exists, and the skip
-      # is declared in .github/gates.json. Once a spec lands, this step runs
-      # the full matrix and is fail-closed.
-      - name: E2E (Playwright)
-        run: |
-          if compgen -G "tests/e2e/*.spec.ts" > /dev/null; then
-            npx playwright install --with-deps chromium webkit
-            npm run test:e2e
-          else
-            echo "pending gate e2e (#24) — no specs yet"
-          fi
