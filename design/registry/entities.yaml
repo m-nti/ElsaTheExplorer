@@ -702,6 +702,7 @@ copy_keys:
       - reset.body
       - reset.confirm
       - reset.cancel
+      - reset.unavailable
     added: 2026-11-22
     revised: ""
 

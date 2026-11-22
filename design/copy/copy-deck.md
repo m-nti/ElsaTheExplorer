@@ -452,7 +452,8 @@ never becomes a second voice.
 | `reset.title` | Von vorn? | Start over? | 20 | dialog `aria-labelledby` target | PL |
 | `reset.body` | Das löscht die Sammlung, die Räume samt Fortschritt, die Meilensteine und Elsas Ehrenmensch — Ton und Sprache kehren auf Standard zurück. | This clears the Collection, room progress, the milestones and Elsa's Honorary Human — sound and language go back to default. | 140 | **space-critical** — DE 130 / EN 124; wraps to 4 lines. Cap stays 140 (raised from 128 for the owner's Ton-und-Sprache clause, D20). Frames clear with the set progress (D9). "Set-Fortschritte" → "Räume samt Fortschritt" removes the deck's only spec-sounding anglicism; full loss list and both preferences are intact. **re-voiced 2026-11-22** · VOICE | PL (owner ruling carried in BND) |
 | `reset.confirm` | Alles löschen | Delete everything | 20 | **space-critical** — destructive styling; labelled with the action, never "OK"/"Ja" | PL |
-| `reset.cancel` | Abbrechen | Cancel | 10 | **space-critical** — default focus lands here | PL |
+| `reset.cancel` | Abbrechen | Cancel | 10 | **space-critical** - default focus lands here | PL |
+| `reset.unavailable` | Dieses Gerät kann gerade nichts speichern. Von vorn bleibt gesperrt. | This device cannot save right now. Starting over stays locked. | 80 | shown under the **disabled** trigger when `localStorage` is unavailable, tied by `aria-describedby`; a locked control is stated, never a silent no-op (E-RST-08, ADR-0003 §3). No `!` | PL |
 
 > Reset clears **every** `lucky-elsa.*` key — collection state and preferences. After
 > confirm the page returns to German and sound-on. `reset.body` is the only place a
