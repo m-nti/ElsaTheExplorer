@@ -3,11 +3,12 @@
  *
  * The gate's exit code is the contract, so every case spawns the CLI. The two
  * fixtures are the seeded cases: `tables-seeded` must fail and must name the
- * `file:line` plus both field counts; `tables-clean` must not be fooled by
- * escaped pipes, a missing trailing pipe, or a broken example inside a fence.
- * The last case runs the gate against this repo, so a new misaligned row in
- * `docs/` or `design/` fails CI on the commit that introduces it (issue #29,
- * lesson L-003).
+ * `file:line` plus both field counts; `tables-orphaned` must fail on rows that
+ * prose has detached from their header (#75); `tables-clean` must not be fooled
+ * by escaped pipes, a missing trailing pipe, or a broken example inside a fence.
+ * The last case runs the gate against this repo, so a new misaligned or
+ * orphaned row in `docs/` or `design/` fails CI on the commit that introduces it
+ * (issue #29, lesson L-003).
  */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -99,7 +100,7 @@ describe("table-integrity: what it must not flag", () => {
 });
 
 describe("table-integrity: this repository", () => {
-  it("has no misaligned row in docs/ or design/", () => {
+  it("has no misaligned or orphaned row in docs/ or design/", () => {
     const { code, report } = repoReport();
     expect(code).toBe(0);
     expect(report.status).toBe("clean");
