@@ -48,6 +48,12 @@ aspect-ratio authority). Optional, every one defaulted:
 | `rarity` | `'' \| 'common' \| 'rare' \| 'holo'` = `''` | `''` ⇒ stable id hash (F3); an override wins and never changes photo bytes. |
 | `set` | `string \| null` = `null` | Grouping tag; absent/unknown ⇒ *Neuzugänge* (D-07). |
 | `focus` | `{x,y}` = `{0.5,0.5}` | Clamped to 0..1; a wrong **type** drops the entry. |
+
+> **Note (ticket #56, ADR-0011 R4 — not an edit of this row):** the `focus` default above is the
+> drift R4 names. The one "no opinion" anchor is `center 42%` (art-bible §7, `sizes.photo-anchor`),
+> and an absent `focus` renders as that value. This row's default is not changed here: changing a
+> field default is a semantics change under §5 change control, so the restatement is tracked
+> separately in #63.
 | `chase` | boolean = `false` | Content marker only: never feeds the rarity hash, never overrides F3. One per manifest; extras ignored and counted. |
 | `renderable` | boolean = `true` | Computed by `?list=1` from size/pixel caps **without decoding**; `false` renders the printed frame, never an image request. |
 | `demo`,`heic`,`filename` | bool/bool/string | v1 metadata retained (`demo` drives sample-card copy). |
