@@ -31,3 +31,10 @@ the blank line closes the first one and the next line opens the second (#75):
 An indented four-space block is code, so a pipe line inside it is not a row:
 
     | not | a | row |
+
+## Before any table opens
+
+No table has opened in this section, so the ticket's rule does not apply to a
+row-looking line here and it must not be flagged (issue #75 scope):
+
+| looked | like | a row |
