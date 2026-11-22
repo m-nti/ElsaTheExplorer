@@ -176,7 +176,7 @@ Expected: FAIL — cannot resolve `$lib/a11y/focus`.
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `npx vitest run --project unit tests/unit/focus-return.test.ts`
-Expected: PASS, 7 tests.
+Expected: PASS, 6 tests.
 
 - [ ] **Step 6: Commit**
 
@@ -252,7 +252,7 @@ Expected: FAIL — cannot resolve `$lib/a11y/deep-link`.
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run --project unit tests/unit/deep-link.test.ts`
-Expected: PASS, 7 tests.
+Expected: PASS, 6 tests.
 
 - [ ] **Step 5: Commit**
 
