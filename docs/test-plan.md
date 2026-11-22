@@ -615,7 +615,7 @@ No pointer events are issued in this file. Mouse helpers are banned by lint with
 
 | ID | Assertion |
 | --- | --- |
-| E-KBD-01 | Skip link is first in tab order and moves focus to the stage |
+| E-KBD-01 | Skip link ("Direkt zum Pack") is first in tab order and focuses `#open-pack`, the stage's pack trigger |
 | E-KBD-02 | `P` opens a pack; `P` with a modifier or while typing in a field does nothing |
 | E-KBD-03 | Tab order: stage trigger → pack row → catalogue tiles → toggles → reset; DOM order = visual order |
 | E-KBD-04 | Every interactive element shows a visible focus ring: computed outline width ≥ 2 px, offset ≥ 2 px, ratio ≥ 3:1 against adjacent colors |
