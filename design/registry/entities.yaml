@@ -519,6 +519,9 @@ copy_keys:
       - pack.btn.catalogue
       - pack.list.aria
       - pack.card.aria
+      - pack.count
+      - pack.card.revealed
+      - pack.skipped
       - pack.summary
       - pack.summary.one
       - pack.stamp.label
@@ -702,6 +705,7 @@ copy_keys:
       - reset.body
       - reset.confirm
       - reset.cancel
+      - reset.unavailable
     added: 2026-11-22
     revised: ""
 

@@ -697,17 +697,20 @@ never by shrinking the type.
   baseline**.
 - No RTL target; layout not mirrored.
 - **Copy-deck sync required for this revision** (4-card pack). Keys are
-  unchanged — only values move, and three rows are new:
+  unchanged — only values move. The three reveal keys this revision needs are
+  now deck rows with their caps (#74); the deck is the string SSOT, so B4
+  renders them rather than declaring spec-local strings:
   - `pack.eyebrow` — the number word changes: EN *"1st edition · four fresh
     cards"* / DE *"1. Auflage · vier frische Karten"*.
   - `pack.hint` — the swipe half is dead (no carousel): EN *"Tap a card."* /
     DE *"Tippe eine Karte an."*.
-  - **new** `pack.count` — `{i} von {n}` / `{i} of {n}`, used visually in the
-    stage counter.
-  - **new** `pack.card.revealed` — "Karte {i} von {n}: {name}. {rarity}." /
-    "Card {i} of {n}: {name}. {rarity}."
-  - **new** `pack.skipped` — "{k} von {n} Karten gesammelt." / "{k} of {n} cards
-    collected."
+  - `pack.count` — **copy deck §4**, cap 12; `{i} von {n}` / `{i} of {n}`,
+    used visually in the stage counter.
+  - `pack.card.revealed` — **copy deck §4**, live region only (uncapped by
+    layout): "Karte {i} von {n}: {name}. {rarity}." / "Card {i} of {n}: {name}.
+    {rarity}."
+  - `pack.skipped` — **copy deck §4**, live region only (uncapped by layout):
+    "{k} von {n} Karten gesammelt." / "{k} of {n} cards collected."
   - `pack.announcement` keeps its `{n}` placeholder (now always 4).
 - **Copy-deck sync 2026-11-22**: the eyebrow, hint and lap line below carry the
   copy deck's winning variants; the pack announcement uses `{n}` per the deck

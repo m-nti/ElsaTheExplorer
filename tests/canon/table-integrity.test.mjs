@@ -3,11 +3,12 @@
  *
  * The gate's exit code is the contract, so every case spawns the CLI. The two
  * fixtures are the seeded cases: `tables-seeded` must fail and must name the
- * `file:line` plus both field counts; `tables-clean` must not be fooled by
- * escaped pipes, a missing trailing pipe, or a broken example inside a fence.
- * The last case runs the gate against this repo, so a new misaligned row in
- * `docs/` or `design/` fails CI on the commit that introduces it (issue #29,
- * lesson L-003).
+ * `file:line` plus both field counts; `tables-orphaned` must fail on rows that
+ * prose has detached from their header (#75); `tables-clean` must not be fooled
+ * by escaped pipes, a missing trailing pipe, or a broken example inside a fence.
+ * The last case runs the gate against this repo, so a new misaligned or
+ * orphaned row in `docs/` or `design/` fails CI on the commit that introduces it
+ * (issue #29, lesson L-003).
  */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -61,12 +62,34 @@ describe("table-integrity: seeded failure", () => {
   });
 });
 
+describe("table-integrity: rows orphaned by prose (issue #75)", () => {
+  it("fails on a row that follows prose after a table header", () => {
+    const { code, report } = fixture("tables-orphaned");
+    expect(code).toBe(1);
+    expect(report.status).toBe("violations");
+    expect(report.violations[0]).toEqual(
+      expect.objectContaining({
+        file: "tests/canon/fixtures/tables-orphaned/bad.md",
+        line: 14,
+        kind: "orphan",
+      }),
+    );
+  });
+
+  it("names the first orphan row's file:line on stderr", () => {
+    const { code, stderr } = run(["--root", join(here, "fixtures", "tables-orphaned")]);
+    expect(code).toBe(1);
+    expect(stderr).toContain("bad.md:14: orphaned table row");
+  });
+});
+
 describe("table-integrity: what it must not flag", () => {
   it("accepts escaped pipes, a missing trailing pipe and a fenced example", () => {
     const { code, report } = fixture("tables-clean");
     expect(code).toBe(0);
     expect(report.status).toBe("clean");
     expect(report.violations).toEqual([]);
+    expect(report.tables).toBe(4);
   });
 
   it("exits 2 on a root that does not exist instead of reporting clean", () => {
@@ -77,7 +100,7 @@ describe("table-integrity: what it must not flag", () => {
 });
 
 describe("table-integrity: this repository", () => {
-  it("has no misaligned row in docs/ or design/", () => {
+  it("has no misaligned or orphaned row in docs/ or design/", () => {
     const { code, report } = repoReport();
     expect(code).toBe(0);
     expect(report.status).toBe("clean");

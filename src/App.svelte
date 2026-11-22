@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import CardDialog from "$lib/components/CardDialog.svelte";
   import CardTile from "$lib/components/CardTile.svelte";
+  import ResetConfirmDialog from "$lib/components/ResetConfirmDialog.svelte";
   import type { CardFaceModel } from "$lib/domain/card";
   import { cardStars } from "$lib/domain/card-stars";
   import {
@@ -173,6 +174,14 @@
   }
 </script>
 
+<!--
+  The two live regions (ADR-0010 §1): mounted once, empty at first paint,
+  outside every conditional, clipped rather than hidden. `#live-status` is the
+  only region with a writer; `#live-alert` ships empty on purpose.
+-->
+<div id="live-status" class="sr-only" role="status" aria-atomic="true"></div>
+<div id="live-alert" class="sr-only" role="alert" aria-atomic="true"></div>
+
 <main class="reading-room">
   <section class="stage" id="stage" tabindex="-1">
     <header class="masthead">
@@ -189,6 +198,9 @@
     >
       {i18n.t("nav.catalogue")}
     </button>
+    <div class="stage-tools">
+      <ResetConfirmDialog />
+    </div>
   </section>
 
   <section class="collection" id="katalog" aria-labelledby="collection-title">
@@ -211,6 +223,18 @@
 <svelte:window on:popstate={handlePopState} />
 
 <style>
+  .sr-only {
+    position: absolute;
+    width: var(--elsa-border-widths-hairline);
+    height: var(--elsa-border-widths-hairline);
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .reading-room {
     display: grid;
     align-content: start;
@@ -271,6 +295,11 @@
   .tagline {
     color: var(--elsa-colors-muted);
     font-size: var(--elsa-font-sizes-md);
+  }
+
+  .stage-tools {
+    display: grid;
+    justify-items: center;
   }
 
   .collection {

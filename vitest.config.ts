@@ -26,6 +26,10 @@ export default defineConfig({
           name: "canon",
           include: ["tests/canon/**/*.test.mjs"],
           environment: "node",
+          // Every case spawns the gate over a fixture corpus: under a second on Linux CI,
+          // 8-9 s on Windows, past Vitest's 5 s default. A hang guard, not an assertion —
+          // without it `npm run verify` cannot be green on the owner's machine.
+          testTimeout: 30_000,
         },
       },
     ],

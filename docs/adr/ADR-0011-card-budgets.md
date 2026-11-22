@@ -11,7 +11,8 @@
 - **Deciders**: owner (final, delegated), technical-director (author), art-director (visual
   budget — review gate)
 - **Amended**: 2026-11-22 — **D12a (#47)** supersedes the §1 bay table (see the note under it).
-  The byte budgets in §5–§7 are unchanged by that ruling.
+  The byte budgets in §5–§7 are unchanged by that ruling. **D70 (#70)** adds **R6**: band 4's
+  two-row plan and the story clamp. No bay percentage moves.
 - **Amends**: `docs/architecture.md` — "Performance Budget" (a metric column: which figure is
   gzip, which is minified, which is only a target), "Component Breakdown — `CardTile.svelte`"
   (its four-zone prose and `budgets.ts` path), ADR Audit and Required ADRs (the 0011 row).
@@ -73,7 +74,8 @@ AD-ART-BIBLE sign-off governs these numbers, so ADR-0011 ratifies them rather th
 > gutters 4.5 (sum 100; tile 15.5 / 44 / 5.5 / 16 / 9 / 5.5 / 4.5). The photo window fills its
 > band with no block padding, giving 155.94 px = 45.87 % of card width at the 340 px reference.
 > The plate is two rows; the name clamps to one line with ellipsis. `design/art/art-bible.md` §8
-> is the authority.
+> is the authority. **R6 (D70, #70) supersedes the clamp column above** for band 4: the story panel
+> is two rows and the sentence clamps at three lines, with no bay percentage moving.
 
 Pre-ruling, each column sums to exactly 100 % (15+31+4.5+22+13+4.5+10 = 100;
 17+36+5+18+12+5+7 = 100; 16+42+5+16+11+5+5 = 100). The **reference card** used for every pixel
@@ -143,13 +145,14 @@ The law, in the forms a test can read:
 | Anchor → CSS | `object-position: {x·100}% {y·100}%` | test-plan `U-CV-07` |
 | Crop owner | CSS only (`object-fit: cover`); encoders resize and never pre-crop, so one derivative serves tile, card and dialog | art-bible §8 "Crop, orientation, metadata"; ADR-0008 |
 
-**R4 — one "no opinion" value for the anchor: `center 42%`.** Two documents currently default it
-to 50 % (ADR-0004's field row `{x,y} = {0.5,0.5}`; test-plan `U-CV-07` "default is `50% 50%`")
-while the art bible, the token and the view model all say `center 42%`. The bible wins on
+**R4 — one "no opinion" value for the anchor: `center 42%`.** Two documents used to default it
+to the 50 % centre (ADR-0004's field row, `{x,y}` = 0.5 / 0.5; test-plan `U-CV-07` "default is `50% 50%`")
+while the art bible, the token and the view model all said `center 42%`. Both are restated now:
+`U-CV-07` in #56, ADR-0004's field row under amendment A-1 (#63). The bible wins on
 grounds it states: faces sit high in Elsa's photographs, and 42 % is "the same 42 % as the photo
 crop, so the reading line never shifts between one card and four" (art-bible §7, the reveal
 camera's solved translate target). Cost: two one-line doc restatements (ADR-0004's default row,
-`U-CV-07`'s last clause) — ticketed, not edited here. Rationale for a single value: two
+`U-CV-07`'s last clause). Rationale for a single value: two
 different "no opinion" anchors (manifest-neutral 50 %, render-neutral 42 %) is exactly the
 `--foil-strength` 0.56/0.42/1.0 drift this project already paid for.
 
@@ -169,9 +172,26 @@ mid-grapheme; the CSS clamps are the last line of defence, never the plan.
 | `name` | `NAME_MAX = 40` chars | `docs/architecture.md` (CardTile), test-plan `U-CV-01` |
 | `mood` | `MOOD_MAX = 48` | same |
 | `caption` / story | `CAPTION_MAX = 180` | same |
+| `caption` / story, **rendered on the card face** | **≤ 3 lines** on the full and drop card, **≤ 2** on the binder tile; **96-char** authored ceiling (German binding) | art-bible §8 D70; `design/ux/card-detail.md` §5.3 L7 |
 | `alt` | `ALT_MAX = 200` | same |
-| edition, keyword, print line, serial, stat key/value, credit | one line each, ellipsis | art-bible §8 clamp column |
-| Height-pressure order (what leaves a band first) | credit → mood → print line → copy clamp tightens | art-bible §8 |
+| edition, serial, stat key/value, credit; the Fantasiewerte line | one line each, ellipsis; the Fantasiewerte line ellipsises to its leading word and is never removed | art-bible §8 clamp column, R6 |
+| Height-pressure order (what leaves a band first) | credit → mood → copy clamp tightens (3 → 2 lines) → the Fantasiewerte line ellipsises | art-bible §8, R6 |
+
+**R6 — the story clamp is three lines, and band 4 is two rows (D70, #70).** The clamp column and
+the band arithmetic disagreed because they described different row plans. Three sub-rows (keyword,
+sentence, print line) leave **37.89 px** for copy — 91.59 − 16 padding − 8 gaps − 2 × 14.85 — which is
+**2.16 lines** at 17.55 px, so a third line overruns its row by **14.76 px** and clips rather than
+ellipsises. The "need 88.80 px" figure this record's source row carried was the **two-line** stack:
+16 + 8 + 14.85 + 35.10 + 14.85. The ruling keeps the band and the three-line clamp and removes the
+row that does not pay for itself: the sentence (≤ 3) plus the Fantasiewerte line (1) need **87.50 px**
+of 91.59 → **4.09 px** slack. The keyword leaves the card face — the card's name is the heading, and
+sharing the disclaimer's row was measured at **313.4 px** against a 308 px measure, so it cannot be
+merged either. The binder tile clamps at **2** (16 % = 75.15 px, 40.30 px for copy); the drop card
+shares the plate and therefore the clamp. Cost: no bay percentage moves and the copy contract is
+unchanged, but `card.moment.label` and `card.moment.imageNote` stop rendering on the plate. Cost if
+wrong: the two fallbacks are worse and both need another amendment — a two-line clamp ellipsises four
+of the five measured German sentences, and a three-line band with three rows needs 22.64 %, taken
+from the photograph (−7.6 % window) one day after D12a made it the largest band.
 
 The photo band and the plate **name** never yield. `ALT_MAX` is a byte of accessibility, not
 decoration: the alt text is the card's content for a reader who cannot see the window.
@@ -290,7 +310,7 @@ rungs aimed ~20 % under ceiling (95–100 % flags); LCP < 2.5 s mid-tier mobile 
 | Cumulative layout shift = 0 on load (media carry oriented `width`/`height`) | `E-OVF-12` | specified, suite pending (#24) |
 | Character ceilings exported and enforced at view-build time; +1 truncates, exactly-at-budget does not | `U-CV-01`, `U-CV-03` | specified, suite pending (#23) |
 | Truncation is one ellipsis, never mid-grapheme | `U-CV-02` | specified, suite pending (#23) |
-| `focus` maps to `object-position: x·100% y·100%`; absent → `center 42%` | `U-CV-07` (last clause restated, R4) | specified, needs the R4 edit |
+| `focus` maps to `object-position: x·100% y·100%`; absent → `center 42%` | `U-CV-07` (last clause restated, R4) | specified, R4 restated (#56, #63) |
 | Every image response ≤ its per-format ceiling and byte length ≠ the source's | gate 9, `E-PWA-06`, ADR-0008 checklist | gate pending (#25) |
 | **Bay percentages equal between `tokens.ts` and art-bible §8** | — (parity check) | **missing** — #30 covers colours; extend it to `sizes.zone-*` |
 | **No text baseline crosses the foil's inner edge** (card-detail L5) | — | **missing** — a geometry check, proposed as `E-OVF-13` with #13/#24 |
@@ -309,7 +329,7 @@ own columns disagreed with each other, surfaced rather than resolved silently.
 | --- | --- | --- | --- |
 | The 15 % plate could not hold its own clamp column — **resolved (D12a, #47)** | band 70.5 px − 16 px padding − 8 px gaps = **46.5 px** available; number + name (1 line) + mood = **55.4 px**; number + name (2 lines) + mood = **81 px** | At the reference card the plate rendered **number + one name line** (40.5 px), `mood` dropped by the pressure order. D12a answers it: plate **15.5 %** in **two rows** holds number + name + mood **and the rarity chip** with **6.16 px slack** (52.81 px content vs 46.65 px need), and the name clamps to one line with ellipsis | closed by #47 (art-director) |
 | The strip and foot px floors overrun 100 % | 4.5 % = 21.1 px vs floors 24 / 22 px → **+3.73 px** on a 469.7 px plate | Resolved by R3 (gutters absorb 3.73 px); without R3 the plate would clip the foot by 3.7 px. Moot under D12a — the new bands (strip 5.5 %, foot 5 %) carry the floors with no payer | technical-director (R3, ruled above) |
-| The 22 % copy bay holds 2 story lines, not 3 | 103.3 − 24 = **79.3 px**; keyword + 3 lines + print = **82.4 px** → 3 lines need **22.6 %** | The third line only exists on larger cards; the pressure order's last step covers it. D12a's 19.5 % story bay is re-derived in #47, not here | art-director (informational — the clamp is already "≤ 3") |
+| The 22 % copy bay holds 2 story lines, not 3 — **closed by D70 (#70)** | 103.3 − 24 = **79.3 px**; keyword + 3 lines + print = **82.4 px** → 3 lines need **22.6 %**. At D12a's 19.5 % the same three-row stack leaves **37.89 px** = 2.16 lines, and the "need 88.80" row was the two-line stack | The clamp was never arithmetically true: three sub-rows plus three lines needs 22.64 %. D70 buys the third line by removing the keyword row — two rows leave 56.74 px against 52.65 px needed, 4.09 px slack — and leaves every bay percentage alone | closed by #70 (art-director + ux-designer) |
 | The 31 % photo band shrank the lit object by a third — **resolved (D12a, #47)** | 145.6 px band − 16 px padding = 129.6 px tall → **103.7 px wide** vs the **160.05 px** measured in the 46 % band | The photograph — "all light, sheen and motion belong to the card under study — and within the card, to Elsa's photograph" (art-bible §1), "the only lit object in the room" (`card-detail.md` §5.3 item C) — would have lost 35 % of its width. D12a answers it: photo **41.5 %** with no block padding gives **155.94 px = 45.87 %** of card width, a **2.6 %** reduction from 160.05 px, not 35 % | closed by #47 (art-director) |
 
 The last row was the one to read twice, and it is the reason this record exists in the form it
@@ -340,6 +360,11 @@ and keeps a 155.94 px window. The ADR records that ruling; it did not derive it.
   rows with 6.16 px slack, and the photograph shrinks **2.6 %** (160.05 → 155.94 px) rather than the
   35 % the pre-ruling table implied; findings 1 and 4 in §9 are closed.
 - **The ruling is the visual owner's**; the ADR ratifies it rather than deriving it.
+- **R6 costs the card face its keyword row (D70).** `card.moment.label` ("Elsa-Moment") and
+  `card.moment.imageNote` no longer render on the plate; the sentence clamps at 3 lines on the full
+  and drop card and 2 on the tile, and the Fantasiewerte line is band 4's last row, directly above
+  the chips. No bay percentage moved, and the copy contract (96 characters authored) is unchanged —
+  it was always a three-line contract, and the spec now says so.
 - **#47 (D12a) has merged**; the bands in `design/art/art-bible.md` §8 are the contract, and §1's
   table is the superseded pre-ruling state. #13 (B2) implements §8.
 - **Two ratchets bite immediately**: JS may not grow before B2 pays for growth by deletion or
@@ -410,6 +435,9 @@ Each line is either an existing test ID or an explicit gap with its ticket.
       (parity check; #30 extended, #13 implements).
 - [ ] `E-OVF-06` green at maximum permitted strings on all four surfaces; `scroll`-vs-`client` on
       every bay, not just the card box (#24).
+- [ ] Band 4 renders **≤ 3 lines** with no clipped partial line at every width in the geometry
+      sweep, DE and EN (2 on the tile), and the Fantasiewerte line is present whenever stats are
+      (`E-OVF-06` extended; D70 / #70, proved by T9's slice).
 - [ ] `E-OVF-01..05`, `E-OVF-07`, `E-OVF-09`, `E-OVF-11`, `E-OVF-12` green — no document overflow,
       no off-canvas box, no clipped focus ring, CLS 0 (#24).
 - [ ] `U-CV-01`, `U-CV-02`, `U-CV-03` green: ceilings exported, single ellipsis, +1 truncates (#23).
@@ -454,3 +482,9 @@ Every number in this record comes from one of these, and the table rows name whi
 - Measurements taken for this record: `npm run build` at `66afb4f` (Node 26.13.1) → CSS
   20.36 kB / 5.10 kB gzip (bundle hash unchanged), JS 59.61 kB / 23.16 kB gzip; `public/fonts/`
   byte sizes (33,252 B and 15,248 B).
+- Measurements taken for R6 (#70, 2026-11-22) — Chromium 159 via Playwright,
+  `public/fonts/chivo-latin.woff2` with the font load asserted before any read, against the 308 px
+  story measure at 13 px / 1.35: German sentences of 92 / 98 / 103 / 124 characters render three
+  lines, 89 characters renders two; the 38-character Fantasiewerte line is **205.1 px** at 11 px; a
+  12-character keyword plus that line is **313.4 px** against 308 px; the ruled two-row band needs
+  **87.50 px** of 91.59 and the rejected three-row band leaves 37.89 px for copy.

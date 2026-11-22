@@ -188,8 +188,9 @@ fixed-percentage grid row. Each zone carries a hard character budget constant in
 `CardTile` CSS uses `overflow: hidden` + `text-overflow` as the last line of
 defense, never as the layout plan. No zone may size to its content.
 
-The art window uses `object-position` from `photo.focus` (default center) so crop
-anchors survive every frame size. Foil layers (rays, glitter, glare, print frame)
+The art window uses `object-position` from `photo.focus` (absent `focus` ⇒
+`center 42%`, the one "no opinion" anchor — ADR-0011 R4) so crop anchors survive
+every frame size. Foil layers (rays, glitter, glare, print frame)
 are bespoke art in `CardTile`'s Svelte-scoped CSS, consuming tokens only via
 `var()`; rarity tiers come from a **typed Panda recipe** (`cardRecipe({ rarity })`)
 — per ADR-0002, recipes are the only sanctioned variant mechanism. Rarity changes
@@ -579,7 +580,7 @@ by the derivative contract above (v1.1 adds `ver` / `images` independently of th
 
 ```jsonc
 "set": "sommer-2026",              // optional grouping tag, default null; used for binder headings
-"focus": { "x": 0.35, "y": 0.30 }, // crop anchor, normalized 0..1, default {x:0.5,y:0.5}
+"focus": { "x": 0.35, "y": 0.30 }, // crop anchor, normalized 0..1; absent ⇒ center 42% (ADR-0011 R4)
 "chase": true                      // optional chase-card marker, default false
 ```
 
