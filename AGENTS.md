@@ -102,6 +102,8 @@ scaffold, build, polish, release), `priority:*` (P0, P1, P2).
    a missing ADR, a deferral. Prose in a doc is not a tracker.
 3. **Transitions are automatic:**
    - start → board **In Progress**, assign the working agent/author;
+   - **several issues may be In Progress at once** — one per active agent/session; the
+     board is expected to show parallel workstreams, not a single lane;
    - PR opened → **In Review**, PR body says `Closes #N`;
    - merge/close → **Done** (the PR closes it), and the steward files follow-ups for
      anything deferred.
