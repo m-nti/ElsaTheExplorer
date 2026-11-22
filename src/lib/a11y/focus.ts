@@ -59,6 +59,7 @@ export function restoreFocus(
     [opener ?? null, doc.getElementById(FOCUS_HOME_ID), doc.getElementById(FOCUS_STAGE_ID)],
     isFocusableTarget,
   );
-  target?.focus({ preventScroll: true });
+  if (!isFocusableTarget(target)) return null;
+  target.focus({ preventScroll: true });
   return target;
 }

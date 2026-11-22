@@ -10,25 +10,28 @@ export type FocusSurface = "pack" | "card" | "reset";
  * the focused element is the dialog itself, so the caller records the control
  * that asked for the surface. The DOM validity of the recorded element is
  * judged at restore time, because the tile may have been re-rendered by then.
+ *
+ * A plain record, not a reactive Map: nothing renders from this store, and a
+ * rune would make the module untestable in the node project.
  */
 export class FocusReturnStore {
-  readonly #openers = new Map<FocusSurface, HTMLElement>();
+  readonly #openers: Partial<Record<FocusSurface, HTMLElement>> = {};
 
   /** A `null`/`undefined` opener is the deep-link case and clears any stale one. */
   capture(surface: FocusSurface, opener: Element | null | undefined): void {
     if (opener) {
-      this.#openers.set(surface, opener as HTMLElement);
+      this.#openers[surface] = opener as HTMLElement;
       return;
     }
-    this.#openers.delete(surface);
+    delete this.#openers[surface];
   }
 
   peek(surface: FocusSurface): HTMLElement | undefined {
-    return this.#openers.get(surface);
+    return this.#openers[surface];
   }
 
   forget(surface: FocusSurface): void {
-    this.#openers.delete(surface);
+    delete this.#openers[surface];
   }
 
   /**
@@ -37,8 +40,8 @@ export class FocusReturnStore {
    * win (ADR-0010 §3, E-FOC-15).
    */
   restore(surface: FocusSurface, doc: Document = document): HTMLElement | null {
-    const opener = this.#openers.get(surface) ?? null;
-    this.#openers.delete(surface);
+    const opener = this.#openers[surface] ?? null;
+    delete this.#openers[surface];
     return restoreFocus(opener, doc);
   }
 }

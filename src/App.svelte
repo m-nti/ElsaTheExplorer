@@ -1,8 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import CardDialog from "$lib/components/CardDialog.svelte";
   import CardTile from "$lib/components/CardTile.svelte";
   import type { CardFaceModel } from "$lib/domain/card";
   import { cardStars } from "$lib/domain/card-stars";
+  import {
+    readPhotoParam,
+    resolveDeepLink,
+    withPhotoParam,
+  } from "$lib/a11y/deep-link";
   import { focusReturn } from "$lib/a11y/focus.svelte";
   import { collection } from "$lib/stores/collection.svelte";
   import { i18n } from "$lib/stores/i18n.svelte";
@@ -127,23 +133,63 @@
     },
   ];
 
+  let selectedId = $state<string | null>(null);
+  const selected = $derived(fixtures.find((model) => model.id === selectedId) ?? null);
+
   onMount(() => {
     collection.setTotal(fixtures.length);
+    const linked = resolveDeepLink(readPhotoParam(window.location.search), fixtures);
+    if (!linked) return;
+    // A deep link has no invoker: the ladder falls back to the CTA on close.
+    focusReturn.capture("card", null);
+    collection.markSeen(linked.id);
+    selectedId = linked.id;
   });
 
   function activateCard(id: string, origin: HTMLElement): void {
     focusReturn.capture("card", origin);
-    // The card surface is wired in the next task of this plan (#28).
-    void id;
+    collection.markSeen(id);
+    selectedId = id;
+    history.pushState({ photo: id }, "", withPhotoParam(window.location.search, id));
+  }
+
+  function handleClosed(): void {
+    selectedId = null;
+    history.replaceState({}, "", withPhotoParam(window.location.search, null));
+    // After the native close reset (ADR-0010 §3, E-FOC-15).
+    queueMicrotask(() => focusReturn.restore("card"));
+  }
+
+  /** Back while a card is open is a route change: close and restore. */
+  function handlePopState(): void {
+    if (selectedId && readPhotoParam(window.location.search) === null) {
+      selectedId = null;
+    }
+  }
+
+  function enterCollection(): void {
+    const firstTile = document.querySelector<HTMLElement>("#katalog [data-focus-id]");
+    firstTile?.focus();
   }
 </script>
 
 <main class="reading-room">
-  <header class="masthead">
-    <p class="eyebrow">Sammelwerk · Erste Auflage</p>
-    <h1 class="wordmark">Elsa the Explorer</h1>
-    <p class="tagline">{i18n.t("app.tagline")}</p>
-  </header>
+  <section class="stage" id="stage" tabindex="-1">
+    <header class="masthead">
+      <p class="eyebrow">Sammelwerk · Erste Auflage</p>
+      <h1 class="wordmark">Elsa the Explorer</h1>
+      <p class="tagline">{i18n.t("app.tagline")}</p>
+    </header>
+    <button
+      class="stage__cta"
+      id="open-pack"
+      data-focus-id="open-pack"
+      type="button"
+      onclick={enterCollection}
+    >
+      {i18n.t("nav.catalogue")}
+    </button>
+  </section>
 
   <section class="collection" id="katalog" aria-labelledby="collection-title">
     <div class="collection__head">
@@ -158,7 +204,11 @@
       {/each}
     </ul>
   </section>
+
+  <CardDialog model={selected} open={selectedId !== null} onclosed={handleClosed} />
 </main>
+
+<svelte:window on:popstate={handlePopState} />
 
 <style>
   .reading-room {
@@ -176,6 +226,29 @@
     gap: var(--elsa-spacing-2);
     max-width: var(--elsa-sizes-content);
     text-align: center;
+  }
+
+  .stage {
+    display: grid;
+    justify-items: center;
+    gap: var(--elsa-spacing-4);
+    width: 100%;
+    max-width: var(--elsa-sizes-content);
+  }
+
+  .stage__cta {
+    min-height: var(--elsa-spacing-7);
+    padding: var(--elsa-spacing-2) var(--elsa-spacing-4);
+    border: var(--elsa-border-widths-hairline) solid var(--elsa-colors-line-strong);
+    border-radius: var(--elsa-radii-pill);
+    background: var(--elsa-colors-surface);
+    color: var(--elsa-colors-ink);
+    font-size: var(--elsa-font-sizes-md);
+    font-weight: var(--elsa-font-weights-semibold);
+  }
+
+  .stage__cta:hover {
+    background: var(--elsa-colors-surface-light);
   }
 
   .eyebrow {
