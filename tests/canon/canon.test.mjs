@@ -4,7 +4,8 @@
  * The gate is a CLI whose exit code is the contract, so every case spawns it and
  * asserts (exit code, parsed report). The fixtures under `fixtures/` are the
  * seeded failures; the last case runs the gate against this repo, so any new
- * canon drift in `design/ docs/ src/ PRD.md AGENTS.md` fails CI.
+ * canon drift in `design/ docs/ src/ AGENTS.md PRD.md README.md index.html`
+ * fails CI.
  */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -69,6 +70,55 @@ describe("canon-check: clean run", () => {
     expect(code).toBe(0);
     expect(report.status).toBe("clean");
     expect(report.allowlist.baseline).toBeLessThanOrEqual(report.allowlist.maxBaseline);
+  });
+
+  it("scans the page shell and the readme (D12)", () => {
+    const { report } = run([]);
+    expect(report.scanned).toContain("index.html");
+    expect(report.scanned).toContain("README.md");
+    expect(report.scanned).toHaveLength(report.files);
+  });
+});
+
+describe("canon-check: scanned surfaces (D12)", () => {
+  it("reads index.html: a copy attribute and a text node are both live", () => {
+    const { code, report } = fixture("unscanned-surface");
+    expect(code).toBe(1);
+    const hits = report.violations.filter((violation) => violation.file === "index.html");
+    // Two distinct lines: the <meta content> value and the <h1> text node. One
+    // hit would prove only that the file is opened, not that both surfaces are
+    // read — the half-scanned surface is the blind spot this closes.
+    expect(new Set(hits.map((violation) => violation.line)).size).toBeGreaterThan(1);
+    expect(hits.every((violation) => violation.rule === "entity-de")).toBe(true);
+    expect(hits.map((violation) => violation.term)).toContain("Kartenkatalog");
+  });
+
+  it("leaves markup that is not copy alone — ids, class hooks, attributes", () => {
+    const { code, report } = fixture("clean");
+    expect(code).toBe(0);
+    expect(report.scanned).toContain("index.html");
+  });
+});
+
+describe("canon-check: compound naming (D12)", () => {
+  it("flags a German compound the `\\bKatalog\\b` rule could not reach", () => {
+    const { code, report } = fixture("compound-de");
+    expect(code).toBe(1);
+    const terms = report.violations
+      .filter((violation) => violation.rule === "entity-de")
+      .map((violation) => violation.term);
+    expect(terms).toContain("Kartenkatalog");
+    expect(terms).toContain("Kartenkataloges");
+  });
+
+  it('flags the English compound `cardcatalogue`', () => {
+    const { code, report } = fixture("compound-en");
+    expect(code).toBe(1);
+    const terms = report.violations
+      .filter((violation) => violation.rule === "entity-en")
+      .map((violation) => violation.term);
+    expect(terms).toContain("cardcatalogue");
+    expect(terms).toContain("archivecatalogue");
   });
 });
 

@@ -20,7 +20,13 @@
  *   keeps the archival concept alive ("catalogue number", "the catalogue as an
  *   index"), and the design corpus uses that concept in prose throughout. The
  *   ban applies where a string can reach a visitor: string literals in `src/**`,
- *   quoted copy in specs, and the DE/EN value cells of the copy deck.
+ *   quoted copy in specs, the DE/EN value cells of the copy deck, and the
+ *   visitor-facing shell (`index.html`: copy-bearing attributes and text nodes).
+ *
+ * Scanned roots are the whole gated corpus, not a sample: every document the
+ * phase owns plus the page shell. `README.md` and `index.html` are listed for
+ * exactly the reason they were once excluded — they reach a visitor, so "rules
+ * by care" is not a proof. Machines-only roots stay out (see `SKIP_DIRS`).
  *
  * Every exemption is an explicit, reasoned entry in
  * `scripts/canon-allowlist.json`. Each entry must still match exactly one line;
@@ -43,7 +49,15 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 
-const DEFAULT_ROOTS = ["design", "docs", "src", "PRD.md", "AGENTS.md"];
+const DEFAULT_ROOTS = [
+  "design",
+  "docs",
+  "src",
+  "AGENTS.md",
+  "PRD.md",
+  "README.md",
+  "index.html",
+];
 const DEFAULT_ALLOWLIST = "scripts/canon-allowlist.json";
 
 /** Directories that are build output, dependencies, fixtures or archives. */
@@ -83,19 +97,34 @@ const TEXT_EXTENSIONS = new Set([
 /**
  * Canon rules. `scope: "live"` rules run only inside live-copy segments; a
  * global pattern is required because every hit is enumerated per line.
+ *
+ * The two *entity* rules match compounds, because a compound names the
+ * collection exactly as the bare word does: "Kartenkatalog" and
+ * "cardcatalogue" are the retired name written as one word (D-04b). The head is
+ * matched **word-finally** — German and English both put the head last — so
+ * "Katalogkarte"/"Katalogkarten" (the archival instrument) stay legal, and a
+ * prefix of *lowercase* letters keeps mixed-case identifiers out of scope:
+ * `seedCatalogue`, `totalInCatalogue`, `normalizeCatalogueKey`. A bare lowercase
+ * German "katalog" is not a compound head and not a noun, so it is left alone
+ * (`#katalog`, `nav:katalog` are ids, and `INLINE_EXEMPTIONS` covers the
+ * URL-shaped ones anyway). All-caps English headings are matched explicitly so
+ * the rule cannot silently lose a case form when the `i` flag is dropped.
  */
 const RULES = [
   {
     id: "entity-de",
     scope: "live",
-    label: 'German "Katalog" naming the collection (canon: Die Sammlung)',
-    pattern: /\bKatalog(?:e|s|en)?\b/g,
+    label: 'German "Katalog"/compound naming the collection (canon: Die Sammlung)',
+    pattern:
+      /(?<![A-Za-zÄÖÜäöüß])Katalog(?:es|en|e|s)?(?![A-Za-zÄÖÜäöüß])|(?<![A-Za-zÄÖÜäöüß])[A-ZÄÖÜ]?[a-zäöüß]+katalog(?:es|en|e|s)?(?![A-Za-zÄÖÜäöüß])/g,
   },
   {
     id: "entity-en",
     scope: "live",
-    label: 'English "catalogue"/"Catalog" naming the collection (canon: The Collection)',
-    pattern: /\b(?:catalogue|catalog)s?\b/gi,
+    label:
+      'English "catalogue"/"catalog"/compound naming the collection (canon: The Collection)',
+    pattern:
+      /(?<![A-Za-z])(?:CATALOG(?:UE)?|[Cc]atalog(?:ue)?)s?(?![A-Za-z])|(?<![A-Za-z])[A-Z]?[a-z]+(?:catalogue|catalog)s?(?![A-Za-z])/g,
   },
   {
     id: "verb-de",
@@ -154,6 +183,9 @@ const INLINE_EXEMPTIONS = [
   /\b(?:museum|archive|card)[\s-]+catalogue\b/gi,
   // Katalog-Nummer / Katalog-Register / Katalog-Zertifikat
   /\bKatalog(?:-|\s)+(?:Nummer|Register|Zertifikat|Eintrag|Karten)\b/g,
+  // URL-shaped ids, not copy: `#katalog`, `/kartenkatalog`, `?catalog=1`.
+  // The anchor ids in `design/ux/*` are identifiers even when quoted.
+  /[#?&/][A-Za-z0-9_./-]*(?:katalog|catalogue|catalog)[A-Za-z0-9_./-]*/gi,
 ];
 
 function usage(message) {
@@ -236,12 +268,75 @@ function insideSpans(index, length, spans) {
 }
 
 /**
+ * HTML: which attributes carry copy, and every attribute assignment (markup).
+ *
+ * `class`/`id`/`href` values are identifiers and are masked, never scanned; the
+ * copy-bearing attributes are the ones a visitor can read (`meta description`
+ * through `content`, an `alt`, an `aria-label`). Text nodes are scanned too —
+ * an `<h1>Der Katalog</h1>` reaches the visitor just as the meta description
+ * does, and a surface that is "scanned" but half-read is the blind spot this
+ * was written to close.
+ */
+const HTML_ATTRIBUTE =
+  /(?:^|[\s<])([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*(?:"([^"\n]{1,500})"|'([^'\n]{1,500})')/g;
+const copyAttributeNames = new Set([
+  "aria-description",
+  "aria-label",
+  "aria-roledescription",
+  "alt",
+  "content",
+  "placeholder",
+  "title",
+  "value",
+]);
+
+/**
+ * Live segments of one HTML line: the copy-bearing attribute values (in place)
+ * and the visible text between tags.
+ */
+function htmlSegments(line) {
+  const segments = [];
+  const hidden = new Array(line.length).fill(false);
+  const hide = (from, to) => {
+    for (let index = from; index < to; index += 1) hidden[index] = true;
+  };
+
+  HTML_ATTRIBUTE.lastIndex = 0;
+  let match;
+  while ((match = HTML_ATTRIBUTE.exec(line)) !== null) {
+    const name = match[1].toLowerCase();
+    const value = match[2] ?? match[3] ?? "";
+    hide(match.index, match.index + match[0].length);
+    if (!copyAttributeNames.has(name) || value === "") continue;
+    const at = match[0].lastIndexOf(value);
+    segments.push({ text: value, offset: match.index + (at === -1 ? 0 : at) });
+  }
+
+  // Mask the remaining markup by spans, not by parsing: a tag that spans several
+  // lines (`<meta` on one line, `content=` on the next) must not be read as prose.
+  for (const tag of line.matchAll(/<[^>]*>/g)) hide(tag.index, tag.index + tag[0].length);
+
+  let start = -1;
+  for (let index = 0; index <= line.length; index += 1) {
+    const visible = index < line.length && !hidden[index];
+    if (visible && start === -1) start = index;
+    if (visible || start === -1) continue;
+    const raw = line.slice(start, index);
+    const text = raw.trim();
+    if (text !== "") segments.push({ text, offset: start + raw.indexOf(text) });
+    start = -1;
+  }
+  return segments;
+}
+
+/**
  * The live-copy surfaces of a line, as `{ text, offset }` segments.
  *
  * - `src/**`: string literals only. A module named `catalogue` or a local
  *   `const catalog` is code, not copy; only the text a visitor can be shown is
  *   in scope.
  * - copy deck: the DE and EN value cells of a keyed row.
+ * - HTML: copy-bearing attribute values and text nodes (see `htmlSegments`).
  * - other docs: quoted strings — `"…"`, `*"…"*`, and German „…“.
  */
 function liveSegments(line, file, relativeFile) {
@@ -269,6 +364,7 @@ function liveSegments(line, file, relativeFile) {
     }
     return segments;
   }
+  if (file.endsWith(".html") || file.endsWith(".htm")) return htmlSegments(line);
   const segments = [];
   const quoted = /"([^"\n]{1,500})"|„([^“\n]{1,500})“/g;
   let match;
@@ -561,6 +657,9 @@ function main() {
         {
           status: active.length === 0 ? "clean" : "violations",
           files: files.length,
+          // The gated surface, by path: "index.html is scanned" is an assertion
+          // a test can make, not a claim in a comment.
+          scanned: files.map((file) => relative(options.root, file)),
           lines: lineCount,
           rules: [...RULES.map((rule) => rule.id), "bang"],
           allowlist: {
