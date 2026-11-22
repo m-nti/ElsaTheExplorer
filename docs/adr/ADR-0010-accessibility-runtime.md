@@ -349,8 +349,9 @@ time. A runtime that re-implements activation is a runtime that can break it.
 unit assertion; none has been run against a real VoiceOver (Safari) or NVDA session, and axe cannot
 judge whether a message was *spoken*. The `Screen reader pass` row of
 `design/accessibility-requirements.md`, "Accessibility Test Plan" is what converts these rows from
-"the DOM is right" to "the visitor heard it"; until it runs, no row may be reported as passed in a
-review — the honest status is `NOT ASSESSED`, not green.
+"the DOM is right" to "the visitor heard it"; until it runs, no screen-reader-dependent row may be
+reported as passed without the manual pass — for those rows the honest status is `NOT ASSESSED`,
+not green.
 
 Not every row carries that reservation, and saying which is the difference between honesty and
 noise: the rows that assert DOM structure, attributes or pure-function output (`E-LIVE-01`,
@@ -377,7 +378,7 @@ their source until then.
 | §2 | No message is cleared by time: after 30 s (fake clock) the region text is unchanged | Vitest unit | U-A11Y-02 **(new)** |
 | §2 | No `!` reaches a region | error/share announcement assertions | E-ERR-12 |
 | §2 | The visible line keeps its `!` while the region's copy loses it | i18n string test | U-I18N-17 |
-| §2 | The assertive region is never written — not on the golden journey, not on the share path | after the journey, `#live-alert` has never had a child text node | E-LIVE-04 **(new)** |
+| §2 | The assertive region is never written — not on the golden journey, not on the share path | end-state assertion: after the journey (and after a share, when the journey performs one) `#live-alert` has never had a child text node. The mechanism proves the end state only, so the share clause counts **only if** the golden journey shares; otherwise it is unexercised and the row is reported as partial, not green | E-LIVE-04 **(new)** |
 | §2 | The mid-reveal skip line is written **before** the close begins, so the 160 ms close cannot outrun it | pack suite: skip mid-reveal, region text sampled at the start of the close | E-LIVE-06 **(new)** |
 | §2 | After a share success, `#live-status` carries the `card.share.shared` string | text assertion on the region only | E-LIVE-09 **(new)** |
 | §2 | The visible share status line exposes no live semantics | one predicate — `role === null && aria-live === null` — asserted on the status line | E-LIVE-13 **(new)** |
