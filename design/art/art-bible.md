@@ -712,16 +712,17 @@ pixel figure below is **340 × 485.71 px** (`sizes.card-max`, aspect `0.70`), pl
 | Plate (name; number + mood + rarity chip) | **15.5%** | 15.5% | 15.5% | **two rows** — row 1: name, ≤ 1 line (ellipsis); row 2: number 1, mood 1 (ellipsis), rarity chip shares the row |
 | Photo window | **41.5%** | 41.5% | 44% | fixed band; the §3 window-ratio (4:5 w:h) fills the band height — **no block padding**; `object-position` per-photo; foil caps apply |
 | Strip (edition + stars) | **5.5%** (min 24px) | 5.5% (min 24px) | 5.5% | stars never wrap; kind truncates |
-| Story / copy panel (keyword/copy/print) | **19.5%** | 19.5% | 16% | keyword 1, copy ≤ 3 (≤ 2 on drop, already clamped), print ≤ 2 |
+| Story / copy panel (sentence + Fantasiewerte line) | **19.5%** | 19.5% | 16% | **two rows** (D70): sentence **≤ 3 lines** on the full and drop card, **≤ 2** on the tile; Fantasiewerte line 1 (ellipsis, never removed). No keyword row — the card's name is the heading |
 | Stats (label + 3 tiles) | **8.5%** | 8.5% | 9% | key 1 line, value 1 line; bar decorative |
 | Foot (serial/credit) | **5.0%** (min 22px) | 5.0% (min 22px) | 5.5% | serial 1; credit is first to be hidden under height pressure |
 | Gutters (distributed over the 5 gaps) | **4.5%** | 4.5% | 4.5% | never collapses; the foil edge keeps its margin |
 
 Each column sums to exactly 100% (15.5 + 41.5 + 5.5 + 19.5 + 8.5 + 5 + 4.5 = 100; 15.5 + 44 + 5.5
 + 16 + 9 + 5.5 + 4.5 = 100). **The drop card is the full column** — the 17/36 split was drift, and
-the drop card differs only in its copy clamp (≤ 2 lines). This table **supersedes** the
-15 / 31 / 4.5 / 22 / 13 / 4.5 / 10 % set that ADR-0011 §1 ratified verbatim; the amendment is
-recorded on PR #41, and §8 remains the source the ADR follows.
+D70 retires its separate clamp too: the drop card is the same 340 px plate, so it carries the same
+three-line story clamp; only the binder tile differs (its 16 % bay clamps at two lines). This table
+**supersedes** the 15 / 31 / 4.5 / 22 / 13 / 4.5 / 10 % set that ADR-0011 §1 ratified verbatim; the
+amendment is recorded on PR #41, and §8 remains the source the ADR follows.
 
 **Arithmetic — every band, at the reference card (469.71 px plate):**
 
@@ -730,7 +731,7 @@ recorded on PR #41, and §8 remains the source the ADR follows.
 | Plate | 15.5% | 72.81 | +2.35 | holds its clamp column: 72.81 − 16 px padding − 4 px row gap = **52.81 px**; name line 25.65 (19 px × 1.35) + metadata row 21 (11 px chip text + 2 × 4 px padding + 2 × 1 px border) = **46.65 px** → **6.16 px slack** |
 | Photo | 41.5% | 194.93 | +49.32 | window width = 194.93 × 0.8 = **155.94 px** = **45.87 % of 340 px** (≥ 153 px) |
 | Strip | 5.5% | 25.83 | +4.70 | floor 24 px → **+1.83 px**; no payer needed |
-| Story | 19.5% | 91.59 | −11.74 | need 88.80 px → **+2.79 px** |
+| Story | 19.5% | 91.59 | −11.74 | D70 two-row need **87.50 px** → **+4.09 px**; the pre-D70 three-row stack needed 88.80 px (2 lines) or 106.35 px (3 lines) |
 | Stats | 8.5% | 39.93 | −21.14 | need 34 px → **+5.93 px** |
 | Foot | 5.0% | 23.49 | +2.35 | floor 22 px → **+1.49 px**; no payer needed |
 | Gutters | 4.5% | 21.14 | −25.83 | 5 gaps × **4.23 px** — above R3's 4 px minimum, so **R3 is unused** |
@@ -742,6 +743,47 @@ Against the shipped card the photograph **loses 2.6 %, not 35 %**: 160.05 px in 
 its 16 px block padding) → 155.94 px here; against ADR-0011's ratified 31 % it **gains 50.4 %**
 (103.69 → 155.94 px). The photo is the only lit object on the card (§1), which is why the band
 moved and why it now fills its band edge to edge.
+
+**D70 — the story clamp: three lines, two rows.** The clamp column and the band arithmetic
+disagreed because they were describing different row plans. Three sub-rows (keyword, sentence, print
+line) leave **37.89 px** for copy — 91.59 − 16 padding − 8 gaps − 2 × 14.85 — which is **2.16 lines**
+at 17.55 px, so a third line overruns its row by **14.76 px** (52.65 − 37.89) and is clipped, not
+ellipsised. That is also what the old "need 88.80 px" figure was: 16 + 8 + 14.85 keyword + **35.10
+(2 lines)** + 14.85 print = 88.80 → 2.79 px slack. The band was right; the need row was the two-line
+stack and the clamp column said three.
+
+The ruling keeps the band and the three-line clamp, and removes the row that does not pay for itself:
+
+- **Band 4 is two rows (D70):** the sentence (≤ 3 lines) and the Fantasiewerte line (1 line). Need =
+  16 + 4 + 52.65 + 14.85 = **87.50 px** of 91.59 → **4.09 px** slack.
+- **The keyword row is retired from the card face.** The card's name is the heading and the
+  per-card keyword duplicated it; `card.moment.label` ("Elsa-Moment") names the panel in the docs,
+  not on the plate.
+- **The Fantasiewerte line is band 4's last row**, immediately above band 5's chips: it still
+  precedes the values in reading order and in the accessible name (F2a). Measured at 11 px against the
+  308 px story measure it is **205.1 px**, one line. The copy deck's `card.moment.imageNote` yields
+  entirely — it was already declared the first thing to go and is not in the data model.
+- **The keyword is retired rather than merged into that row.** Sharing one row was measured, not
+  assumed: a 12-character keyword is 100.3 px with its eyebrow tracking, so 100.3 + 205.1 + 8 px gap
+  = **313.4 px** against 308 px. It overflows at the reference card, and an ellipsised subject tag
+  is worse than none.
+- **Nothing else moves.** No bay percentage changes; the ≤ 2 drop clamp is retired with the keyword
+  row (same plate, same band); the binder tile clamps at **2** because its 16 % bay is 75.15 px and a
+  two-row plan leaves **40.30 px** for copy — 2 lines = 35.10 px, 3 lines = 52.65 px.
+
+Rejected, with the number that rejected it: three lines with three sub-rows needs **22.64 %**
+(+3.14 pp), paid by the photograph (41.5 → 38.36 %, window 155.94 → 144.14 px, −7.6 %) the day after
+D12a made it the largest band; a two-line clamp ellipsises the copy contract — measured at 308 px and
+13 px Chivo, German sentences of 92 / 98 / 103 / 124 characters render three lines while 89
+characters renders two, so the 96-character authoring ceiling spans both and four of the five
+measured sentences would lose their ending; shrinking the type to fit 37.89 px needs ≤ 9.36 px
+(−28 %), under the 11 px smallest card step; and a label row inside band 5 needs 49 px = 10.43 %
+against its 8.5 % (+1.93 pp).
+
+This arithmetic is stated at the reference card and holds proportionally at every size **once the
+em root scales the card's type** (§8 "Type & spacing scales"). Until that refactor lands (B2
+T7–T9), the shipped px tokens do not scale and a sub-reference card would clip its third line —
+that is the refactor's task, not a second clamp.
 
 The plate's one-line name is the ruling, not a shortfall: a second name line needs 25.65 px more,
 i.e. 72.3 px of a 52.81 px column. The shipped component already renders the name
@@ -758,8 +800,10 @@ against the `4cqw` root, so at the 180 px `card-min` (root 7.2 px, 0.529 ×) the
 103.20 px tall and its window 82.56 px wide — still **45.87 % of 180 px**; the strip and foot px
 floors scale with the root under R1.
 
-Height-pressure order (what gets cut first, in order): credit → mood → print line →
-copy clamp tightens. **D12a:** the mood step no longer frees height — the rarity chip keeps row 2 —
+Height-pressure order (what gets cut first, in order): credit → mood → copy clamp tightens (3 → 2
+lines, then ellipsis) → the Fantasiewerte line ellipsises to its leading word, which is why that word
+is "Fantasiewerte" and stays. It is never removed while the stats are on the plate (F2a).
+**D12a:** the mood step no longer frees height — the rarity chip keeps row 2 —
 so dropping mood costs a line of text, not a band. The photo band and the plate name never cut. The
 card body keeps the §3 card-ratio `0.70` in every variant. The frame wins: zones reserve fixed
 proportions; text that doesn't fit clamps, never clips, never crosses a zone boundary, never pushes

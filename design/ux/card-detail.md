@@ -144,12 +144,12 @@ Desktop (≥1120px, ≥850px tall — side-by-side layout, current behaviour kep
 ║   │  Teilen      │   │ │ Elsa the Explorer · 1. Aul │ │  ← credit│
 ║   │              │   │ │ ★★★★☆        (own band!)   │ │   strip  │
 ║   │  (status)    │   │ ├────────────────────────────┤ │          ║
-║   │              │   │ │ ELSA-MOMENT                │ │          ║
+║   │              │   │ │ SENTENCE ≤3                │ │          ║
 ║   │  (hint)      │   │ │ „Sie hat den Garten neu    │ │          ║
 ║   │              │   │ │  sortiert. Nach ihr."      │ │          ║
-║   └──────────────┘   │ │ Im Bild: Elsa am Beete     │ │          ║
+║   └──────────────┘   │ │ FANTASIEWERTE (1 LINE)     │ │          ║
 ║                      │ ├────────────────────────────┤ │          ║
-║  ‹                 ›  │ Fantasiewerte · nur zum Spaß│ │          ║
+║  ‹                 ›  │ [STATS: CHIPS ONLY]         │ │          ║
 ║   (chevrons, mid-    │ │ [Spaß 7/10][Naps 9/10][X]  │ │ ← stats  │
 ║    edges)            │ ├────────────────────────────┤ │          ║
 ║                      │ │ 04/24      Elsa the Ex ·1A │ │ ← serial │
@@ -190,8 +190,8 @@ photograph is the only lit object, so it takes the largest content band.
 | 1 · plate | **15.5** | row 1: name, **one line with ellipsis**; row 2: number, mood (one line), rarity chip |
 | 2 · photo window | **41.5** | 4:5 window filling its band (no block padding), `object-position` from the focus anchor; nothing overlaps it |
 | 3 · credit strip | **5.5** | edition credit + stars, own row, never painted over the photo |
-| 4 · story | **19.5** | keyword + sentence (≤ 3 lines) + "Im Bild" note |
-| 5 · stats | **8.5** | Fantasiewerte label + 3 stat chips, every value inside its chip |
+| 4 · story | **19.5** | sentence (**≤ 3 lines**) + Fantasiewerte line (1 line, ellipsis) — two rows, D70 |
+| 5 · stats | **8.5** | 3 stat chips, every value inside its chip; the Fantasiewerte label is band 4's last row, immediately above the chips (D70) |
 | 6 · foot | **5.0** | serial + credit + edition |
 | 7 · gutters | **4.5** | five gaps, never collapses; the foil edge keeps its margin |
 
@@ -243,6 +243,24 @@ zooms the page (browser default, allowed and unblocked). Display copies are the
 a display rendition; the **original** is used only by "Foto speichern". A photo
 zoom/magnify affordance is deliberately deferred (§15).
 
+**L7 — Band 4 is two rows and the sentence clamps at three lines (D70).**
+At the 340 × 485.71 px reference (plate inner height 469.71 px) band 4 is 19.5 % = **91.59 px**.
+Two rows — sentence (13 px, line-height 1.35 = 17.55 px per line) over the Fantasiewerte line (11 px
+= 14.85 px) — cost 16 px padding + 4 px gap + 52.65 px copy + 14.85 px label = **87.50 px**, leaving
+**4.09 px** slack. A third sub-row (a separate keyword or "Im Bild" row) drops the copy to
+**37.89 px**, which is 2.16 lines: the third line then overruns its row by **14.76 px** and clips
+mid-glyph — measured at 308 px, where four of five German sample sentences at the 96-character
+ceiling render three lines. That is the arithmetic #70 records, and it is why this spec carries no
+keyword row and no "Im Bild" row on the card face: the card's name is the heading, the image note was
+already declared the first thing to yield, and a keyword sharing the disclaimer's row measures
+100.3 + 205.1 + 8 = 313.4 px against a 308 px measure — it overflows. The copy contract is unchanged
+— 96 characters authored, German binding — and it is a three-line contract. Three lines with three
+sub-rows would need a 22.64 % band (+3.14 pp out of the photograph), which D12a's ruling does not
+fund. The tile column (16 % = 75.15 px) leaves **40.30 px** for copy, so the tile clamps at **two**
+lines; the drop card shares this card's plate and therefore this clamp. The Fantasiewerte line sits
+last in band 4, directly above the chips, so it precedes the values visually and in the accessible
+name (F2a) — it ellipsises to its leading word under pressure but is never removed.
+
 **Holo / foil treatment — adopted from the reference study** (`holo-card-ref.html`,
 the layered-CSS foil reference; the current implementation shares its lineage —
 what follows is what the card should additionally adopt):
@@ -270,8 +288,8 @@ what follows is what the card should additionally adopt):
 | `.card__wing-frame` | Frame variant | card frame (band-independent) | **GDD R3b — completed-room frame variant on the seven-bay face (Vertical Slice)**: the same gilt frame the room's tiles wear, rendered around the dialog card; **decorative only (R10)** — announced nowhere, carries no state | Yes (VS) | Same frame tokens as `.shelf__gilt` |
 | `.card__photo` (+ img, rays, frame, focus anchor) | Composite | band 2 | The photograph is the art | Yes | Yes |
 | `.card__strip` (credit + stars) | Band | band 3 | Edition + rarity stars | Yes | Yes (moved into its own band per L3) |
-| `.card__line` (Elsa-Moment, copy, "Im Bild") | Panel | band 4 | The card's story | Yes | Yes |
-| `.card__stats-label` + `.card__stats` | Label + 3 chips | band 5 | Fantasiewerte, openly imaginary (F2a) | Yes | Yes (per L4) |
+| `.card__line` (sentence + Fantasiewerte line) | Panel | band 4 | The card's story, two rows per L7 | Yes | Yes |
+| `.card__stats` (3 chips, no label row) | 3 chips | band 5 | Fantasiewerte, openly imaginary (F2a); the label is band 4's last row | Yes | Yes (per L4) |
 | `.card__foot` (serial + credit + edition) | Band | band 6 | Catalogue position | Yes | Yes |
 | `.card__halo` / `.card__ground-shadow` | Decorative | around card | Adopted dressing (§5.3 C) | Round 1 (dressing) | New |
 | `.card__corner` ×4 | Decorative SVG | frame | Adopted brackets (§5.3 F) | Phase 2 | New |
@@ -366,7 +384,7 @@ originating card button (pack card / catalogue tile); with no originating card
 
 | Data Element | Source System | Update Frequency | Who Owns It | Format | Null / Missing Handling |
 |--------------|--------------|-----------------|-------------|--------|------------------------|
-| Card content (name, mood, sentence, "Im Bild", Fantasiewerte, rarity) | Card catalogue (photo → card pipeline; per-photo bilingual overrides; bank fallback) | On open / navigate / language switch | Card source system | photo object | Missing copy → neutral fallback copy (F2), never invented activities |
+| Card content (name, mood, sentence, Fantasiewerte, rarity) | Card catalogue (photo → card pipeline; per-photo bilingual overrides; bank fallback) | On open / navigate / language switch | Card source system | photo object | Missing copy → neutral fallback copy (F2), never invented activities |
 | Rarity | Card source system (from the photo's own id — F3) | Stable per photo | Card source system | `common\|rare\|holo` | n/a — identity must not drift |
 | Set membership / chase flag / edition stamp | Card catalogue (`set`, `chase`) + persistence (`flags.v1` lap) | On open | Card source system / persistence respectively | string / boolean | Missing set → no chip; missing stamp → none |
 | Focus anchor | Card source system (manifest `focus`) | On render | Card source system | {x,y}% | Missing → `center 42%` |
@@ -501,7 +519,7 @@ returns to the originating card button, else `#open-pack`.
 | Share sheet resolved | "Geteilt." | On success |
 | Clipboard fallback | "Link kopiert." | On success |
 | Share failed | "Link konnte nicht kopiert werden. Er steht oben in der Adresszeile." | On failure — never silent |
-| Fantasiewerte | Label precedes the values in the card's `aria-label` ("Fantasiewerte · nur zum Spaß: …") | Part of the open announcement (F2a) |
+| Fantasiewerte | Label precedes the values in the card's `aria-label` ("Fantasiewerte · nur zum Spaß: …"); visually it is band 4's last row, directly above the chips (D70) | Part of the open announcement (F2a) |
 | "Noch ein Pack" while busy | Button is disabled with label "Pack wird geöffnet" state carried by the parent | On attempt |
 
 **Cognitive load assessment**:
@@ -526,9 +544,9 @@ numbers are read (F2a), preventing misreading them as data.
 | Card name | catalog-driven | 24 (2 lines in band 1) | 40 % | n/a | Wraps to 2 lines; then font steps down one cqw clamp (never truncates a name) | Medium — **HIGH PRIORITY for localization**: band 1 is fixed |
 | Mood ("Laune: …") | catalog-driven | 20 | 40 % | n/a | Wraps inside band 1's mood row | Low |
 | Credit strip "Elsa the Explorer · 1. Auflage" | ~28 | 40 | 40 % | n/a | Fixed band per L3; letter-spacing steps down, then wraps to 2 short lines — **never** overlaps the photo | Medium — **HIGH PRIORITY**: the defect zone |
-| Elsa-Moment sentence | catalog-driven | 96 (band clamp) | 40 % | n/a | Wraps within band 4; band 4 is 19.5 % and the copy clamps at 3 lines; the font steps down once; last resort drops the "Im Bild" line to keep the sentence | Medium — **HIGH PRIORITY** |
-| "Im Bild: …" note | ~30 | 44 | 40 % | n/a | First thing to yield (see above); never the sentence | Low |
-| Fantasiewerte label ("Imaginary stats · just for fun" / "Fantasiewerte · nur zum Spaß") | 30 | 42 | 40 % | n/a | Wraps to 2 short lines above the chips | Low |
+| Elsa-Moment sentence | catalog-driven | 96 (3-line contract, D70) | 40 % | n/a | Band 4 is 19.5 % and clamps at **3 lines**; the type does not step down — the two-row plan is what buys the third line (L7); a fourth line ellipsises | Medium — **HIGH PRIORITY** |
+| "Im Bild: …" note | ~30 | 44 | 40 % | n/a | **Not rendered on the card face** (D70): the deck already named it the first thing to yield, and it is not in the card model | Low |
+| Fantasiewerte label ("Fantasiewerte · mit voller Überzeugung" / "Imaginary stats · held with conviction") | 38 | 42 | 40 % | n/a | One line, band 4's last row: measured 205.1 px at 11 px against 308 px. Ellipsises to the leading word; never removed | Low |
 | Stat keys + values | manifest-driven | key 12, value 4 | 40 % | n/a | Key wraps inside the chip (L4 reserves the value box) | Low |
 | Stamp line (dialog, Phase 2) "Second printing — the collection already knows this one." / "Zweite Auflage — die Sammlung kennt sie schon." | ~57 | 80 | 40 % | n/a | Status/hint area wraps to 2 lines | Low |
 | Action buttons ("Another pack"/"Noch ein Pack", "Save this photo"/"Foto speichern", "Share"/"Teilen") | 12/15/5 | 17/21/7 | 40 % | n/a | Mobile 2-col grid: buttons wrap to their own rows rather than shrink below 44px hit height | Medium — **HIGH PRIORITY**: mobile actions row |
@@ -544,6 +562,7 @@ numbers are read (F2a), preventing misreading them as data.
 - [ ] At every viewport in {320×480, 320×568, 390×844, 414×896, 640×480, 768×1024, 1024×768, 1280×800, 1280×900, 1920×1080, 1920×1200}, portrait and landscape: **the credit strip's bounding box does not intersect the photo window's** (fixes the "Elsen · Erste Auflage" overlap)
 - [ ] Same viewport sweep: **the lowest text baseline of the last stat value sits ≥2px above the card's inner bottom edge** (fixes the clipped stat)
 - [ ] Same viewport sweep: **no content band extends beyond the card frame's inner border** — nothing crosses the foil edge (fixes defect 3)
+- [ ] Same sweep, DE and EN: band 4 shows the sentence at up to 3 lines with **no clipped partial line** (clamp 3 on the full and drop card, 2 on the binder tile), and the Fantasiewerte line is present on every card that shows stats (D70)
 - [ ] These three checks run as scripted Playwright geometry assertions (bounding-box intersection + baseline math) on every build — CI, not eyeballs
 - [ ] At 200 % browser zoom the same three assertions pass
 
