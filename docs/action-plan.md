@@ -43,7 +43,7 @@
 
 | # | Phase | Deliverable | Depends on |
 |---|---|---|---|
-| B0 | Scaffold | `package.json`, `vite.config.ts`, `tsconfig`, `panda.config.ts`, `src/`, `design/tokens/`, ESLint/Stylelint/knip wired to the new tree | P4 |
+| B0 | Scaffold | `package.json`, `vite.config.ts`, `tsconfig`, `panda.config.ts`, `src/`, `design/tokens/`, ESLint/Stylelint/knip/**jscpd** wired to the new tree | P4 |
 | B1 | Tokens + gates | typed palette/type/spacing + rarity table; **contrast gate must reject the legacy `--quiet`**; `staticCss` recipe safelist; motion tokens from `motion-sheet.md` | B0 |
 | B2 | CardFace | fixed %-height zones, 4/5 photo window, 5-layer foil, tilt, focus anchor, error state | B1 |
 | B3 | Entrance hall | static shell independent of the manifest; pack CTA; progress line; Zuwachs line; empty/error states | B2 |
@@ -70,7 +70,7 @@
 | Q1 | Vitest: pack draw (4), rarity single-source, storage migration, contrast gate, i18n parity, copy-lint | ⬜ |
 | Q2 | Playwright: golden journey, keyboard-only, reduced motion, focus-return matrix, error states, overflow matrix, swipe/chevrons | ⬜ |
 | Q3 | Replace `scripts/qa.mjs` gaps (PHP paths, share, reset, storage corruption) | ⬜ |
-| Q4 | CI order: typecheck → stylelint → eslint → knip → unit → build → e2e → axe → budgets | ⬜ |
+| Q4 | CI order: typecheck → stylelint → eslint → knip → **jscpd** → unit → build → e2e → axe → budgets | ⬜ |
 | Q5 | Cross-file selector-diff check (Stylelint is per-file) | ⬜ |
 
 ## 6. Measured debt (from baselines)

@@ -794,6 +794,7 @@ any step stops the pipeline.
 | 2 | Stylelint + selector diff + unused CSS | `stylelint "src/**/*.{css,svelte}"` → `node scripts/selector-diff.mjs` → Svelte compiler warnings escalated | Raw value where `var()` is required; duplicate selector in a file; duplicate selector **across** files; unused scoped CSS |
 | 3 | ESLint | `eslint .` | Lint error, including `no-restricted-syntax` for `page.waitForTimeout` in `tests/e2e/` |
 | 4 | knip | `knip` | Dead token, recipe, export, or unused dependency |
+| 4b | jscpd | `npx jscpd --config jscpd.json src tests scripts` | Duplicate blocks ≥50 tokens; threshold 2% lines; report in `reports/jscpd/` |
 | 5 | Vitest | `vitest run --coverage` | Any unit/property/contrast/i18n failure or coverage below threshold |
 | 6 | Build | `vite build` | Build error; also emits `reports/size.json` |
 | 7 | Playwright | `playwright test --project=chromium --project=webkit --project=mobile-chrome --project=mobile-safari` | Any journey, keyboard, motion, focus, error, overflow, browse or reset failure |
@@ -1160,6 +1161,7 @@ npm run build && npx playwright test tests/e2e/journey.spec.ts --project=chromiu
 # full gate locally (same order as CI)
 npm run check && npx stylelint "src/**/*.{css,svelte}" \
   && node scripts/selector-diff.mjs && npx eslint . && npx knip \
+  && npx jscpd --config jscpd.json src tests scripts \
   && npx vitest run --coverage && npm run build \
   && npx playwright test && npx playwright test tests/e2e/a11y.axe.spec.ts \
   && node scripts/budget-check.mjs
