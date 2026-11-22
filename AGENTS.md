@@ -129,6 +129,35 @@ subagent crew per workstream (specialist over generalist); name both in the plan
 **conductor loads skills for its own work too** — it is not exempt because it delegates.
 State what was considered, chosen, and why the rest were not. No inventory, no task.
 
+### Ownership: the studio agent owns, the cs-* agent cross-checks
+
+The game-studios roster is the domain expertise for this product; the cs-* roster is the
+cross-check. One exception: the PHP runtime service (`photos.php`) is owned by
+`cs-backend-engineer` — it is server code, not game content — while the studio
+`tools-programmer` owns the sharp CLI beside it. A workstream staffed only with cs-*
+agents has otherwise skipped this rule.
+
+This table is a compact summary; `docs/action-plan.md` §0.5 is authoritative where the
+two differ (it also carries the per-workstream skill list).
+
+| Workstream | Studio owner | Cross-check |
+|---|---|---|
+| UX, copy, narrative | `ux-designer`, `writer`, `narrative-director` | `localization-lead` |
+| Art, foil, card visual | `art-director`, `technical-artist` | `cs-design-lead` |
+| Card / pack / collection UI | `ui-programmer`, `gameplay-programmer` | `cs-accessibility-engineer`, `cs-code-auditor` |
+| Audio | `sound-designer`, `audio-director` | `cs-code-auditor` |
+| Image pipeline & tooling | `tools-programmer`; `cs-backend-engineer` for the PHP service | `security-engineer` |
+| Tests, CI, release | `qa-lead`, `qa-tester`, `release-manager`, `devops-engineer` | `cs-qa-automation-lead`, `cs-release-manager`, `cs-devops-engineer` |
+| Perf & a11y | `performance-analyst`, `accessibility-specialist` | `cs-accessibility-engineer` |
+
+**Rejected for this product** (name them in the inventory, do not staff them): Godot /
+Unity / Unreal / UE specialists, `network-programmer`, `ai-programmer`, `level-designer`,
+`economy-designer`, `live-ops-designer` — no engine, no AI, no 3D levels, no live economy,
+no seasonal content. `prototyper` only before a vertical slice exists.
+
+Each ticket names its studio owner **and** its reviewer in the issue; the PR review comes
+from the cross-check column, not from the author's own roster.
+
 ## Standing rule — watch CI on every push; red is not allowed to sit
 
 After every push: `gh pr checks <n>`; on failure read `gh run view <run-id> --log-failed`.
