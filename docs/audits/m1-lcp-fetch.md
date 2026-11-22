@@ -85,13 +85,98 @@ The unit gate's negative proof is the legacy pair itself: the audit runs over
 `legacy/index.html` plus `legacy/assets/js/app.js` and must find `#pack-preview` rewritten,
 so a green run is never a green run over nothing.
 
+## #81 — the last 0.0006, and why it took two faces
+
+> **Branch**: `fix/m1b-chivo-fallback` · **Base**: `985c678` · **Owner**: `performance-analyst`
+> · **Cross-check**: `cs-frontend-engineer`. Same method, with one correction: the font is
+> held until the first frame has painted and then released. On loopback Chivo sometimes
+> wins the race against first paint, and the same page then reports **0 with the defect
+> present** — the measurement below is the worst case, every run.
+
+| Measurement | Before | After |
+|---|---:|---:|
+| CLS, cold first view 390 × 844 DPR 2 (Chromium) | 0.000565 | **0** |
+| CLS, cold first view 1280 × 720 (Chromium) | 0.000305 | **0** |
+| Layout-shift entries at either viewport | 2 sources per entry | none |
+| Chivo bytes | 29,368 B | 29,368 B (unchanged) |
+| `font-display` | `swap` | `swap` (both faces) |
+| Rendered pixels, final state (Chivo loaded) | — | byte-identical, 0 differing pixels at both viewports |
+
+Shift sources before, 390 × 844 — vertical only, 1 px each:
+
+| Node | Previous rect | Current rect |
+|---|---|---|
+| eyebrow text (`Sammelwerk · Erste Auflage`) | y 32, h 13 | y 33, h 13 |
+| tagline text (`Die Sammlung ist…`) | y 169.5, h 34.5 | y 170.5, h 34.5 |
+
+Chivo's `hhea` is **940 / −250 at 1000 upem, no line gap** (read from
+`public/fonts/chivo-latin.woff2` with `fontverter`), so the interim face has to declare
+`ascent-override: 94 %` and `descent-override: 25 %` *of the adjusted em* — i.e. divided by
+`size-adjust`. The old interim face was Segoe UI through `system-ui`, whose line box is
+133 per 100 px against Chivo's 119: the 1 px is that difference, rounded.
+
+**The advance ratio is not one number.** Measured at 100 px (canvas `measureText`, the
+shipped subset):
+
+| Case | Chivo | Arial | Ratio | Resulting `size-adjust` |
+|---|---:|---:|---:|---:|
+| sentence copy (`Die Sammlung ist das Produkt…`) | 3268.149 | 3095.654 | 1.0557 | **105.57 %** |
+| tracked uppercase (`SAMMELWERK · ERSTE AUFLAGE`, 11 px / 600 / 0.14 em) | 212.969 | 220.15 | 0.9672 | **96.72 %** |
+
+Chivo's caps are *narrower* than Arial's while its sentence copy is *wider*. One face
+therefore cannot serve both: with `Chivo Fallback` alone the centred eyebrow line moved
+7.95 px (CLS 0.000121) because a centred line's start moves by half the advance change.
+The fix ships two `local()` faces — `Chivo Fallback` (body, 105.57 %) and
+`Chivo Label Fallback` (tracked labels, 96.72 %), selected by the `fonts.body` and
+`fonts.label` tokens — each with the same `94 / 25` hhea division:
+
+| Face | `size-adjust` | `ascent-override` | `descent-override` | `line-gap-override` |
+|---|---:|---:|---:|---:|
+| `Chivo Fallback` | 105.57 % | 89.04 % | 23.68 % | 0 % |
+| `Chivo Label Fallback` | 96.72 % | 97.19 % | 25.85 % | 0 % |
+
+Arial is the base because `local("Arial")` resolves to Arial on Windows/macOS and to
+Liberation Sans on Linux, which is advance-compatible with Arial (same 1854/434/67 hhea
+and identical advances). Both faces are `local()`-only: **zero new bytes**, and the font
+budget gate is unchanged.
+
+The `.eyebrow` is the only surface that needed `fonts.label`; every other tracked label
+sits in a left-anchored box, where an advance change moves nothing.
+
+### What now fails if #81 returns
+
+| Gate | Where | Catches |
+|---|---|---|
+| `tests/unit/chivo-fallback.test.ts` | Vitest `unit` (enforced chain) | a fallback that downloads bytes; a fallback behind `system-ui` in the stack; a `size-adjust` edited without re-deriving the overrides; a `swap` removed; the label face losing its narrower ratio |
+| `tests/e2e/lcp.spec.ts` | Playwright | CLS ≠ 0 at 390 × 844 and 1280 × 720 (forced late swap); a fallback whose line box, baseline or advance stops matching Chivo on Chromium *and* WebKit |
+
+The e2e measurement now forces the swap (holds the font until the first frame paints).
+That is the point: the pre-fix spec reported `0.0006` on one run and `0` on the next
+because the font sometimes won the race — a gate that passes without the fix is not a gate.
+
 ## NOT ASSESSED
 
-- **Font substitution on Linux CI.** The `0.0006` residual and the `0.005` guardrail were
-  measured on Windows with Georgia; a CI runner substituting a different serif may shift
-  more. The picture-sourced assertion (`imageShifts === 0`) is platform-independent; the
-  total-page guardrail is not yet verified off Windows. Gate 7 (Playwright) is still
-  pending under #24, so nothing in CI runs this spec today.
+- **A Linux browser run.** No Linux runner is available here (Docker absent; Playwright
+  gate #24 still pending). The argument for Linux is the `local("Liberation Sans")`
+  fallback and Arial's advance compatibility, not a measurement. The metric assertion
+  runs in CI only once #24 lands.
+- **WebKit CLS.** Safari exposes no `layout-shift` entry type, so `cls === 0` is
+  unmeasurable there and those two tests are skipped by name on WebKit. The metric test
+  runs on WebKit and carries the claim. WebKit also resolves `local("Arial")` at weight
+  600 to the Bold instance: the label advance is then 2 % wide = a 2.2 px centred move,
+  below the 3 px threshold Chromium uses before reporting a shift at all.
+- **The credit label at 80 → 89 px** that #26 recorded. On this branch's first view the
+  credit is not rendered at either acceptance viewport (the stage card was replaced by the
+  binder grid in B2), so it could not be re-measured; the body face covers it by ratio.
+
+## NOT ASSESSED — carried over from #26
+
+- **Font substitution on Linux CI.** Superseded for CLS by the #81 section above: the
+  Chivo and Ultra faces are metric-matched, and the CLS gate runs on Chromium only until
+  #24. The original note stands for the pre-#81 state: the `0.0006` residual and the
+  `0.005` guardrail were measured on Windows with Georgia and a substituted serif can
+  shift differently. The picture-sourced assertion (`imageShifts === 0`) is
+  platform-independent.
 - **IONOS compression and cold-cache mobile boot** — unchanged from `perf-baseline.md`;
   this ticket does not touch the host.
 - **The 62,248 B PHP derivative as an LCP element** — no v2 surface renders a manifest

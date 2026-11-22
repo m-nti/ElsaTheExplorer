@@ -291,7 +291,8 @@ export const tokens = defineTokens({
   },
 
   fonts: {
-    body: value('"Chivo", "Avenir Next", Avenir, system-ui, sans-serif'),
+    body: value('"Chivo", "Chivo Fallback", "Avenir Next", Avenir, system-ui, sans-serif'),
+    label: value('"Chivo", "Chivo Label Fallback", "Avenir Next", Avenir, system-ui, sans-serif'),
     print: value('"Ultra", "Ultra Fallback", Georgia, serif'),
   },
 
