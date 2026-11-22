@@ -143,7 +143,7 @@ budget gate is unchanged.
 The `.eyebrow` is the only surface that needed `fonts.label`; every other tracked label
 sits in a left-anchored box, where an advance change moves nothing.
 
-## What now fails if this returns
+### What now fails if #81 returns
 
 | Gate | Where | Catches |
 |---|---|---|
@@ -169,13 +169,14 @@ because the font sometimes won the race — a gate that passes without the fix i
   credit is not rendered at either acceptance viewport (the stage card was replaced by the
   binder grid in B2), so it could not be re-measured; the body face covers it by ratio.
 
-## NOT ASSESSED
+## NOT ASSESSED — carried over from #26
 
-- **Font substitution on Linux CI.** The `0.0006` residual and the `0.005` guardrail were
-  measured on Windows with Georgia; a CI runner substituting a different serif may shift
-  more. The picture-sourced assertion (`imageShifts === 0`) is platform-independent; the
-  total-page guardrail is not yet verified off Windows. Gate 7 (Playwright) is still
-  pending under #24, so nothing in CI runs this spec today.
+- **Font substitution on Linux CI.** Superseded for CLS by the #81 section above: the
+  Chivo and Ultra faces are metric-matched, and the CLS gate runs on Chromium only until
+  #24. The original note stands for the pre-#81 state: the `0.0006` residual and the
+  `0.005` guardrail were measured on Windows with Georgia and a substituted serif can
+  shift differently. The picture-sourced assertion (`imageShifts === 0`) is
+  platform-independent.
 - **IONOS compression and cold-cache mobile boot** — unchanged from `perf-baseline.md`;
   this ticket does not touch the host.
 - **The 62,248 B PHP derivative as an LCP element** — no v2 surface renders a manifest
