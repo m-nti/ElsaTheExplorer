@@ -83,6 +83,12 @@ body:
       label: Dependencies
       description: Issues, ADRs, or external facts this needs.
       placeholder: "#12, ADR-0008, IONOS GD verification"
+  - type: textarea
+    id: deferral
+    attributes:
+      label: Deferral evidence (only if this was not fixed now)
+      description: Per the fix-now rule — if this could have been fixed in the change that found it, say exactly what blocked that (dependency, migration, host fact, design change, unreviewable diff). A vague answer means it should have been fixed, not filed.
+      placeholder: "Needs a script + CI wiring (not a 2-line edit); full parity check is a new tool."
   - type: input
     id: refs
     attributes:
