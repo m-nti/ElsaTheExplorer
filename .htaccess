@@ -1,0 +1,70 @@
+# Elsa the Explorer — server-side rules for the IONOS document root.
+# Implements docs/adr/ADR-0007-release-deploy.md §1–§2 (versioned deploy file, uploaded as
+# deploy step 0, never part of dist/), ADR-0008 §3/§5 (no-original rule, private cache)
+# and ADR-0009 §3 (MIME type, revalidated worker, cache policy); PRD.md §5 Security, §7.
+# Each block opens with the sentence it implements; nothing here is invented.
+
+# PRD §5 Security: no directory indexing, so photos/ and the cache cannot be listed.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # ADR-0008 §3: an original under photos/ is source data, never an endpoint.
+  # ^photos/[^/]+ matches direct children only, so photos/thumbs/ and photos/derived/ keep
+  # being served — the PHP-less static fallback renders from them (ADR-0004 §3). The same
+  # deny exists in photos/.htaccess; this copy holds when only the root is uploaded.
+  RewriteRule "^photos/[^/]+\.(jpe?g|png|gif|webp|avif|heic|heif)$" - [F,NC]
+
+  # ADR-0008 §5: the derivative cache is server-private, never a URL.
+  RewriteRule "^photos/\.cache(/|$)" - [F,NC]
+
+  # PRD §5 Security: no executable code inside the photo store. photos.php sits at the
+  # document root and is deliberately not matched here.
+  RewriteRule "^photos/.*\.(php|phtml|phar|cgi|pl|py|sh|html?)$" - [F,NC]
+
+  # Control files are not content: .htaccess, .git, .env and the skeleton markers.
+  RewriteRule "(^|/)\.(?!well-known/)" - [F]
+</IfModule>
+
+<IfModule mod_mime.c>
+  # ADR-0009 §3: the web app manifest must be served as application/manifest+json.
+  AddType application/manifest+json .webmanifest
+  AddType font/woff2 .woff2
+  AddType image/heic .heic
+  AddType image/heif .heif
+</IfModule>
+
+<IfModule mod_headers.c>
+  # PRD §5 Security and ADR-0008 §3: the header set photos.php emits, for every static
+  # file and for errors. `always` so a 403 does not lose them.
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  # PRD §7 and M8: the page is a private card library, never an indexed result.
+  Header always set X-Robots-Tag "noindex, nofollow"
+
+  # ADR-0009 §3: the worker must be revalidated, or the one-hour JS expiry below delays an
+  # update past the quiet "neue Fassung" affordance.
+  <Files "sw.js">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </Files>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # index.html is the deploy switch (ADR-0007 §2): never served from cache.
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/javascript "access plus 1 hours"
+  ExpiresByType text/css "access plus 1 hours"
+  # ADR-0009 §5 row 8: photos.json is build-time data, refreshed on the owner's schedule.
+  ExpiresByType application/json "access plus 0 seconds"
+  ExpiresByType application/manifest+json "access plus 1 hours"
+  ExpiresByType image/svg+xml "access plus 1 days"
+  ExpiresByType font/woff2 "access plus 30 days"
+
+  # No raster-image entry on purpose. A derivative URL is immutable only when it carries
+  # &v= (ADR-0008 §1/§6); the emitter sets that header itself, and a server-side TTL here
+  # would serve a replaced photo under the old URL. The ver-keyed manifest is the buster.
+</IfModule>

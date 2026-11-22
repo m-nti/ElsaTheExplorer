@@ -127,9 +127,11 @@ FTP and reloads; nothing is rebuilt and nothing is redeployed.
 The artefact is `dist/` from `npm run build`, uploaded to the IONOS document root over FTP. No
 staging, no shell, no cron, no database, one operator.
 
-1. The server-side files versioned in the repo — `photos.php`, `photos/.htaccess` and the
+1. The server-side files versioned in the repo — `.htaccess` (originals and the cache denied,
+   no listing, nosniff, noindex), `robots.txt`, `photos.json`, `photos.php` and the
    derivative-cache skeleton (`photos/.cache/`, committed with its deny file) — safe at any
-   time.
+   time. `tests/unit/deploy-files.test.ts` proves the deny rules and keeps this list honest;
+   `photos.json` is regenerated from the owner's store before an upload and only then changes.
 2. `assets/` (content-hashed), then `fonts/` and `img/` — what `npm run build` emits today,
    alongside `index.html` and `favicon.svg`.
 3. **Pending (B8, #19):** `icons/` and `manifest.webmanifest`, then `sw.js` — only after every
