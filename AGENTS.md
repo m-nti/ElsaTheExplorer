@@ -132,8 +132,13 @@ State what was considered, chosen, and why the rest were not. No inventory, no t
 ### Ownership: the studio agent owns, the cs-* agent cross-checks
 
 The game-studios roster is the domain expertise for this product; the cs-* roster is the
-cross-check, never the reverse. A workstream staffed only with cs-* agents has skipped
-this rule. Full matrix (skills per workstream) in `docs/action-plan.md` §0.5.
+cross-check. One exception: the PHP runtime service (`photos.php`) is owned by
+`cs-backend-engineer` — it is server code, not game content — while the studio
+`tools-programmer` owns the sharp CLI beside it. A workstream staffed only with cs-*
+agents has otherwise skipped this rule.
+
+This table is a compact summary; `docs/action-plan.md` §0.5 is authoritative where the
+two differ (it also carries the per-workstream skill list).
 
 | Workstream | Studio owner | Cross-check |
 |---|---|---|
@@ -142,7 +147,7 @@ this rule. Full matrix (skills per workstream) in `docs/action-plan.md` §0.5.
 | Card / pack / collection UI | `ui-programmer`, `gameplay-programmer` | `cs-accessibility-engineer`, `cs-code-auditor` |
 | Audio | `sound-designer`, `audio-director` | `cs-code-auditor` |
 | Image pipeline & tooling | `tools-programmer`; `cs-backend-engineer` for the PHP service | `security-engineer` |
-| Tests, CI, release | `qa-lead`, `qa-tester`, `release-manager` | `cs-qa-automation-lead`, `cs-release-manager` |
+| Tests, CI, release | `qa-lead`, `qa-tester`, `release-manager`, `devops-engineer` | `cs-qa-automation-lead`, `cs-release-manager`, `cs-devops-engineer` |
 | Perf & a11y | `performance-analyst`, `accessibility-specialist` | `cs-accessibility-engineer` |
 
 **Rejected for this product** (name them in the inventory, do not staff them): Godot /
