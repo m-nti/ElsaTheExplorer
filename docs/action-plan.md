@@ -79,26 +79,28 @@ Process skills run **before** domain skills: `brainstorming` and
 - A ruling that would change a ratified contract is not a ruling: it supersedes an ADR
   (ADR-0004 §5) or it stops.
 
-### 0.5 Workstream → skills → crew
+### 0.5 Workstream → studio owner → cross-check
 
-Default build crew: `ui-programmer` or `cs-frontend-engineer` implements,
-`lead-programmer` or `cs-code-auditor` reviews, `cs-accessibility-engineer` signs the
-a11y rows, `qa-tester` writes the failing test when the plan leaves it open.
+The **studio agent owns the domain**; the `cs-*` agent is the cross-check, never the
+reverse. A workstream that names only one of the two has skipped the inventory rule.
 
-| Workstream | Domain skills (in addition to §0.1's loop) | Crew |
-|---|---|---|
-| Design docs & UX specs | `ux-design`, `design-review`, `consistency-check`, `propagate-design-change`, `localize` | `ux-designer`, `writer`, `localization-lead` |
-| Art, foil, visual identity | `art-bible`, `design-system`, `asset-spec` | `art-director`, `technical-artist` |
-| Tokens & styling system | `design-system`, `architecture-review` | `ui-programmer`, `lead-programmer` |
-| Card / pack / collection UI | `design-system`, `ux-review`, `test-setup`, `smoke-check` | `ui-programmer`, `gameplay-programmer`, `cs-accessibility-engineer` |
-| Narrative & copy | `localize`, `consistency-check`, `content-audit` | `writer`, `narrative-director`, `localization-lead` |
-| Image pipeline (PHP) | `security-audit`, `test-setup`, `perf-profile` | `cs-backend-engineer`, `security-engineer` |
-| Tests & CI | `qa-plan`, `test-setup`, `test-flakiness`, `test-evidence-review` | `qa-lead`, `cs-qa-automation-lead` |
-| Perf & a11y hardening | `perf-profile`, `smoke-check`, `soak-test` | `performance-analyst`, `accessibility-specialist` |
-| Release & deploy | `release-checklist`, `launch-checklist`, `write-changelog` | `release-manager`, `devops-engineer` |
+| Workstream | Studio owner (author) | Studio skills | Cross-check (reviewer) |
+|---|---|---|---|
+| Design docs & UX specs | `ux-designer`, `writer` | `ux-design`, `design-review`, `ux-review`, `propagate-design-change` | `cs-architecture-reviewer` (contract consistency) |
+| Art, foil, visual identity | `art-director`, `technical-artist` | `art-bible`, `asset-spec`, `design-system` | `cs-design-lead` |
+| Tokens & styling system | `ui-programmer` (with `technical-artist`) | `design-system` | `cs-frontend-engineer`, `cs-code-auditor` |
+| Card / pack / collection UI | `ui-programmer`, `gameplay-programmer` | `vertical-slice`, `design-system`, `smoke-check` | `cs-accessibility-engineer`, `cs-code-auditor` |
+| Narrative & copy | `writer`, `narrative-director` | `localize`, `consistency-check`, `content-audit` | `localization-lead` (owner of the string register) |
+| Audio | `sound-designer`, `audio-director` | `team-audio` | `cs-code-auditor` (payload/perf) |
+| Image pipeline & tools | `tools-programmer` (sharp CLI), `cs-backend-engineer` (PHP service) | `asset-spec`, `security-audit`, `perf-profile` | `security-engineer` |
+| Tests & CI | `qa-lead` (strategy), `qa-tester` (cases) | `qa-plan`, `test-setup`, `test-evidence-review`, `test-flakiness` | `cs-qa-automation-lead` |
+| Perf & a11y hardening | `performance-analyst`, `accessibility-specialist` | `perf-profile`, `smoke-check`, `soak-test` | `cs-accessibility-engineer` |
+| Release & deploy | `release-manager`, `devops-engineer` | `release-checklist`, `launch-checklist`, `write-changelog` | `cs-release-manager`, `cs-devops-engineer` |
 
-A design pass with only `ux-design` and no `consistency-check` is the L-001 defect, not
-a shortcut.
+Deliberately not staffed: Godot/Unity/Unreal specialists, `network-programmer`,
+`ai-programmer`, `level-designer`, `economy-designer`, `live-ops-designer` — no engine,
+no AI, no 3D levels, no live economy and no seasonal content in this product (§8). Naming
+them as "considered and rejected" is part of the inventory, not an omission.
 
 ### 0.6 "Done" at task level
 
