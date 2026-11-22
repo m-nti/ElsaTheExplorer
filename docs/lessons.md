@@ -93,3 +93,21 @@ work.
 **How to apply.** At planning time, list each ticket's unmet dependencies. Start
 everything with none. Only blocked tickets wait, and the issue says what blocks them.
 If the board shows one In Progress while others are unblocked, that is the bug.
+
+---
+
+## L-006 — The default is "fix it now", not "file a ticket"
+
+**Rule.** Before deferring any small defect or inconsistency, run the fix-now gate:
+≤30 minutes, ≤50 lines, no new dependency, no migration, no external verification, no
+product-level design change → fix it in the same change. Deferring requires **evidence**
+of the specific blocker, recorded on the ticket. Prose notes and orphan TODOs are debt.
+
+**Evidence.** The art-bible gate surfaced five findings and then three residues; every one
+was a two-line edit. Fixing them took less time than writing tickets would have. By
+contrast, the genuine follow-up (#30, bible↔tokens parity) needs a script plus CI wiring —
+real work, so a ticket was correct. The distinction is complexity, not convenience.
+
+**How to apply.** Ask "can I finish this correctly right now without changing what this
+change is about?" Yes → do it and mention it. No → write the blocker into the ticket body.
+Never leave the finding in prose.

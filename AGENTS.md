@@ -85,6 +85,24 @@ Work is committed in coherent checkpoints and pushed regularly; features land as
 PRs, not one giant unreviewed drop. Every PR states its merge gate in the body and its
 resolution status in a comment.
 
+## Standing rule — fix small debt now; ticket only with evidence
+
+Before declaring anything "out of scope", run the gate:
+
+1. **Can it be fixed correctly in this change?** (≈≤30 min, ≤50 lines, no new dependency,
+   no migration, no external verification, no product-level design change) → **fix it
+   now**, in the same commit/PR, and say so in the summary.
+2. **If not, prove it.** Name the blocker — dependency, migration, host fact, cross-document
+   design change, or an unreviewable diff — and file a ticket whose body carries that
+   evidence.
+3. **No prose debt:** no "note for later", no TODO without an issue reference. Fix or ticket.
+4. **Don't inflate a focused change:** fix it only if it does not change the risk profile of
+   the work in flight; otherwise ticket it.
+5. **Ticket debt is debt too:** binary acceptance criteria + definition of done, or it is not
+   a ticket.
+
+The default is **fix**, not defer.
+
 ## Standing rule — parallelize independent work (no artificial serialization)
 
 Before starting, build the dependency graph of the open tickets. Then:
