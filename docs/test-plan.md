@@ -217,7 +217,7 @@ matrix:
 | `fx-03` | `chase: true`, `set: "portrait-room"`, `rarity: "rare"` (override) |
 | `fx-04` | `rarity: "holo"` (override) — must beat the hash |
 | `fx-05` | `focus: {x:0,y:0}` and `fx-06` `focus: {x:1,y:1}` — clamp edges |
-| `fx-07` | `demo: true`, `heic: true`, `src: "photos.php?view=fx-07.heic"` |
+| `fx-07` | `demo: true`, `heic: true`, `src: "photos.php?view=fx-07.heic"` — legacy shape: the `src`/`?view=` form must normalize to a bounded alias (302 → `?download=`) and is **never** rendered as an `<img>` source |
 | `fx-08` | Intrinsic `common` by hash (verified at fixture creation), used for promotion tests |
 
 Additional fixtures:
@@ -302,17 +302,17 @@ File paths below are contractual. Test IDs are stable and referenced by story Do
 
 | ID | Assertion | Notes |
 | --- | --- | --- |
-| U-PACK-01 | Draw returns exactly `min(5, photos.length)` slots (F1) | 0, 1, 2, 4, 5, 6, 500 photos |
+| U-PACK-01 | Draw returns exactly `min(4, photos.length)` slots (F1) | 0, 1, 2, 3, 4, 5, 6, 500 photos |
 | U-PACK-02 | No duplicate `photoId` inside one pack (F5) | 10,000 seeded draws, 8-photo fixture |
 | U-PACK-03 | Every returned `photoId` exists in the input manifest | No invented ids |
-| U-PACK-04 | With ≥5 unseen, all 5 slots are unseen (F6) | 20 photos, empty seen-set |
-| U-PACK-05 | With 2 unseen, both appear and the other 3 come from seen | Exhaustive over placements |
+| U-PACK-04 | With ≥4 unseen, all 4 slots are unseen (F6) | 20 photos, empty seen-set |
+| U-PACK-05 | With 2 unseen, both appear and the other 2 come from seen | Exhaustive over placements |
 | U-PACK-06 | Seen-set is not mutated by `drawPack` | Deep-freeze input; assert unchanged |
 | U-PACK-07 | A pack never repeats a photo before the whole binder has been walked | Simulate 40 consecutive packs; assert a full permutation per lap |
 | U-PACK-08 | **Lap boundary**: when the draw consumes the last unseen photo, the result flags `lapComplete: true` and the next draw starts lap N+1 | Exactly at boundary, one before, one after |
 | U-PACK-09 | Restart is announced at most once per lap | Flag is edge-triggered, not level-triggered |
 | U-PACK-10 | Empty manifest returns `[]` and `lapComplete: false`, no throw | Empty ≠ error |
-| U-PACK-11 | Fewer than 5 photos yields all of them, no placeholders | 1 and 3 photos |
+| U-PACK-11 | Fewer than 4 photos yields all of them, no placeholders | 1, 2 and 3 photos |
 | U-PACK-12 | Draw is deterministic given the same `(photos, seen, seed)` | Same seed twice → identical output |
 | U-PACK-13 | Different seeds produce different orders across 100 draws (not a fixed shuffle) | Guards against a constant rng |
 | U-PACK-14 | Draw complexity stays linear-ish: 500 photos × 200 draws under 250 ms (node) | Advisory threshold, generous |
@@ -321,13 +321,13 @@ File paths below are contractual. Test IDs are stable and referenced by story Do
 
 | ID | Assertion |
 | --- | --- |
-| U-PROMO-01 | If the drawn five are all intrinsic `common`, **exactly one** slot has `promoted: true` (F4) |
+| U-PROMO-01 | If the drawn four are all intrinsic `common`, **exactly one** slot has `promoted: true` (F4) |
 | U-PROMO-02 | If at least one drawn card is intrinsically `rare` or `holo`, **no** slot is promoted |
 | U-PROMO-03 | Never more than one promoted slot per pack |
 | U-PROMO-04 | Promotion is `holo` **presentation** only; the slot's intrinsic rarity is unchanged |
 | U-PROMO-05 | A one-card pack of a common card is promoted (F4 holds at minimum size) |
-| U-PROMO-06 | Promotion choice is uniform over the five slots across 10,000 seeded draws (no positional bias) |
-| U-PROMO-07 | Reveal order: commons occupy positions 1–3; the highest-rarity card is at index 3 or 4 (positions 4/5), never index 0 |
+| U-PROMO-06 | Promotion choice is uniform over the four slots across 10,000 seeded draws (no positional bias) |
+| U-PROMO-07 | Reveal order: the four slots are sorted ascending by presented rarity, so the holo/rare **climax is in slot 4**; **slot 3** carries a rare/holo only when the pack holds two of them; slot 1 never carries the promoted or highest-rarity card (with ≥ 1 common drawn, no holo is revealed first) |
 | U-PROMO-08 | Two non-commons: the higher rarity is last; ties resolved deterministically by the injected rng |
 | U-PROMO-09 | The ordered array is a permutation of the drawn set (no card added/dropped by ordering) |
 | U-PROMO-10 | Chase card (`chase: true`) follows the same ordering rule and never outranks by rarity mutation |
@@ -507,14 +507,14 @@ works".
 | --- | --- |
 | E-JRN-01 | Cold load: `<html lang="de">`, German title, progress reads 0 of 8, pack trigger enabled |
 | E-JRN-02 | Activate the pack trigger with a pointer click → opening state announced, trigger disabled, re-entry locked |
-| E-JRN-03 | Five cards appear in the drop row; each has an accessible name containing number, name and rarity |
-| E-JRN-04 | Reveal order matches the pure-function order from the same seed (DOM order = authoritative) |
-| E-JRN-05 | Exactly one summary announcement after reveal completion, listing five names |
+| E-JRN-03 | Four cards appear in the drop row (2×2 on a phone viewport); each has an accessible name containing number, name and rarity |
+| E-JRN-04 | Reveal order matches the pure-function order from the same seed (DOM order = authoritative); slot 4 holds the holo/rare climax |
+| E-JRN-05 | Exactly one summary announcement after reveal completion, listing four names |
 | E-JRN-06 | Open one card from the pack row → detail shows that photo, at the pack tier, with presented rarity |
 | E-JRN-07 | `→` steps to the next entry; the dialog stays open; URL `?photo=` updates |
 | E-JRN-08 | Close via `Escape` → focus returns to the exact pack slot that opened the dialog |
-| E-JRN-09 | Close the pack surface → progress reflects five newly collected cards (or the revealed subset on skip) |
-| E-JRN-10 | Catalogue shows all 8 tiles; the five are marked collected in text (not color alone) |
+| E-JRN-09 | Close the pack surface after a full reveal → progress reflects all four newly collected cards; after a mid-reveal skip → progress reflects **only** the cards revealed so far (max 4), and the remainder stay uncollected and next-first in the walk |
+| E-JRN-10 | Catalogue shows all 8 tiles; the four are marked collected in text (not color alone) |
 | E-JRN-11 | Language switch → title, headings, rarity labels, aria-labels, progress line switch to EN; `<html lang="en">` |
 | E-JRN-12 | Reload → language, sound preference and seen-set persist; progress unchanged |
 | E-JRN-13 | Reload with `?photo=fx-03&lang=de` → the right card opens in German, intrinsic rarity (not promoted) |
@@ -544,7 +544,7 @@ motion in the default project.
 
 | ID | Assertion |
 | --- | --- |
-| E-RM-01 | All five cards are present and interactive within 100 ms of the pack action |
+| E-RM-01 | All four cards are present and interactive within 100 ms of the pack action |
 | E-RM-02 | No sachet/tear element, no confetti node, no stagger delays (assert `getAnimations()` on the drop row is empty or opacity-only ≤ 100 ms) |
 | E-RM-03 | Foil layers are static: no rAF-driven custom-property changes over 500 ms |
 | E-RM-04 | DOM order still puts the highest-rarity card last |
@@ -768,6 +768,7 @@ styling hook.
 | E-ORG-07 | **The download is a derivative, not a passthrough**: fetch it twice (warm cache) and assert identical bytes, `Content-Length` == body length, and decoded pixels at the download rung (1600 px long edge for the 5712×4284 stress fixture) — never 5712×4284 themselves |
 | E-ORG-08 | **`ver` changes on replacement**: replace a photo with new bytes (same name, new mtime/size) on the runtime path, re-fetch `?list=1`, and assert the photo's `ver` changed **and** every URL in its `images` block carries the new `&v=`; the old URL is a different cache entry. Static path: the regenerated `photos.json` carries the new `ver` |
 | E-ORG-09 | **60 MP source → `413`**: `photos.php?image=stress-60mp.jpg&size=tile` returns `413` (`source_too_many_pixels`), `no-store`, empty/JSON body, no source bytes, and no decode attempt (timing/memory flat) |
+| E-ORG-10 | **Bad parameters → `400`**: `size=800`, `size=orig`, `size=download`, `format=gif`, `thumb=x&size=pack` each return `400`, `no-store`, and never image bytes; `415` is reserved for an unsupported/corrupt **source** |
 
 > **Contract conflict C1 — resolved by ADR-0008 (2026-11-22).** The earlier note proposed a
 > width/clamp parameter (a `view&w=1200` variant) to reconcile a ≤1200 px detail tier with the
@@ -953,13 +954,14 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 ### Pack and rarity
 
-- [ ] *Five cards (or all, if fewer), no duplicates
+- [ ] *Four cards (or all, if fewer), no duplicates — 2×2 on a phone viewport
 - [ ] *Unseen-first walk; lap boundary announced once
 - [ ] *≥ 1 rare/holo per pack via intrinsic rarity or exactly one promotion
 - [ ] Promoted card is holo in the pack and **intrinsic** in the binder (the v1 bug)
 - [ ] Same photo has the same rarity after reload, in another pack, and in a deep link
 - [ ] Rarity override from the manifest wins
-- [ ] Reveal order: highest rarity last; holo never first
+- [ ] Reveal order: holo/rare climax in slot 4; a rare/holo in slot 3 only when a second was drawn; never slot 1
+- [ ] Mid-reveal skip collects only the revealed cards (max 4); the rest stay unseen and next-first
 
 ### Collection and detail
 
@@ -981,7 +983,7 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 ### Motion, sound, language
 
-- [ ] *Reduced motion: all five at once, no stagger, no confetti, no foil movement
+- [ ] *Reduced motion: all four at once, no stagger, no confetti, no foil movement
 - [ ] Sound toggles, persists, and is silent when the context is blocked
 - [ ] Language switch updates title, aria-labels, rarity labels, open dialogs, `<html lang>`
 - [ ] Announcements fire in the current language, once per event
@@ -1019,7 +1021,7 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 ### Manual (not automatable)
 
-- [ ] VoiceOver + Safari: pack flow, five names, restart, language switch, dialog titles
+- [ ] VoiceOver + Safari: pack flow, four names, restart, language switch, dialog titles
 - [ ] TalkBack + Android Chrome spot check
 - [ ] Real-device swipe thresholds (the spec calls the numbers design targets)
 - [ ] Coblis simulation: rarity and seen state readable in all three modes
@@ -1032,7 +1034,7 @@ Run in full before a release candidate; the starred items are the 10-minute smok
 
 | Requirement | Unit | Integration |
 | --- | --- | --- |
-| F1 five cards / all if fewer | U-PACK-01, U-PACK-11 | E-JRN-03 |
+| F1 four cards / all if fewer (owner canon 2026-11-22 — PRD F1 still reads "five") | U-PACK-01, U-PACK-11 | E-JRN-03, E-JRN-09 |
 | F2/F2a/F10 bilingual card content + imaginary stats label | U-CV-06, U-I18N-02/04 | E-JRN-06, E-JRN-13, E-IMG-08 |
 | F3 rarity belongs to the photo | U-RAR-01/02/04 | E-JRN-13 |
 | F4 ≥ 1 rare/holo per pack | U-PROMO-01/02/05 | E-JRN-03 |
@@ -1083,6 +1085,7 @@ These are findings from writing the plan. Test code must not silently choose a s
 | **C2** | `architecture.md` says "No swipe gestures"; interaction-patterns v2 specifies swipe **and** chevrons as three redundant inputs | Blocks E-BRW-05..07 | UX spec v2 wins (later, owner ruling on chevrons). Architecture text must be corrected. |
 | **C3** | Architecture renders the pack as inline `PackTheatre`; UX v2 specifies a **pack dialog** with backdrop rules and skip semantics | Focus/backdrop tests need one surface definition | Behaviour tests are role-first; E-FOC-04/05 assume dialog semantics. Confirm the surface before implementing focus tests. |
 | **C4** | Progress copy: PRD F13 and architecture say "gesehen/seen"; interaction-patterns v2 declares **"gesammelt/collected"** canon | `copy-canon.json` cannot be pinned both ways | **RESOLVED 2026-11-22** — the copy deck canonises "gesammelt/collected" and retires the old verb; pin that. |
+| **C9** | Pack size: PRD/ADR/architecture said five cards; owner ruling 2026-11-22 sets **four** (mobile-first, 2×2) with sequential reveal then pull-back | Pack-size tests and copy could assert the old count | **RESOLVED** — canon is four; PRD F1/F5/F22, ADR-0001 and architecture updated; test code asserts four. |
 | **C5** | Storage keys: architecture lists `{lang,sound,seen}.v2`; UX v2 also names `sets.v1` and `flags.v1` | U-PST-20 cannot pin a list | ADR-0003 must ratify the key set before persistence tests are written. Migration covers unknown legacy keys defensively meanwhile. |
 | **C6** | `qa.level` resolves to `minimal`; `AGENTS.md` and the brief require production rigor | If taken literally, most automated rows would be dropped | Recorded override to `full` (§header). No action. |
 | **C7** | Architecture mentions "set" as an optional grouping; UX v2 fixes six named departments + `Neuzugänge` | U-I18N-16 and set-progress tests need the canon | Treat interaction-patterns v2 as copy SSOT; add the department names to `copy-canon.json` once confirmed. |
@@ -1111,8 +1114,7 @@ These are findings from writing the plan. Test code must not silently choose a s
 3. Do 500-photo manifests need virtualization before the request cap in E-DLV-13 is
    enforceable? If so, that is a story, not a test tweak.
 4. Is `Diplom` focus return to the pack trigger or to the progress line (E-FOC-12)?
-5. Does the pack skip path mark **revealed** cards collected only (UX v2) or all five
-   (v1 behavior)? The plan assumes revealed-only; U-PACK-09 and E-JRN-09 depend on it.
+5. ~~Does the pack skip path mark revealed cards only?~~ **RESOLVED 2026-11-22** — owner ruling: only the cards already revealed are collected; the remainder are not. The pack holds four cards and can be reopened immediately. U-PACK-09, E-JRN-09 and E-JRN-10 assert this.
 
 ---
 

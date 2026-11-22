@@ -58,7 +58,7 @@ reason to be looked at again, and the family wants one reason to look.
 **Problem statement:** *"I have hundreds of Elsa photos that nobody gets to enjoy, because sharing
 them is either work for me or boring for them."*
 
-**Why a pack:** five cards at once gives a small payoff per click and something to keep and compare,
+**Why a pack:** four cards gives a small payoff per click and something to keep and compare,
 without pretending to be a product. Each supplied photo gets its own title and caption, so it becomes
 "my" card rather than the fourth picture in a folder.
 
@@ -79,7 +79,7 @@ without pretending to be a product. Each supplied photo gets its own title and c
 
 **Core**
 
-- As a visitor, I want to tap one big thing and get five cards at once, so that I do not have to
+- As a visitor, I want to tap one big thing and get four cards, so that I do not have to
   decide where to look.
 - As a visitor, I want a pack to hold cards I have not had yet, so that opening another one is worth
   it.
@@ -111,7 +111,7 @@ without pretending to be a product. Each supplied photo gets its own title and c
 **Edge cases**
 
 - As a visitor with JavaScript off, I want to know why nothing opens.
-- As a visitor with reduced motion on, I want the five cards without the reveal animation.
+- As a visitor with reduced motion on, I want the four cards without the reveal animation.
 - As a visitor, I want to look through every card in the binder if I prefer browsing over opening
   packs.
 
@@ -123,12 +123,12 @@ without pretending to be a product. Each supplied photo gets its own title and c
 
 | # | Requirement | Done when |
 | --- | --- | --- |
-| F1 | Opening the pack produces five cards at once (all of them, if there are fewer photos) | One click fills the drop row with five cards |
+| F1 | Opening the pack produces four cards, revealed one after another then laid out 2×2 (all of them, if there are fewer photos) | One click fills the drop row with four cards |
 | F2 | Every supplied card shows its photo-specific bilingual name, mood and caption | All ten current images use their explicit overrides; missing real-photo captions fall back to neutral copy, not invented activities |
 | F2a | Optional `/10` values are explicitly imaginary and matched to the depicted photo | A visible "Fantasiewerte · nur zum Spaß" / "Imaginary stats · just for fun" label precedes them |
 | F3 | A photo's rarity belongs to the photo: it comes from its own id, not from the shuffle | The same photo is always häufig, selten or holo — after a reload, after another pack, and in a deep link |
 | F4 | Every pack holds at least one rare or holographic card | If the draw is all commons, one card in that pack is promoted to holographic |
-| F5 | No card appears twice inside one pack | With five cards, five different photos come out |
+| F5 | No card appears twice inside one pack | With four cards, four different photos come out |
 | F6 | Unseen cards come first; every card comes up once before the set starts over | Opening packs walks through the whole binder; when it starts over, it is shown in the progress line and announced |
 | F7 | German is the default on first visit | `<html lang="de">` and German card text before any interaction |
 | F8 | `DE` / `EN` toggle switches every visible string immediately | Headline, buttons, card names, sentences, moods, rarity labels, aria labels, `<title>`, progress and `og:locale` all switch |
@@ -149,8 +149,8 @@ without pretending to be a product. Each supplied photo gets its own title and c
 | F18 | Big card dialog with the printed card, plus save, share and "another pack" |
 | F19 | WebAudio rip when the pack opens, a tick per card, a chime for rare and holographic cards, and a sound toggle that remembers the choice |
 | F20 | Keyboard support: `P` opens a pack, `←` / `→` moves through the cards, focus returns to the pack button when the dialog closes |
-| F21 | Live region announcements for the opening, the five card names, the restart and the language switch |
-| F22 | `prefers-reduced-motion` support: the five cards appear at once, no foil movement, no confetti |
+| F21 | Live region announcements for the opening, the four card names, the restart and the language switch |
+| F22 | `prefers-reduced-motion` support: the four cards appear in the final grid, no camera motion, no foil movement, no confetti |
 | F23 | Optional per-photo overrides from `photos/captions.json`: caption and alt text, and the card's name, sentence, mood and rarity |
 | F24 | Thumbnails: generated locally into `photos/thumbs/`, or built on demand by PHP into `photos/.cache/` |
 | F22b | **HEIC support:** iPhone HEIC and HEIF files are listed, converted once to JPEG in `photos/converted/` (macOS `sips` locally, Imagick on the server) and converted in the visitor's own browser when the server cannot (`assets/vendor/heic2any`, loaded only for HEIC files). From the owner's side nothing changes: drop the file and reload. |
@@ -211,7 +211,7 @@ owner's own counters.
 
 **In scope (v1, built)**
 
-- Static one-page site: pack, five-card drop, big card dialog, binder grid, progress, start over.
+- Static one-page site: pack, four-card drop, big card dialog, binder grid, progress, start over.
 - Cards with photo-specific bilingual name, mood, caption and clearly imaginary per-photo play values.
 - Fixed rarity per photo from its own id, with at least one rare or holographic card per pack.
 - German default and English option with a `DE` / `EN` toggle, persisted and URL-overridable.
@@ -336,10 +336,10 @@ of this document's plan.
 
 ### 10.3 Definition of done for v1
 
-- `npm run qa` passes: German default, English switch and persistence, five cards per pack, no card
+- `npm run qa` passes: German default, English switch and persistence, four cards per pack, no card
   twice in a pack, at least one rare or holographic card, a printed name on every card,
   `?photo=` deep link, no horizontal overflow at 390 and 1280, empty state, no-JS notice.
-- Open a pack at desktop and phone sizes; the wrapper tears away and the five cards reveal in order.
+- Open a pack at desktop and phone sizes; the wrapper tears away and the four cards reveal one after another, then settle into the grid.
 - Opened card fits the phone dialog without scrolling; card flip, share and download controls work.
 - Real photos in `photos/`, `npm run photos` run, uploaded together with `index.html`, `assets/`,
   `photos.php`, `.htaccess`, `robots.txt`.

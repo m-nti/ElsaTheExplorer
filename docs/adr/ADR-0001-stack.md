@@ -15,7 +15,7 @@
 
 ## Context
 
-Elsa the Explorer is a card library / Sammelwerk: one page, five-card pack opening,
+Elsa the Explorer is a card library / Sammelwerk: one page, four-card pack opening,
 binder, big-card dialog, bilingual DE/EN, first-party localStorage only, static deploy
 to IONOS shared webspace with optional PHP (`photos.php` manifest + image services).
 The owner adds photos by FTP drop + reload, with no redeploy and no build step on

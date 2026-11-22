@@ -378,27 +378,38 @@ there is no code path that streams the source file to a browser.
 | Endpoint | Returns |
 | --- | --- |
 | `photos.php?list=1` | JSON manifest (below), `Cache-Control: no-store`. Contract unchanged. |
-| `photos.php?image=NAME&size=tile\|pack\|detail&format=jpeg\|webp` | Cached fixed-size rendition (longest edge 360 / 720 / 1200), served `public, max-age=31536000, immutable` — the URL carries the source version, so a replaced photo gets a new URL. Unknown `size`/`format` → **415**; nothing else is accepted. |
+| `photos.php?image=NAME&size=tile\|pack\|detail&format=jpeg\|webp` | Cached fixed-size rendition (longest edge 360 / 720 / 1200), served `public, max-age=31536000, immutable` — the URL carries the source version, so a replaced photo gets a new URL. Non-ladder or numeric `size`, unknown `format`, or an unknown/ambiguous parameter → **400**; nothing else is accepted. |
 | `photos.php?thumb=NAME` | Compatibility alias for `size=pack&format=jpeg` (720 px), kept so a stale client still receives a bounded image. Documented deprecated. |
-| `photos.php?download=NAME` | Explicit 1600 px compressed JPEG with `Content-Disposition: attachment` — what "Foto speichern" fetches. Never the source. |
+| `photos.php?download=NAME` | Explicit 1600 px compressed derivative with `Content-Disposition: attachment` — what "Foto speichern" fetches. JPEG by default; `&format=webp` on explicit request. Never the source. |
 | `photos.php?view=NAME` | **Retired as an image source**: `302` → `?download=NAME`. Exists only so pre-refactor clients do not break; it never returns source bytes. |
 
 **Measured baseline (2026-11-22), the reason this contract exists:** a 3.98 MB original
 (5712×4284, 24.47 MP) produced a 540×720 PHP thumbnail of **61.9 KB** — 1.6 % of the source — while
-`?view=` delivered the full **3.98 MB** on a UI request. That is a ~64× overdraw on the one
-request the card grid and the dialog both make. Worse, the old `sendThumbnail()` fell
-through to `serveFile($path)` on every failure branch (photos.php:346 / 352 / 361), so a
-*thumbnail* request could hand a phone the original. This contract removes that failure
-class structurally instead of patching branches.
+`?view=` delivered the full **3.98 MB** on the detail request. Against the ratified `detail`
+ceilings that is **3.98 MB → ≤ 210 KB JPEG (≈ 19×) / ≤ 150 KB WebP (≈ 27×)**; the grid tile was
+already bounded at 61.9 KB and is now held to ≤ 55 KB JPEG / ≤ 36 KB WebP (≈ 1.1×). An earlier
+"~64×" figure divided the original by the *tile*, not by the request it replaced; it is
+withdrawn. The old `sendThumbnail()` also fell through to `serveFile($path)` on every failure
+branch (photos.php:346 / 352 / 361), so a *thumbnail* request could hand a phone the original.
+This contract removes that failure class structurally instead of patching branches.
 
 #### Rendition matrix — fixed sizes only
 
-| Rendition | Longest edge | Formats (quality) | Byte ceiling |
-| --- | --- | --- | --- |
-| `tile` | 360 | jpeg 78 / webp 72 | ≤ **45 KB** (art bible §8 thumbnail target) |
-| `pack` | 720 | jpeg 80 / webp 74 | ≤ **120 KB** (art bible §8 display-copy cap; measured 61.9 KB today) |
-| `detail` | 1200 | jpeg 82 / webp 76 | **target ≤ 150 KB, hard cap ≤ 210 KB** (art bible §8 amendment, ratified 2026-11-22) |
-| `download` | 1600 | jpeg 85 / webp 80 | **target ≤ 350 KB, hard cap ≤ 500 KB** (art bible §8 amendment) |
+Byte ceilings are **delivery budgets, hard per file** (KB = 1,000 bytes), aim ~20 % under.
+They are distinct from the **safety caps** in "Pre-decode safety limits" below, which bound
+input and render cost and are never used as a delivery target.
+
+| Rendition | Longest edge | Formats (starting quality) | WebP ceiling | JPEG ceiling |
+| --- | --- | --- | --- | --- |
+| `tile` | 360 | jpeg 78 / webp 72 | ≤ **36 KB** | ≤ **55 KB** |
+| `pack` | 720 | jpeg 80 / webp 74 | ≤ **80 KB** | ≤ **110 KB** |
+| `detail` | 1200 | jpeg 82 / webp 76 | ≤ **150 KB** | ≤ **210 KB** |
+| `download` | 1600 | jpeg 85 / webp 80 | ≤ **350 KB** | ≤ **500 KB** |
+
+Quality values are the **starting** quality; the encoder lowers quality (never above the start)
+until the ceiling is met. No rung ships above its ceiling — the numbers above match the
+art-bible §8 amendment (ratified 2026-11-22) exactly, so art direction and architecture name
+one set.
 
 `webp` is the **default** where the client advertises it (`Accept: image/webp`) or asks for
 it explicitly with `format=webp`; `jpeg` is the fallback and the default everywhere else.
@@ -412,7 +423,9 @@ thumbnails … dev/QA only" line still needs its one-line sync (Open Questions, 
 2. Only fixed renditions exist. There is no `w=`/`h=`/`q=` parameter surface, so no request
    can ask the server to transcode an arbitrary size or quality.
 3. The manifest stops advertising a source URL: no emitted field addresses `photos/<file>`.
-   `src` / `view` survive as deprecated fields pointing at bounded renditions.
+   `src` / `thumb` / `view` survive as deprecated bounded aliases — `thumb` → the 720 `pack`
+   rung, `src` → the 1200 `detail` rung, `view` → the `download` rung (and the `?view=` request
+   itself `302`s to `?download=`) — never a file.
 4. Residual exposure: direct static URLs (`/photos/<file>`) bypass PHP entirely. Deny them
    via `.htaccess` `<FilesMatch>` and/or keep the photo store above the webroot where the
    host allows — **HOST-VERIFIED-PENDING**.
@@ -421,25 +434,28 @@ thumbnails … dev/QA only" line still needs its one-line sync (Open Questions, 
 
 | Status | When | Body | Headers |
 | --- | --- | --- | --- |
+| `400` | bad parameters: non-ladder or numeric `size`, unknown `format`, ambiguous alias, unknown action/param | JSON `{ "error": "bad_request" }` | `no-store` |
 | `404` | name not in the allowlist, or file gone | JSON `{ "error": "missing" }` | `no-store` |
-| `415` | unsupported or corrupt source (HEIC with no Imagick), unknown `size`/`format`, undecodable EXIF | JSON `{ "error": "unsupported" }` | `no-store` |
+| `415` | unsupported or corrupt source (HEIC with no Imagick, undecodable bytes, sanitized-image failure) | JSON `{ "error": "unsupported" }` | `no-store` |
 | `413` | source over the configured byte/pixel limits (below) | JSON `{ "error": "too_large" }` | `no-store` |
-| `503` | encoder failure, cache write failure, lock timeout | generated neutral placeholder at the requested rendition size, or JSON for `?list=1` | `no-store`, `Retry-After: 1` |
+| `503` | temporary: encoder failure, cache write failure, lock timeout, memory ceiling, output-over-ceiling discard | generated neutral placeholder at the requested rendition size, or JSON for `?list=1` | `no-store`, `Retry-After: 1` |
 | `405` | any method other than `GET`/`HEAD` | empty | `no-store`, `Allow: GET, HEAD` |
 
 Bodies never contain server paths, exception text, or the source's pixel dimensions; a 4xx
 never carries image bytes. `X-Content-Type-Options: nosniff` and
 `Referrer-Policy: same-origin` stay on every response (PRD §5 Security), including errors.
 
-#### Pre-decode safety limits
+#### Pre-decode safety limits (caps — not delivery budgets)
 
 Enforced **before** any decode, from `filesize` + `getimagesize` only — a 60 MP file is
 rejected without ever becoming a 240 MB GD bitmap:
 
 - compressed file ≤ **20 MiB** (configured constant) → else `413`
-- pixels ≤ **24 MP** and either edge ≤ **8000 px** → else `413`
-- decode-memory guard: need ≈ `w × h × 4 × 1.5`; if that exceeds the PHP memory limit minus
-  headroom → `413` instead of a fatal error mid-response
+- **≤ 32 MP acceptance** and either edge ≤ **8000 px** → else `413`
+- decode-memory guard: need ≈ `w × h × 4 × (3.2 oriented | 2.2 unrotated)`; if that exceeds
+  **70 % of a 512 MiB `memory_limit`** → `413` (or Imagick when the source is between the
+  **28.5 MP GD rendering ceiling** and the 32 MP acceptance cap) instead of a fatal error
+  mid-response; the computed `gd_max_pixels` is published by `?capabilities=1`
 - `GET`/`HEAD` only; `HEAD` returns the same headers with a zero-length body
 - EXIF orientation applied (rotate/flip) before resizing; re-encode strips EXIF/GPS —
   verified by inspection, not assumed
@@ -478,15 +494,15 @@ rejected without ever becoming a 240 MB GD bitmap:
       "images": {
         "tile":   { "jpeg": "photos.php?image=elsa-01.jpg&size=tile&format=jpeg&v=9f3a1c2d",
                     "webp": "photos.php?image=elsa-01.jpg&size=tile&format=webp&v=9f3a1c2d",
-                    "w": 270, "h": 360 },
-        "pack":   { "jpeg": "…&size=pack&format=jpeg&v=9f3a1c2d",   "webp": "…", "w": 540, "h": 720 },
-        "detail": { "jpeg": "…&size=detail&format=jpeg&v=9f3a1c2d", "webp": "…", "w": 900, "h": 1200 },
+                    "w": 360, "h": 270 },
+        "pack":   { "jpeg": "…&size=pack&format=jpeg&v=9f3a1c2d",   "webp": "…", "w": 720, "h": 540 },
+        "detail": { "jpeg": "…&size=detail&format=jpeg&v=9f3a1c2d", "webp": "…", "w": 1200, "h": 900 },
         "download": "photos.php?download=elsa-01.jpg&v=9f3a1c2d"
       },
 
-      // DEPRECATED but still emitted (backward compatibility, one release):
+      // DEPRECATED bounded aliases, still emitted (backward compatibility, one release):
       "src":    "photos.php?image=elsa-01.jpg&size=detail&format=jpeg&v=9f3a1c2d",
-      "thumb":  "photos.php?image=elsa-01.jpg&size=tile&format=jpeg&v=9f3a1c2d",
+      "thumb":  "photos.php?image=elsa-01.jpg&size=pack&format=jpeg&v=9f3a1c2d",
       "view":   "photos.php?download=elsa-01.jpg&v=9f3a1c2d",
 
       "filename": "elsa-01.jpg",
@@ -498,8 +514,8 @@ rejected without ever becoming a 240 MB GD bitmap:
       "rarity": "",                          // '' | 'common' | 'rare' | 'holo' (F23 override)
       "demo": false,                         // true ⇒ sample card (never empty site, PRD §7)
       "heic": false,
-      "width": 5712,                         // SOURCE dimensions — aspect ratio authority
-      "height": 3840
+      "width": 5712,                         // SOURCE dimensions (oriented) — aspect ratio authority
+      "height": 4284
     }
   ]
 }
@@ -521,8 +537,8 @@ existing CLS contract is untouched.
 **Backward compatibility rules** (binding for every consumer):
 
 1. Unknown fields are ignored; `images` and `ver` are **optional**. Absent `images` →
-   fall back to the bounded `thumb` (tile) and to `src`, which now points at the `detail`
-   rendition — **never at a file**. Absent `ver` → request the URL without `&v=`.
+   fall back to the bounded `thumb` (the 720 `pack` rung) and to `src`, which now points at
+   the `detail` rendition — **never at a file**. Absent `ver` → request the URL without `&v=`.
 2. A legacy `src` of the form `photos/<file>` (the v1 static `photos.json` shape, still
    present in the owner's old file) normalizes as **metadata only**: it is retained for
    bookkeeping and is **never rendered, never emitted as an image URL**. Rendering falls back
@@ -620,7 +636,7 @@ keys (AGENTS.md binding) → stores reset → fresh cycle announced.
 | Announcements | `announcer` store → one polite + one assertive live region in `App`. Pack flow (open, five names, restart, language switch, flip) fully announced (F21). All strings via `i18n` so language switches propagate. |
 | Focus | `a11y/focus.ts`: `showModal` for dialogs (native trap); explicit opener tracking (`opener` prop) for return focus (F20); visible focus everywhere via `:focus-visible` token ring. |
 | Keyboard | `P` = open pack; `←/→` = step cards; `Esc` = close; full tab order through pack → binder tiles → toggles. No pointer-only interactions. |
-| Reduced motion | `motion` store from `matchMedia('(prefers-reduced-motion: reduce)')`, live-updated. Every animation, the foil shimmer and confetti gate on it; reduced mode renders all five cards at once (F22). |
+| Reduced motion | `motion` store from `matchMedia('(prefers-reduced-motion: reduce)')`, live-updated. Every animation, the foil shimmer and confetti gate on it; reduced mode renders all four cards in the final grid (F22). |
 | Contrast | All color flows from the typed token source `design/tokens/` (ADR-0002). The v1 `--quiet` token (below 4.5:1) is fixed at token level — one corrected value, every consumer inherits. A **Vitest contrast gate computes WCAG ratios from `tokens.ts`**; a sub-4.5:1 token fails the build. Stylelint's `var()`-only rule bars ad-hoc colors in component CSS; axe-core in Playwright verifies the rendered result on the built bundle. |
 | No color-only info | Rarity = label + star count + foil strength (never hue alone); seen state = text + checkmark + dimming. |
 | Language | `<html lang>` always current; per-element `lang` where DE/EN mix on one card (PRD §5 "declared per element where it matters"). |
@@ -636,9 +652,9 @@ keys (AGENTS.md binding) → stores reset → fresh cycle announced.
 | Initial CSS (gzip) | ≤ 30 KB — counts Svelte-scoped CSS **plus** generated Panda artifacts (`styled-system/`) | same, plus the ADR-0002 CSS byte-budget gate |
 | LCP | < 2.5 s mid-tier mobile; < 1.8 s desktop | Playwright trace on the qa profile, advisory |
 | CLS | 0 | `width`/`height` on every image; fixed card frame grid |
-| Images on cards/binder | fixed renditions only: `tile` 360 px ≤ 45 KB, `pack` 720 px ≤ 120 KB (longest edge) | `?image=…&size=` fixed matrix; CI byte assertion below |
-| Detail dialog | `detail` 1200 px, ≤ 210 KB hard cap (150 KB target) | dedicated rendition, never the source |
-| Download ("Foto speichern") | `download` 1600 px, ≤ 500 KB hard cap (350 KB target) | explicit user action only, `Content-Disposition: attachment` |
+| Images on cards/binder | fixed renditions only: `tile` 360 px ≤ 36 KB WebP / ≤ 55 KB JPEG; `pack` 720 px ≤ 80 KB WebP / ≤ 110 KB JPEG (longest edge; delivery budgets, hard per file) | `?image=…&size=` fixed matrix; CI byte assertion below |
+| Detail dialog | `detail` 1200 px, ≤ 150 KB WebP / ≤ 210 KB JPEG hard ceiling | dedicated rendition, never the source |
+| Download ("Foto speichern") | `download` 1600 px, ≤ 350 KB WebP / ≤ 500 KB JPEG hard ceiling | explicit user action only, `Content-Disposition: attachment` |
 | Originals | **never requested by the UI** | no manifest field addresses `photos/<file>`; `?view=` 302s to `?download=` |
 | Derivative byte bound | every response bounded, and **never equal to the source byte length** | CI job: `php -S` + repo `photos.php`, assert per rendition `Content-Length ≤ ceiling` and `≠ filesize(source)`; same assertion in the release checklist against IONOS, plus a Playwright route-mock that fails if the client ever requests a `photos/` URL |
 | Binder images | lazy-loaded, native `loading="lazy"` | BinderShelf |
@@ -795,10 +811,12 @@ no kit needed).
   (degraded); both fail → `network-error` + retry; valid-but-empty → `empty`
   owner instructions. The v1 "fetch-failure ≡ empty" collapse is asserted impossible.
 - **Derivative bound (image contract)**: in a CI job running the repo's `photos.php` under
-  `php -S` — for each rendition assert `Content-Length ≤` its ceiling **and** `≠
-  filesize(source)`; assert `?image=…&size=orig|huge` → 415, `?view=` → 302 with no image
-  body, a missing name → 404 and a 60 MP fixture → 413, all with `Cache-Control: no-store`;
-  assert a replacement file (new mtime) changes `ver` and therefore the URL. In Playwright:
+  `php -S` — for each rendition assert `Content-Length ≤` **its own format's** ceiling
+  (tile 36/55, pack 80/110, detail 150/210, download 350/500 KB) **and** `≠
+  filesize(source)`; assert `?image=…&size=orig|huge|800` → **400** (bad parameter),
+  `?view=` → 302 with no image body, a missing name → 404 and a 60 MP fixture → 413, all with
+  `Cache-Control: no-store`; assert a replacement file (new mtime) changes `ver` and therefore
+  the URL. In Playwright:
   a request-log assertion that no request in any flow targets `photos/<file>` or an
   unbounded `?image=` URL — the client-side half of the no-original rule. The same
   byte-bound script runs against IONOS in the release checklist (CI has no PHP host).
@@ -862,7 +880,7 @@ ADR-0008.
 | Card content overflows its fixed frame | Fixed-percentage zone grid in `CardTile` + hard character budgets in `budgets.ts`, truncated at `CardView` build time, pinned by unit test + overflow e2e |
 | Holo promotion applied to a copy → rarity diverges between pack and binder | `PackSlot { photoId, promoted }` slots instead of copied records; frozen `PhotoRecord`; one `rarity.ts` for both contexts; dedicated invariant test |
 | Fetch failure and empty archive collapsed into one state | `ManifestStatus` discriminated union with separate `network-error` / `empty` phases + route-mocked e2e |
-| Thumbnail endpoint fell through to `serveFile($path)` → a *thumbnail* request delivered the 3.98 MB original (measured 2026-11-22; 64× overdraw) | Closed parameter surface (only `tile`/`pack`/`detail`/`download` exist; no `w=`/`h=`/`q=`) + **no-original rule** (every error path returns an error body or placeholder) + `ver`-keyed immutable derivative cache + CI byte-bound assertion (`Content-Length ≤ ceiling` **and** `≠ filesize(source)`) + Playwright assertion that no request targets `photos/<file>` |
+| Thumbnail endpoint fell through to `serveFile($path)` → a *thumbnail* request delivered the 3.98 MB original (measured 2026-11-22; the reading-room original is replaced by ≤ 210 KB JPEG / ≤ 150 KB WebP, ≈ 19–27×) | Closed parameter surface (only `tile`/`pack`/`detail`/`download` exist; no `w=`/`h=`/`q=`) + **no-original rule** (every error path returns an error body or placeholder) + `ver`-keyed immutable derivative cache + CI byte-bound assertion (`Content-Length ≤ ceiling` **and** `≠ filesize(source)`) + Playwright assertion that no request targets `photos/<file>` |
 | `--quiet` contrast below 4.5:1 | Typed token source `design/tokens/` (single corrected value); Vitest contrast gate over `tokens.ts` fails the build on any sub-4.5:1 token (with a negative test against the v1 value); stylelint `var()`-only bars off-token colors; axe-core verifies rendered output |
 | Copy promised swipe navigation that doesn't exist | Interaction-copy audit test: every interaction word in copy must map to a handler; swipe removed from copy (feature not planned) |
 
@@ -959,8 +977,8 @@ Image-contract follow-ups (ADR-0008; do not block the derivative layer, but land
    (architecture cannot edit the PRD); until it lands, this document is the binding version.
 7. **Art bible §8 amendment — DONE (2026-11-22).** §8 now carries the 360 / 720 / 1200 / 1600
    ladder and WebP-default-with-JPEG-fallback, and the byte ceilings here are aligned with it
-   (tile ≤ 45 KB, pack ≤ 120 KB, detail 150 KB target / 210 KB cap, download 350 KB target /
-   500 KB cap). No further action; recorded so nobody re-opens it.
+   (tile ≤ 36 KB WebP / ≤ 55 KB JPEG, pack ≤ 80 / ≤ 110, detail ≤ 150 / ≤ 210, download
+   ≤ 350 / ≤ 500 KB). No further action; recorded so nobody re-opens it.
 8. **AGENTS.md photo-pipeline line needs a one-line sync.** AGENTS.md still says "Node/sharp
    scripts generate thumbnails and crop anchors for local dev/QA only". It should read
    "sharp generates `photos/thumbs/` + `derivatives/` for dev/QA and the static fallback;
