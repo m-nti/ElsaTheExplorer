@@ -327,6 +327,45 @@ function deckCopyKeys(source: string): Map<string, string> {
   return keys;
 }
 
+/** One keyed copy-deck row, by key: the DE/EN values, the cap and the note column. */
+interface DeckRow {
+  readonly de: string;
+  readonly en: string;
+  readonly max: string;
+  readonly note: string;
+  readonly section: string;
+}
+
+function deckRows(source: string): Map<string, DeckRow> {
+  let sectionNumber = 0;
+  const rows = new Map<string, DeckRow>();
+  for (const line of source.split("\n")) {
+    const heading = /^## (\d+)\. /.exec(line);
+    if (heading !== null) {
+      sectionNumber = Number(capture(heading, 1, "a deck section"));
+      continue;
+    }
+    if (sectionNumber < 1 || sectionNumber > 10) continue;
+    const row = /^\|\s*`([^`]+)`\s*\|(.*)$/.exec(line);
+    if (row === null) continue;
+    const key = capture(row, 1, "a copy key");
+    const cells = (row[2] ?? "").split("|").map((cell) => cell.trim());
+    rows.set(key, {
+      de: cells[0] ?? "",
+      en: cells[1] ?? "",
+      max: cells[2] ?? "",
+      note: cells[3] ?? "",
+      section: String(sectionNumber),
+    });
+  }
+  return rows;
+}
+
+/** Named placeholders in a copy value, sorted, so DE and EN can be compared. */
+function placeholders(value: string): readonly string[] {
+  return [...value.matchAll(/\{(\w+)\}/g)].map((match) => capture(match, 1, "a placeholder")).sort();
+}
+
 /** ADR-0003 §2 — the closed register: version, data cell, owner, storage. */
 interface AdrKeyRow {
   readonly version: number;
@@ -404,6 +443,7 @@ const ADR = read("docs/adr/ADR-0003-state-persistence.md");
 const GDD = read("design/gdd/collection-meta.md");
 const FICTION = read("design/features/archive-fiction.md");
 const PATTERNS = read("design/ux/interaction-patterns.md");
+const PACK_OPENING = read("design/ux/pack-opening.md");
 
 const CANONICAL_SLUGS = [
   "nap-wing",
@@ -670,5 +710,99 @@ describe("copy-key index", () => {
     if (setNames === undefined) return;
     expect(list(setNames, "keys")).toEqual([...CANONICAL_SLUGS]);
     expect(field(setNames, "deck_section")).toBe("6.2");
+  });
+});
+
+/**
+ * #74 — the three keys the one-card-in-focus reveal needs. The spec
+ * (`design/ux/pack-opening.md` §13) supplies the DE/EN pair and the measured
+ * caps; the deck is the string SSOT and the registry is the routing index, so
+ * B4 (theatre) can name these keys instead of shipping spec-local strings.
+ */
+describe("pack reveal copy keys (#74)", () => {
+  const DECK_ROWS = deckRows(DECK);
+  const revealKeys = ["pack.count", "pack.card.revealed", "pack.skipped"] as const;
+
+  const expected: Readonly<Record<(typeof revealKeys)[number], { de: string; en: string; max: string }>> = {
+    "pack.count": { de: "{i} von {n}", en: "{i} of {n}", max: "12" },
+    "pack.card.revealed": {
+      de: "Karte {i} von {n}: {name}. {rarity}.",
+      en: "Card {i} of {n}: {name}. {rarity}.",
+      max: "dynamic",
+    },
+    "pack.skipped": {
+      de: "{k} von {n} Karten gesammelt.",
+      en: "{k} of {n} cards collected.",
+      max: "34",
+    },
+  };
+
+  it("indexes the three reveal keys under the pack group in the registry", () => {
+    const pack = section(registry, "copy_keys").find((entry) => entry.name === "pack");
+    expect(pack).toBeDefined();
+    if (pack === undefined) return;
+    expect(field(pack, "deck_section")).toBe("4");
+    for (const key of revealKeys) expect(list(pack, "keys"), `${key} is not in the pack index`).toContain(key);
+  });
+
+  it("carries each reveal key in deck §4 with the canon DE/EN pair", () => {
+    for (const key of revealKeys) {
+      const row = DECK_ROWS.get(key);
+      expect(row, `${key} is missing from the copy deck`).toBeDefined();
+      if (row === undefined) continue;
+      expect(row.section, `${key}: deck section`).toBe("4");
+      expect(row.de, `${key}: DE`).toBe(expected[key].de);
+      expect(row.en, `${key}: EN`).toBe(expected[key].en);
+    }
+  });
+
+  it("caps the visible counter, bounds the fixed skip line, and leaves the name-dependent reveal uncapped", () => {
+    const count = DECK_ROWS.get("pack.count");
+    expect(count?.max, "the stage counter is a fixed-width slot").toBe(expected["pack.count"].max);
+    expect(count?.note, "the counter is the one space-critical row of the three").toContain("space-critical");
+
+    // The card name is catalogue-driven, so no fixed character cap would be honest:
+    // the line is spoken, never clipped.
+    const revealed = DECK_ROWS.get("pack.card.revealed");
+    expect(revealed?.max, "a spoken card name has no fixed length").toBe("dynamic");
+    expect(revealed?.note, "the row must say why the cap is dynamic").toContain("live region only");
+    expect(revealed?.note, "the row must say why the cap is dynamic").toContain("uncapped by layout");
+
+    // Fixed shape (digits only), so the source's own length budget is meaningful.
+    const skipped = DECK_ROWS.get("pack.skipped");
+    expect(skipped?.max, "PCK §13's measured budget").toBe(expected["pack.skipped"].max);
+    expect(skipped?.note, "the row must still read as an announcement, not a layout box").toContain("live region only");
+  });
+
+  it("keeps the DE and EN placeholders in lockstep", () => {
+    for (const key of revealKeys) {
+      const row = DECK_ROWS.get(key);
+      expect(row, `${key} is missing from the copy deck`).toBeDefined();
+      if (row === undefined) continue;
+      expect(placeholders(row.de), `${key}: DE and EN must agree on placeholders`).toEqual(placeholders(row.en));
+    }
+  });
+
+  it("speaks the collection verb and none of the retired names", () => {
+    const skipped = DECK_ROWS.get("pack.skipped");
+    expect(skipped, "pack.skipped is missing from the copy deck").toBeDefined();
+    if (skipped === undefined) return;
+    expect(skipped.de).toContain("gesammelt");
+    expect(skipped.en).toContain("collected");
+    for (const key of revealKeys) {
+      const row = DECK_ROWS.get(key);
+      if (row === undefined) continue;
+      for (const value of [row.de, row.en]) {
+        expect(value).not.toMatch(/Heft|Katalog|catalogue|catalogued|katalogisiert/);
+      }
+    }
+  });
+
+  it("makes pack-opening §13 point at the deck rows instead of declaring them new", () => {
+    for (const key of revealKeys) {
+      expect(PACK_OPENING, `pack-opening §13 must name ${key}`).toContain(key);
+      expect(PACK_OPENING, `${key} is no longer a spec-local new string`).not.toContain(`**new** \`${key}\``);
+    }
+    expect(PACK_OPENING).toContain("copy deck §4");
   });
 });
