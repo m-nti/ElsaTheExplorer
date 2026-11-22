@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "types": ["node", "svelte", "vite/client"],
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    "paths": {
+      "$lib": ["./src/lib"],
+      "$lib/*": ["./src/lib/*"],
+      "@tokens": ["./design/tokens/tokens.ts"],
+      "@tokens/*": ["./design/tokens/*"],
+      "styled-system": ["./styled-system"],
+      "styled-system/*": ["./styled-system/*"]
+    }
+  },
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "src/**/*.svelte",
+    "design/**/*.ts",
+    "tests/**/*.ts",
+    "styled-system",
+    "*.config.ts",
+    "*.config.js",
+    "panda.config.ts"
+  ],
+  "exclude": ["legacy", "node_modules", "dist", "reports", "qa-shots"]
+}

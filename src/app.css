@@ -1,0 +1,81 @@
+@layer reset, base, tokens, recipes, utilities;
+
+/*
+ * The cascade-layer declaration above is also the Panda CSS entry signal:
+ * @pandacss/vite compiles the design system into this stylesheet. Do not add
+ * another layer-order statement and do not import generated CSS manually.
+ */
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  h1,
+  h2,
+  h3,
+  p,
+  figure {
+    margin: 0;
+  }
+
+  img,
+  picture,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    font-family: var(--elsa-fonts-body);
+    font-size: var(--elsa-font-sizes-lg);
+    line-height: var(--elsa-line-heights-ui);
+    color: var(--elsa-colors-ink);
+    background-color: var(--elsa-colors-bg);
+    text-rendering: optimizelegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100svh;
+    background-color: var(--elsa-colors-bg);
+    color: var(--elsa-colors-ink);
+  }
+
+  #app {
+    min-height: 100svh;
+  }
+
+  ::selection {
+    background-color: var(--elsa-colors-accent);
+    color: var(--elsa-colors-bg);
+  }
+
+  :focus-visible {
+    outline: var(--elsa-border-widths-focus) solid var(--elsa-colors-accent-bright);
+    outline-offset: var(--elsa-spacing-1);
+  }
+}

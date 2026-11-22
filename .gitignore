@@ -41,3 +41,8 @@ reports/
 
 # svelte-check artifacts
 .svelte-check/
+
+# Generated toolchain artifacts (Panda css/recipes, Vite output, coverage)
+styled-system/
+dist/
+coverage/

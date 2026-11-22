@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Elsa the Explorer — a card library. The collection is the product; Elsa is the collection mechanism.",
   "engines": {
-    "node": ">=22"
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
     "dev": "vite",
@@ -22,8 +22,12 @@
     "knip": "knip",
     "gate:contrast": "vitest run tests/unit/contrast.test.ts",
     "gate:selectors": "node scripts/selector-diff.mjs",
-    "photos": "node legacy/scripts/photos.mjs",
-    "prepare": "panda codegen"
+    "canon": "node scripts/canon-check.mjs",
+    "canon:strict": "node scripts/canon-check.mjs --strict",
+    "test:canon": "vitest run --project canon",
+    "photos": "node scripts/photos.mjs",
+    "prepare": "panda codegen",
+    "gate:unused-css": "node scripts/gate-svelte-css.mjs"
   },
   "dependencies": {
     "heic2any": "0.0.4",
@@ -51,7 +55,6 @@
     "stylelint-config-standard": "41.1.0",
     "stylelint-declaration-strict-value": "1.13.0",
     "svelte-check": "4.7.8",
-    "svelte-eslint-parser": "1.11.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.73.0",
     "vite": "8.3.8",

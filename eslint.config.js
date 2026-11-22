@@ -1,21 +1,66 @@
 import js from "@eslint/js";
+import svelte from "eslint-plugin-svelte";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 
-export default [
+export default tseslint.config(
   {
-    ignores: ["demo/**", "qa-shots/**", "assets/vendor/**", "node_modules/**", "photos/**"],
+    ignores: [
+      "legacy/**",
+      "node_modules/**",
+      ".svelte-check/**",
+      "dist/**",
+      "styled-system/**",
+      "coverage/**",
+      "reports/**",
+      "playwright-report/**",
+      "test-results/**",
+      "qa-shots/**",
+      "photos/**",
+    ],
   },
+
   js.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...svelte.configs.recommended,
+
   {
-    files: ["assets/**/*.js", "scripts/**/*.mjs"],
     languageOptions: {
-      ecmaVersion: 2024,
-      sourceType: "module",
       globals: { ...globals.browser, ...globals.node },
+      parserOptions: {
+        extraFileExtensions: [".svelte"],
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
-      "no-unused-vars": ["error", { argsIgnorePattern: "^_", caughtErrors: "none" }],
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", caughtErrors: "none" },
+      ],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
+    },
+  },
+
+  {
+    files: ["**/*.svelte", "**/*.svelte.ts"],
+    languageOptions: {
+      parserOptions: {
+        parser: tseslint.parser,
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+
+  {
+    files: ["*.config.{js,ts}", "scripts/**/*.mjs"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
       "no-console": "off",
     },
   },
-];
+);
