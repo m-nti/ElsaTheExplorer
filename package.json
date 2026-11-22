@@ -22,9 +22,6 @@
     "knip": "knip",
     "gate:contrast": "vitest run tests/unit/contrast.test.ts",
     "gate:selectors": "node scripts/selector-diff.mjs",
-    "canon": "node scripts/canon-check.mjs",
-    "canon:strict": "node scripts/canon-check.mjs --strict",
-    "test:canon": "vitest run --project canon",
     "photos": "node scripts/photos.mjs",
     "prepare": "panda codegen",
     "gate:unused-css": "node scripts/gate-svelte-css.mjs"
