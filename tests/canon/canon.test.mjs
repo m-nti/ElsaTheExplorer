@@ -8,8 +8,9 @@
  * fails CI.
  */
 import { spawnSync } from "node:child_process";
+import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +29,19 @@ function run(argv) {
 
 function fixture(name, extra = []) {
   return run(["--root", join(here, "fixtures", name), ...extra]);
+}
+
+/** Every `.svelte` file under `src/`, as sorted POSIX repo-relative paths. */
+function svelteTemplatesOnDisk(dir = join(repoRoot, "src")) {
+  const found = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...svelteTemplatesOnDisk(full));
+    else if (entry.name.endsWith(".svelte")) {
+      found.push(relative(repoRoot, full).split(sep).join("/"));
+    }
+  }
+  return found.sort();
 }
 
 describe("canon-check: seeded failure", () => {
@@ -228,6 +242,27 @@ describe("canon-check: allowlist discipline", () => {
     expect(report.allowlist.baseline).toBe(0);
   });
 
+  it("applies an entry whose `file` key uses the Windows separator", () => {
+    // The key is data, not host output: an author on a Windows checkout writes
+    // `design\spec.md`, a Linux author writes `design/spec.md`, and both must
+    // cover the same line. Before the fix the comparison normalised only the
+    // scanned path, so this entry covered nothing and the row read as a defect.
+    const { code, report } = fixture("backslash-allowlist");
+    expect(code).toBe(0);
+    expect(report.status).toBe("clean");
+    expect(report.allowlist.allowed).toBe(1);
+  });
+
+  it("counts a Windows-keyed baseline row instead of painting it green", () => {
+    // `--strict`, `baselineHits` and the cap all read `entry.file`; a key in the
+    // other host's shape must still resolve to its row, or a known defect stops
+    // being counted and the ratchet reports a pass it did not earn.
+    const { code, report } = fixture("backslash-baseline");
+    expect(code).toBe(0);
+    expect(report.allowlist.baseline).toBe(1);
+    expect(report.allowlist.baselineHits).toBe(1);
+  });
+
   it("fails a stale entry — the allowlist must not outlive the text", () => {
     const { code, report } = fixture("stale");
     expect(code).toBe(2);
@@ -326,18 +361,11 @@ describe("canon-check: Svelte template surface (D12b)", () => {
 
 describe("canon-check: the real tree (D12b)", () => {
   it("names every Svelte template whose text it read", () => {
-    // `scanned` already listed the file before #49; this is the assertion that the
-    // *template* was read, so a regression to markup-only is a red test.
+    // `scanned` is the surface the gate walked; `templates` is what it read as a
+    // template. Deriving the expectation from both means a new component grows the
+    // two lists together (green), while a regression to markup-only drops entries
+    // from `templates` only (red) — a literal list rotted on #80 instead (#90).
     const { report } = run([]);
-    // Every `.svelte` file under `src/`, in scan order: adding a component means
-    // adding it here, because the point is that the template (not just the file
-    // name) was read. #80 added CardDialog and CardTile after #49 wrote the list.
-    expect(report.templates).toEqual([
-      "src/App.svelte",
-      "src/lib/components/CardDialog.svelte",
-      "src/lib/components/CardFace.svelte",
-      "src/lib/components/CardTile.svelte",
-    ]);
   });
 
   it("keeps the real tree clean and the baseline empty", () => {

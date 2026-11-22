@@ -1,0 +1,12 @@
+{
+  "generated": "2026-11-22T18:58:27.824Z",
+  "source": "photos",
+  "pipeline": 2,
+  "ladder": {
+    "tile": 360,
+    "pack": 720,
+    "detail": 1200,
+    "download": 1600
+  },
+  "photos": []
+}

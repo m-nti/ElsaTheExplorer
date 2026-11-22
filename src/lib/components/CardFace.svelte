@@ -40,6 +40,8 @@
           alt={model.photo.alt}
           width={model.photo.width}
           height={model.photo.height}
+          loading="eager"
+          fetchpriority="high"
           style:object-position={model.photo.focus ?? "var(--elsa-sizes-photo-anchor)"}
           decoding="async"
         />

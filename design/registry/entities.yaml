@@ -519,6 +519,9 @@ copy_keys:
       - pack.btn.catalogue
       - pack.list.aria
       - pack.card.aria
+      - pack.count
+      - pack.card.revealed
+      - pack.skipped
       - pack.summary
       - pack.summary.one
       - pack.stamp.label
