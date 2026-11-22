@@ -1,0 +1,57 @@
+#!/bin/sh
+# Pre-commit: ESLint on the staged source files, before the push has to report it (#103).
+#
+# Deliberately narrow: staged .js/.mjs/.cjs/.ts/.svelte only, no build, no typecheck, no
+# autofix. The full gate set stays in .githooks/pre-push (`npm run verify`); this hook exists
+# because a lint error is cheap to fix here and expensive to discover in CI.
+#
+# ESLint reads the working tree, not the index. A partially staged file is therefore linted
+# as it stands on disk, and the commit can still carry the unstaged remainder; the pre-push
+# hook's clean-tree check is what keeps the pushed tree the verified tree.
+#
+# Exit: 0 when nothing lintable is staged or every staged file is clean; 1 on a lint error,
+# or when node/ESLint is missing. A blocked commit is never a silent pass.
+set -e
+
+root=$(git rev-parse --show-toplevel) || exit 1
+cd "$root" || exit 1
+
+# core.quotepath=false: an umlaut in a path arrives as UTF-8, not as \303\266.
+staged=$(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACMR -- \
+  '*.js' '*.mjs' '*.cjs' '*.ts' '*.svelte')
+
+[ -n "$staged" ] || exit 0
+
+command -v node >/dev/null 2>&1 || {
+  echo "pre-commit: node is not on PATH - cannot lint the staged files." >&2
+  exit 1
+}
+
+if [ ! -f node_modules/eslint/bin/eslint.js ]; then
+  echo "pre-commit: ESLint is not installed (node_modules is missing) - run npm ci." >&2
+  exit 1
+fi
+
+# Newline is the only separator, so a path with a space stays one argument, and `set -f`
+# keeps a path that contains a glob character from being expanded.
+old_ifs=$IFS
+IFS='
+'
+set -f
+set -- $staged
+IFS=$old_ifs
+set +f
+
+count=0
+for _path in "$@"; do
+  count=$((count + 1))
+done
+
+echo "pre-commit: ESLint on $count staged file(s)..."
+
+if ! node node_modules/eslint/bin/eslint.js --no-warn-ignored "$@"; then
+  echo "" >&2
+  echo "pre-commit: lint errors in the staged files above (file:line - rule) - commit blocked." >&2
+  echo "pre-commit: fix them and re-stage; this hook applies no autofix." >&2
+  exit 1
+fi
