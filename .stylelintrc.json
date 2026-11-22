@@ -1,0 +1,32 @@
+{
+  "extends": [
+    "stylelint-config-standard"
+  ],
+  "ignoreFiles": [
+    "demo/**",
+    "qa-shots/**",
+    "node_modules/**"
+  ],
+  "rules": {
+    "declaration-block-no-redundant-longhand-properties": true,
+    "no-duplicate-selectors": true,
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignore": [
+          "consecutive-duplicates-with-different-values"
+        ]
+      }
+    ],
+    "comment-empty-line-before": null,
+    "custom-property-empty-line-before": null,
+    "selector-class-pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:__[a-z0-9-]+)?(?:--[a-z0-9-]+)?$",
+    "declaration-block-single-line-max-declarations": null,
+    "rule-empty-line-before": null,
+    "at-rule-empty-line-before": null,
+    "property-no-vendor-prefix": null,
+    "no-descending-specificity": null,
+    "max-line-length": null,
+    "declaration-empty-line-before": null
+  }
+}
