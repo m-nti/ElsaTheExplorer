@@ -210,10 +210,10 @@ Pack-Open Button · Dialog Open/Close · Language Toggle · Sound Toggle · Prog
 
 ## Deferred (open, with reason)
 
-1. **`pack.count`, `pack.card.revealed`, `pack.skipped` missing from the copy deck and registry index** — the writer owns the deck and the caps need deriving; follow-up issue filed, B4 is blocked on it for the announcement strings.
+1. **`pack.count`, `pack.card.revealed`, `pack.skipped` missing from the copy deck and registry index** — the writer owns the deck and the caps need deriving; **#74** tracks it, B4 is blocked on it for the announcement strings.
 2. **`--quiet` contrast + six/three/two pre-audit rows** — measured audit belongs to the a11y pass, not to this review; the specs correctly refuse to claim a pass.
-3. **`gate:tables` blind spot** — it validates tables that exist but not orphaned rows after prose; `card-detail.md` §12 passed while broken. Needs a gate change, not a doc edit.
-4. **`design/accessibility-requirements.md:123-124,160,163` still says "gesehen / seen" and "~200ms apart"** — stale against the `gesammelt` canon and the 4-card reveal. The a11y doc is outside this ticket's four-spec scope; ticket it with the a11y pass.
+3. **`gate:tables` blind spot** — it validates tables that exist but not orphaned rows after prose; `card-detail.md` §12 passed while broken. **#75** tracks the gate change.
+4. **`design/accessibility-requirements.md:123-124,160,163` still says "gesehen / seen" and "~200ms apart"** — stale against the `gesammelt` canon and the 4-card reveal. **#76** tracks it with the a11y pass.
 5. **Binder view persistence** — owner/playtest question, not a spec defect.
 6. **Card-detail slow-load state and resolution criteria; stage F-range and resolution criterion** — small doc additions, listed above.
 
