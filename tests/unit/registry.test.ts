@@ -277,7 +277,7 @@ interface DeckSetName {
 }
 
 function deckSetNames(source: string): Map<string, DeckSetName> {
-  const lines = source.split("\n");
+  const lines = source.split(/\r?\n/);
   const start = lines.findIndex((line) => line.startsWith("### 6.2 Set names"));
   if (start === -1) throw new Error("copy deck §6.2 not found");
   const names = new Map<string, DeckSetName>();
@@ -302,7 +302,7 @@ function deckCopyKeys(source: string): Map<string, string> {
   let sectionNumber = 0;
   let group: string | null = null;
   const keys = new Map<string, string>();
-  for (const line of source.split("\n")) {
+  for (const line of source.split(/\r?\n/)) {
     const heading = /^## (\d+)\. /.exec(line);
     if (heading !== null) {
       sectionNumber = Number(capture(heading, 1, "a deck section"));
@@ -339,7 +339,7 @@ interface DeckRow {
 function deckRows(source: string): Map<string, DeckRow> {
   let sectionNumber = 0;
   const rows = new Map<string, DeckRow>();
-  for (const line of source.split("\n")) {
+  for (const line of source.split(/\r?\n/)) {
     const heading = /^## (\d+)\. /.exec(line);
     if (heading !== null) {
       sectionNumber = Number(capture(heading, 1, "a deck section"));
@@ -384,7 +384,7 @@ function plainCell(text: string): string {
 }
 
 function adrKeyRegister(source: string): Map<string, AdrKeyRow> {
-  const lines = source.split("\n");
+  const lines = source.split(/\r?\n/);
   const start = lines.findIndex((line) => line.startsWith("### 2. Ratified key register"));
   if (start === -1) throw new Error("ADR-0003 §2 not found");
   const rows = new Map<string, AdrKeyRow>();
@@ -410,7 +410,7 @@ function adrKeyRegister(source: string): Map<string, AdrKeyRow> {
 
 /** GDD R-A — `| slug | DE | EN | frame |`, with the parenthetical stripped. */
 function gddFrames(source: string): Map<string, string> {
-  const lines = source.split("\n");
+  const lines = source.split(/\r?\n/);
   const start = lines.findIndex((line) => line.startsWith("| Slug | DE | EN | Frame colour role |"));
   if (start === -1) throw new Error("GDD R-A set table not found");
   const frames = new Map<string, string>();
@@ -648,7 +648,7 @@ describe("pack size", () => {
     const drawn = /PACK_SIZE\s*=\s*min\(\s*(\d+)\s*,\s*photos\s*\)/.exec(PATTERNS);
     expect(capture(drawn, 1, "PACK_SIZE in design/ux/interaction-patterns.md")).toBe("4");
 
-    const deckRow = DECK.split("\n").find((line) => line.startsWith("| Pack size |"));
+    const deckRow = DECK.split(/\r?\n/).find((line) => line.startsWith("| Pack size |"));
     expect(deckRow).toContain("vier Karten");
     expect(deckRow).toContain("four cards");
   });
