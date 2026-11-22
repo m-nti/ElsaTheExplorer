@@ -16,3 +16,14 @@ A fenced example is not the document's own table, even when it is broken:
 | Left | Centre | Right |
 | :-- | :-: | --: |
 | 1 | 2 | 3 |
+
+Two valid tables in one section, separated by a blank line, are two tables —
+the blank line closes the first one and the next line opens the second (#75):
+
+| Field | Value |
+| --- | --- |
+| a | 1 |
+
+| Field | Value |
+| --- | --- |
+| b | 2 |

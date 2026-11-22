@@ -14,6 +14,13 @@
  * must be written `\|`. That is why `E-ORG-01`'s regex needed escaping rather
  * than quoting.
  *
+ * A table also ends at the first line that is not a table row. Prose inserted
+ * between the header and its body therefore turns every following row into
+ * plain text with no error anywhere — the defect D4 found in
+ * `design/ux/card-detail.md` §12 (issue #75). So a row-looking line that is not
+ * itself the start of a table, in a section that has already shown one, is
+ * reported as an orphan instead of being skipped.
+ *
  * There is no allowlist and no ignore list on purpose: an exemption is how a
  * table gate dies. Fix the row instead.
  *
@@ -22,8 +29,8 @@
  *   node scripts/table-integrity.mjs --root <dir>    # gate one root (tests)
  *   node scripts/table-integrity.mjs --json          # machine-readable report
  *
- * Exit codes: 0 = every table rectangular, 1 = at least one misaligned row,
- *             2 = usage error (a root that does not exist).
+ * Exit codes: 0 = every table rectangular, 1 = at least one misaligned or
+ *             orphaned row, 2 = usage error (a root that does not exist).
  */
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -33,6 +40,8 @@ const DEFAULT_ROOTS = ["docs", "design"];
 const MARKDOWN = /\.mdx?$/i;
 const FENCE = /^\s*(```|~~~)/;
 const DELIMITER = /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/;
+const HEADING = /^\s{0,3}#{1,6}(?:\s|$)/;
+
 
 /** Directories that hold build output, dependencies or archived sources. */
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "build", "styled-system", "reports"]);
@@ -74,7 +83,9 @@ function markdownFiles(root) {
 /**
  * Audit one file. Table = header row, delimiter row, then rows until a line that
  * is not a table row; fenced code blocks are skipped, so a Markdown example
- * inside a fence is not mistaken for the document's own table.
+ * inside a fence is not mistaken for the document's own table. A row-looking
+ * line outside any table, in a section that already showed one, is an orphan:
+ * prose ended the table, so its cells render as plain text.
  *
  * @param {string} file absolute path
  * @param {string} root for a repo-relative label
@@ -86,6 +97,7 @@ function audit(file, root) {
   const violations = [];
   let tables = 0;
   let fenced = false;
+  let sectionHasTable = false;
 
   for (let i = 0; i < lines.length; i++) {
     if (FENCE.test(lines[i])) {
@@ -93,10 +105,25 @@ function audit(file, root) {
       continue;
     }
     if (fenced) continue;
+    if (HEADING.test(lines[i])) {
+      sectionHasTable = false;
+      continue;
+    }
     if (!lines[i].trimStart().startsWith("|")) continue;
-    if (i + 1 >= lines.length || !DELIMITER.test(lines[i + 1])) continue;
+    if (i + 1 >= lines.length || !DELIMITER.test(lines[i + 1])) {
+      if (sectionHasTable) {
+        violations.push({
+          file: label,
+          line: i + 1,
+          kind: "orphan",
+          row: lines[i].trim(),
+        });
+      }
+      continue;
+    }
 
     tables += 1;
+    sectionHasTable = true;
     const header = fields(lines[i]);
     let row = i + 2;
     for (; row < lines.length && lines[row].trimStart().startsWith("|"); row++) {
@@ -105,6 +132,7 @@ function audit(file, root) {
         violations.push({
           file: label,
           line: row + 1,
+          kind: "misaligned",
           table: `${label}:${i + 1}`,
           expected: header.length,
           actual,
@@ -156,14 +184,22 @@ if (json) {
 }
 
 for (const violation of violations) {
+  if (violation.kind === "orphan") {
+    console.error(
+      `${violation.file}:${violation.line}: orphaned table row — prose ends the table above, so these cells render as plain text; ` +
+        "restore the row to the table or start a new header and delimiter\n" +
+        `  ${violation.row}`,
+    );
+    continue;
+  }
   console.error(
     `${violation.file}:${violation.line}: expected ${violation.expected} field(s), found ${violation.actual}\n  ${violation.row}`,
   );
 }
 if (violations.length > 0) {
   console.error(
-    `\ntable-integrity: ${violations.length} misaligned row(s) in ${tables} tables — ` +
-      "add or remove a `|` so the row matches its header; never drop content.",
+    `\ntable-integrity: ${violations.length} table defect(s) in ${tables} tables — ` +
+      "a row must match its header and must not be separated from it by prose; never drop content.",
   );
   process.exit(1);
 }

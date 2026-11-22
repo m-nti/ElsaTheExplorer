@@ -448,6 +448,14 @@ implementation blocker for this project.*
 | Text Element | Background Context | Required Ratio | Current Ratio | Pass? |
 |--------------|-------------------|---------------|---------------|-------|
 | Plate name (rare/holo foil gradient text) | Indigo plate gradient | 4.5:1 at **every gradient stop** | verify — gradient text is the audit's hardest case; drop-shadow required as the second channel | [ ] audit |
+| Plate number / mood / rarity chip | Plate | 4.5:1 | ≈ 10:1 | [x] |
+| Credit strip text + stars | Parchment band | 4.5:1 | ≥ 4.5 required (8–10px type is the risk) | [ ] audit — smallest text on the card |
+| Elsa-Moment copy | Panel | 4.5:1 | ≈ 9:1 | [x] |
+| Fantasiewerte label + stat values | Label: muted on velvet; values on chip | 4.5:1 | values ≈ 12:1; label ≥ 4.5 required | [ ] audit |
+| Serial foot | Card face | 4.5:1 | ≥ 4.5 required | [ ] audit |
+| Action buttons | Pearl/outline surfaces | 4.5:1 | verify primary (dark ink on light) | [ ] audit |
+| Status line | Dialog velvet | 4.5:1 | ≈ 10:1 | [x] |
+| Keyboard hint `.print__hint` | Dialog velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 
 **Foil-name gradient under reduced motion (audit target)**: with
 `prefers-reduced-motion: reduce`, the gradient text's `background-position`
@@ -460,14 +468,6 @@ so the audit can check a single rendered frame instead of an animated range.
 (binder.md §6) shares this dialog's foil/frame token set — its exact frame
 treatment follows the same art sign-off; nothing in this spec's geometry
 requirements depends on it.
-| Plate number / mood / rarity chip | Plate | 4.5:1 | ≈ 10:1 | [x] |
-| Credit strip text + stars | Parchment band | 4.5:1 | ≥ 4.5 required (8–10px type is the risk) | [ ] audit — smallest text on the card |
-| Elsa-Moment copy | Panel | 4.5:1 | ≈ 9:1 | [x] |
-| Fantasiewerte label + stat values | Label: muted on velvet; values on chip | 4.5:1 | values ≈ 12:1; label ≥ 4.5 required | [ ] audit |
-| Serial foot | Card face | 4.5:1 | ≥ 4.5 required | [ ] audit |
-| Action buttons | Pearl/outline surfaces | 4.5:1 | verify primary (dark ink on light) | [ ] audit |
-| Status line | Dialog velvet | 4.5:1 | ≈ 10:1 | [x] |
-| Keyboard hint `.print__hint` | Dialog velvet | 4.5:1 | verify at audit — hint renders in the muted `--muted` token, not the promoted body colour; do not assume pass | [ ] audit |
 
 **Colorblind-unsafe elements and mitigations**:
 

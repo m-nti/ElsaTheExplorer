@@ -61,12 +61,34 @@ describe("table-integrity: seeded failure", () => {
   });
 });
 
+describe("table-integrity: rows orphaned by prose (issue #75)", () => {
+  it("fails on a row that follows prose after a table header", () => {
+    const { code, report } = fixture("tables-orphaned");
+    expect(code).toBe(1);
+    expect(report.status).toBe("violations");
+    expect(report.violations[0]).toEqual(
+      expect.objectContaining({
+        file: "tests/canon/fixtures/tables-orphaned/bad.md",
+        line: 14,
+        kind: "orphan",
+      }),
+    );
+  });
+
+  it("names the first orphan row's file:line on stderr", () => {
+    const { code, stderr } = run(["--root", join(here, "fixtures", "tables-orphaned")]);
+    expect(code).toBe(1);
+    expect(stderr).toContain("bad.md:14: orphaned table row");
+  });
+});
+
 describe("table-integrity: what it must not flag", () => {
   it("accepts escaped pipes, a missing trailing pipe and a fenced example", () => {
     const { code, report } = fixture("tables-clean");
     expect(code).toBe(0);
     expect(report.status).toBe("clean");
     expect(report.violations).toEqual([]);
+    expect(report.tables).toBe(4);
   });
 
   it("exits 2 on a root that does not exist instead of reporting clean", () => {
