@@ -498,7 +498,7 @@ Rules and flags:
    reduced-motion model: targets snap to zero, springs stiffen). Rarity survives via
    texture + stars + chip label (§4). Any *new* animation ships its reduced-motion state
    in the same commit.
-6. **Live feedback.** Status strings go through `role="status"` (`print__status`, `#live`)
+6. **Live feedback.** Status strings go through `role="status"` (`print__status`, `#live-status`)
    — keep; new flows (Catalogue Closed) inherit this.
 
 **Explicit art-direction vs readability conflicts (and the standing decision):**

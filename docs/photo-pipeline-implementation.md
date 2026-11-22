@@ -209,7 +209,7 @@ QA can assert without reading bodies.
 
 The endpoint itself never fabricates image bytes. The **client** owns the placeholder:
 
-- New static asset `img/photo-unavailable.webp` (360×360, ≤ 6 KB, neutral paper tone, no
+- New static asset `img/photo-unavailable.webp` (540×720 portrait, 1,636 B, neutral paper tone, no
   text — text would need DE/EN). Generated once by tooling, committed, not built by PHP.
   It lives at the deploy root, **not** under `assets/`: `assets/` is scheduled for
   deletion at the end of the refactor (`docs/architecture.md` folder structure), so a new
