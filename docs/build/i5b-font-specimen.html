@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Chivo subset — diacritics and repertoire specimen</title>
+    <style>
+      @font-face {
+        font-family: "Chivo specimen";
+        src: url("../../public/fonts/chivo-latin.woff2") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: block;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #111017;
+        color: #f4eff8;
+        font-family: "Chivo specimen", system-ui, sans-serif;
+        font-size: 20px;
+        line-height: 1.5;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      p.note {
+        margin: 0 0 24px;
+        color: #978fa0;
+        font-size: 14px;
+      }
+
+      h2 {
+        margin: 24px 0 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #978fa0;
+      }
+
+      .sample {
+        margin: 0;
+        font-size: 30px;
+        line-height: 1.35;
+      }
+
+      .weights div {
+        font-size: 26px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(11, 1fr);
+        gap: 4px;
+        font-size: 22px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .grid span {
+        padding: 4px 0;
+        text-align: center;
+        border: 1px solid #2c2736;
+        border-radius: 4px;
+      }
+
+      .fallback {
+        font-size: 26px;
+      }
+
+      .fallback code {
+        color: #978fa0;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chivo subset — diacritics and repertoire</h1>
+    <p class="note">
+      public/fonts/chivo-latin.woff2 · 29,368 B · 195 codepoints · wght 100–900 ·
+      specimen rendered with the shipped file
+    </p>
+
+    <h2>Deutsch</h2>
+    <p class="sample">
+      Ä Ö Ü ä ö ü ß — „Größenwahn“, »Übermut«, ‚Anführung‘, – Gedankenstrich, … Auslassung
+    </p>
+    <p class="sample">
+      Die Sammlung wächst: Der Abfahrtsaal, die Fensternase, das Größenmaß. Größe 5 × 7 cm,
+      § 4, 12,50 € pro Karte.
+    </p>
+
+    <h2>English</h2>
+    <p class="sample">
+      “The Departure Hall”, ‘the window nose’, a dash — an ellipsis … and a bullet •
+    </p>
+
+    <h2>Names outside DE/EN that the register may quote</h2>
+    <p class="sample">
+      ÀÉÎÕÜ àéîõü Çç Ññ Šš Žž Œœ Åå Øø Ææ Ðð Þþ
+    </p>
+
+    <h2>Weights (variable axis)</h2>
+    <div class="weights">
+      <div style="font-weight: 100">100 Blickkontakt-Expertin · 1,50 €</div>
+      <div style="font-weight: 400">400 Blickkontakt-Expertin · 1,50 €</div>
+      <div style="font-weight: 500">500 Blickkontakt-Expertin · 1,50 €</div>
+      <div style="font-weight: 700">700 Blickkontakt-Expertin · 1,50 €</div>
+      <div style="font-weight: 900">900 Blickkontakt-Expertin · 1,50 €</div>
+    </div>
+
+    <h2>Latin-1 letters</h2>
+    <div class="grid">
+      <span>À</span><span>Á</span><span>Â</span><span>Ã</span><span>Ä</span><span>Å</span><span>Æ</span><span>Ç</span><span>È</span><span>É</span><span>Ê</span>
+      <span>Ë</span><span>Ì</span><span>Í</span><span>Î</span><span>Ï</span><span>Ð</span><span>Ñ</span><span>Ò</span><span>Ó</span><span>Ô</span><span>Õ</span>
+      <span>Ö</span><span>×</span><span>Ø</span><span>Ù</span><span>Ú</span><span>Û</span><span>Ü</span><span>Ý</span><span>Þ</span><span>ß</span><span>à</span>
+      <span>á</span><span>â</span><span>ã</span><span>ä</span><span>å</span><span>æ</span><span>ç</span><span>è</span><span>é</span><span>ê</span><span>ë</span>
+      <span>ì</span><span>í</span><span>î</span><span>ï</span><span>ð</span><span>ñ</span><span>ò</span><span>ó</span><span>ô</span><span>õ</span><span>ö</span>
+      <span>÷</span><span>ø</span><span>ù</span><span>ú</span><span>û</span><span>ü</span><span>ý</span><span>þ</span><span>ÿ</span><span>Œ</span><span>œ</span>
+    </div>
+
+    <h2>Declared fallback (Chivo never had these)</h2>
+    <p class="fallback">★ ✕ <code>U+2605 rarity star · U+2715 close cross — drawn from the fallback stack as before</code></p>
+  </body>
+</html>
