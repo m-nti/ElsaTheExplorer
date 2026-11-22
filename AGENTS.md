@@ -3,12 +3,18 @@
 A card library about Elsa (the dog): the collection is the product, Elsa is the
 collection mechanism. Full refactor in progress on a decided stack.
 
-## Standing rule — activate relevant skills before any task
+## Standing rule — activate all relevant skills, together
 
 Before starting work, inventory the installed game-studios skills
-(`~/.config/opencode/skills/`) and activate every skill relevant to the task at
+(`~/.config/opencode/skills/`) and activate **every** skill relevant to the task at
 hand (via the `skill` tool, or by reading its `SKILL.md`). Name the activated
 skills in the final report. Skipping a relevant skill is a reportable defect.
+
+**Skills are not mutually exclusive.** Multiple skills can be activated and loaded
+at the same time by one agent, and they compose: a design pass may need
+`design-system` *and* `ux-design` *and* `localize` *and* `consistency-check`
+together. Activating one relevant skill and stopping is a defect, not minimalism.
+Load the set, apply each where it governs, and say which governed what.
 
 ## Project facts (binding)
 
