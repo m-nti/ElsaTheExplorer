@@ -3,6 +3,8 @@
   import { plateRows } from "$lib/domain/card-plate";
   import { STAR_SCALE_MAX, starLabel } from "$lib/domain/card-stars";
   import { focusToObjectPosition } from "$lib/domain/card-photo";
+  import { ZERO_TILT, tiltForPointer, type TiltTarget } from "$lib/domain/tilt";
+  import { motion } from "$lib/a11y/motion.svelte";
   import { i18n } from "$lib/stores/i18n.svelte";
   import { rarity as rarityRecipe } from "styled-system/recipes/rarity";
 
@@ -22,10 +24,47 @@
   const starSlots = $derived(
     Array.from({ length: STAR_SCALE_MAX }, (_, index) => index < model.stars),
   );
+
+  /**
+   * Tilt (card-detail §5.3 A, §10): the face leans toward the pointer; the
+   * motion store decides whether it may, never a direct OS query. Reduced
+   * motion returns the rest frame from the domain, so there is no second code
+   * path.
+   */
+  let pointerTilt = $state<TiltTarget>(ZERO_TILT);
+  const tilt = $derived(motion.reduce ? ZERO_TILT : pointerTilt);
+
+  function handlePointerMove(event: PointerEvent): void {
+    if (motion.reduce) return;
+    const bounds = event.currentTarget instanceof HTMLElement
+      ? event.currentTarget.getBoundingClientRect()
+      : null;
+    if (!bounds || bounds.width === 0 || bounds.height === 0) return;
+    pointerTilt = tiltForPointer(
+      (event.clientX - bounds.left) / bounds.width,
+      (event.clientY - bounds.top) / bounds.height,
+      false,
+    );
+  }
+
+  /** Pointer leaves, focus leaves, or the gesture is cancelled: back to rest. */
+  function restTilt(): void {
+    pointerTilt = ZERO_TILT;
+  }
 </script>
 
 <div class="card-shell">
-  <article class="card-face {rarityClass}" data-rarity={model.rarity} aria-labelledby={titleId}>
+  <article
+    class="card-face {rarityClass}"
+    data-rarity={model.rarity}
+    aria-labelledby={titleId}
+    style:--elsa-tilt-x={`${tilt.x}deg`}
+    style:--elsa-tilt-y={`${tilt.y}deg`}
+    onpointermove={handlePointerMove}
+    onpointerleave={restTilt}
+    onpointercancel={restTilt}
+    onfocusout={restTilt}
+  >
     <div class="plate">
     <header class="zone header">
       <h2 class="name" id={titleId}>{rows.name}</h2>
@@ -124,6 +163,12 @@
     font-family: var(--elsa-fonts-body);
     font-size: var(--elsa-sizes-card-root);
     line-height: var(--elsa-line-heights-card);
+    /* Tilt: the two local variables the pointer handler writes. */
+    transform:
+      perspective(var(--elsa-tilt-perspective))
+      rotateX(var(--elsa-tilt-x))
+      rotateY(var(--elsa-tilt-y));
+    transition: transform var(--elsa-dur-settle) var(--elsa-ease-soft);
   }
 
   .card-face::after {
@@ -490,10 +535,21 @@
 
   @media (prefers-reduced-motion: reduce) {
     /*
-     * Freeze, do not delete. The sweep is the only motion in this slice (tilt
-     * arrives with T7); art-bible §8 rule 5 asks for static foil at opacity
-     * ≤ 0.3, so the static layers keep their tier opacity and only the glint
-     * stops. The old `.glitter` selector was dead after the five-layer rename.
+     * The final frame, declared rather than hoped for: the card sits square and
+     * switches instantly, so no movement can carry information. The zero also
+     * arrives from `tiltFor`/`motion.reduce` in JS; this is the CSS belt the
+     * ADR keeps as a second reader of the same OS fact.
+     */
+    .card-face {
+      transform: none;
+      transition: none;
+    }
+
+    /*
+     * Freeze, do not delete. The sweep is the only autonomous motion in this
+     * slice; art-bible §8 rule 5 asks for static foil at opacity ≤ 0.3, so the
+     * static layers keep their tier opacity and only the glint stops. The old
+     * `.glitter` selector was dead after the five-layer rename.
      */
     .glint {
       animation: none;

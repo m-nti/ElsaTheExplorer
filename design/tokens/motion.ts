@@ -66,4 +66,10 @@ export const motionCssVars = {
   ...durations,
   ...intervals,
   ...easings,
+  /**
+   * The card's 3D stage depth. The shipped card used `perspective(1500px)`
+   * (`legacy/assets/js/app.js`), and card-detail §5.3 keeps that material
+   * verbatim — so the card's tilt reads the same at 180 px and 340 px.
+   */
+  "--elsa-tilt-perspective": "1500px",
 } as const;
