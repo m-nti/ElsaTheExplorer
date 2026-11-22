@@ -507,7 +507,7 @@ shrunk case is added to `tests/fixtures/regressions/`.
 | P-NORM-03 | `dropped` equals the number of input entries that produced no record; every dropped entry has a reason |
 | P-NORM-04 | No half-kept entry: a record with an invalid `id` is entirely absent |
 | P-NORM-05 | Idempotence: `normalize(normalize(x))` deep-equals `normalize(x)` |
-| P-NORM-06 | Defaults: missing `set` → `null`; missing `focus` → `{x:0.5,y:0.5}`; missing `chase` → `false`; `''` rarity → hash-derived |
+| P-NORM-06 | Defaults: missing `set` → `null`; missing `focus` → no opinion, not `50% 50%` (renders as `center 42%`, ADR-0011 R4); missing `chase` → `false`; `''` rarity → hash-derived |
 | P-NORM-07 | `focus` is clamped to `[0,1]`; `NaN`/`Infinity`/strings are rejected and defaulted, not propagated |
 | P-NORM-08 | String content fields are coerced to `Localized` for both languages; a partial `Localized` follows the documented EN-fallback policy |
 | P-NORM-09 | Duplicate ids keep the first occurrence, drop the rest, and count them |
@@ -548,7 +548,7 @@ Included because the overflow fix is only real if the derivation enforces it.
 | U-CV-04 | `binderCardView` never carries `promoted`/presented rarity |
 | U-CV-05 | `packCardView` carries slot index (1-based) and presented rarity for the accessible name |
 | U-CV-06 | Accessible-name fragments come from the dictionary (number, name, rarity, seen state) |
-| U-CV-07 | `focus` maps to `object-position: x*100% y*100%`; default is `50% 50%` |
+| U-CV-07 | `focus` maps to `object-position: x*100% y*100%`; absent `focus` → `center 42%` (the no-opinion anchor, ADR-0011 R4, art-bible §7, `sizes.photo-anchor`); an explicit `{x:0.5,y:0.5}` → `50% 50%` |
 
 ### 5.9 PWA cache policy, limits and schema — `tests/unit/pwa.*.spec.ts`
 
@@ -926,7 +926,7 @@ any step stops the pipeline.
 | # | Gate | Command (contract) | Fails when |
 | --- | --- | --- | --- |
 | 1a | Canon / vocabulary, then its self-tests | `node scripts/canon-check.mjs` → `vitest run --project canon` | Any live copy uses the retired collection name or the retired progress verb (canon: `docs/decisions.md` D-04b; vocabulary SSOT: `design/copy/copy-deck.md` §0); any retired binder noun; any water vocabulary from the canon list (`AGENTS.md` — water); any `!` in error, announcement, reset or aria copy; a stale, ambiguous or unreasoned entry in `scripts/canon-allowlist.json`; a baseline entry beyond the recorded `maxBaseline` |
-| 1b | Markdown table integrity | `node scripts/table-integrity.mjs` | Any table row in `docs/` or `design/` whose field count differs from its header row (GFM renders the surplus cell as a phantom column, or absorbs it into the last one); a `\|` that is not escaped inside a cell counts as a boundary. No allowlist: fix the row |
+| 1b | Markdown table integrity | `node scripts/table-integrity.mjs` | Any table row in `docs/` or `design/` whose field count differs from its header row (GFM renders the surplus cell as a phantom column, or absorbs it into the last one); any row-looking pipe-delimited line separated from its table header by prose, in a section that already shows a table, because GFM then renders those cells as plain text (#75); a `\|` that is not escaped inside a cell counts as a boundary. No allowlist: fix the row |
 | 1 | Typecheck | `tsc --noEmit` then `svelte-check --tsgo` | Any type error in `src/` or tests; TS 7 fallback per ADR-0001 is applied only by the documented alias |
 | 2 | Stylelint + selector diff + unused CSS | `stylelint "src/**/*.{css,svelte}"` → `node scripts/selector-diff.mjs` → Svelte compiler warnings escalated | Raw value where `var()` is required; duplicate selector in a file; duplicate selector **across** files; unused scoped CSS |
 | 3 | ESLint | `eslint .` | Lint error, including `no-restricted-syntax` for `page.waitForTimeout` in `tests/e2e/` |

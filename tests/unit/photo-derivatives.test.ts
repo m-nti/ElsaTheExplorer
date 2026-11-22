@@ -98,7 +98,58 @@ type Manifest = {
 
 const EXT = { jpeg: "jpg", webp: "webp" } as const;
 
+/**
+ * Per-test budget for a full three-photo ladder: each test spawns the generator, which
+ * renders 24 files through sharp. 30 s was a Linux-CI figure; on a Windows host with
+ * coverage instrumentation the same work measured 25–35 s and two correct tests timed out
+ * in one run (#65). The budget is headroom, not an assertion — every file, byte and field
+ * is still measured.
+ */
+const RENDER_TIMEOUT = 120_000;
+
 const roots: string[] = [];
+
+/**
+ * Drift reports name files as repo-relative URLs (`detail/landscape.jpg`). The script
+ * builds them with `path.relative`, so a Windows host spells them with backslashes;
+ * asserting the POSIX form keeps the report's contract meaningful on both hosts (#69).
+ * On a POSIX host this is the identity.
+ */
+const posix = (text: string): string => text.replaceAll("\\", "/");
+
+/**
+ * Two containment tests below plant a symlink on purpose. A Windows host without
+ * Developer Mode (SeCreateSymbolicLinkPrivilege) answers EPERM; that is a property of the
+ * host, not a defect in the pipeline (#69). Probe once and skip with the code in the test
+ * title. Linux CI has the privilege, so a skip there is visible as an unexpected count.
+ */
+type LinkProbe = { ok: true } | { ok: false; reason: string };
+
+function probeSymlinks(): LinkProbe {
+  const dir = mkdtempSync(join(tmpdir(), "elsa-symlink-probe-"));
+  try {
+    const target = join(dir, "target");
+    writeFileSync(target, "probe");
+    symlinkSync(target, join(dir, "link"));
+    return { ok: true };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code ?? "unknown";
+    // Only a missing privilege is skippable. Anything else is unexplained and must fail.
+    if (code !== "EPERM" && code !== "EACCES") throw error;
+    return { ok: false, reason: code };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const symlinks = probeSymlinks();
+const linkIt: typeof it = symlinks.ok
+  ? it
+  : ((title: string, _fn: () => unknown) =>
+      it.skip(`${title} — skipped: symlink ${symlinks.reason} (no SeCreateSymbolicLinkPrivilege)`, () => {})) as typeof it;
+if (!symlinks.ok) {
+  console.warn(`[photo-derivatives] two symlink tests skipped — symlink ${symlinks.reason} on this host`);
+}
 
 function tempRoot(): string {
   const dir = mkdtempSync(join(tmpdir(), "elsa-derivatives-"));
@@ -303,7 +354,7 @@ describe("manifest v2", () => {
     }
 
     expect(readFileSync(dirs.manifest, "utf8")).not.toContain("srcset");
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("keeps width/height as the oriented source ratio and each rung's own w/h on that ratio", () => {
     const dirs = runDir("orientation");
@@ -326,7 +377,7 @@ describe("manifest v2", () => {
     // The written files agree with the manifest — a ratio that only exists in JSON is not a ratio.
     const tile = statSync(rungFile(dirs, rotated.id, "tile", "jpeg"));
     expect(tile.size).toBeGreaterThan(0);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("preserves caption/set/focus/chase from input and invents nothing", () => {
     const dirs = runDir("metadata");
@@ -354,7 +405,7 @@ describe("manifest v2", () => {
     expect(alpha).not.toHaveProperty("focus");
     expect(alpha).not.toHaveProperty("chase");
     expect(alpha.rarity).toBe("");
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("derives a stable slug id from the filename and dedupes collisions like the runtime", () => {
     const dirs = runDir("ids", { fixtures: ["landscape"], captions: null });
@@ -367,7 +418,7 @@ describe("manifest v2", () => {
     const ids = manifestOf(dirs.manifest).photos.map((entry) => entry.id);
     // "same name.jpg" sorts before "same-name.jpg" by code point; both slug to `same-name`.
     expect(ids).toEqual(["landscape", "same-name", "same-name-2", "ueber-elsa-ss"]);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
@@ -408,7 +459,7 @@ describe("byte budget", () => {
         expect(/ (ok|tight|FLAG)$/.test(row?.trimEnd() ?? ""), `no verdict on the ${rung} ${format} row`).toBe(true);
       }
     }
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("never emits a file the size of the source and never addresses an original", () => {
     const dirs = runDir("no-original");
@@ -432,7 +483,7 @@ describe("byte budget", () => {
       expect(JSON.stringify(entry.images)).not.toMatch(/photos\//);
       expect(JSON.stringify(entry.images)).not.toContain(dirs.source);
     }
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("strips EXIF/GPS/ICC metadata from every emitted file (§7.2)", () => {
     const dirs = runDir("metadata-strip");
@@ -452,7 +503,7 @@ describe("byte budget", () => {
         expect(bytes.includes(Buffer.from("ICC_PROFILE")), `${file} carries an ICC profile`).toBe(false);
       }
     }
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
@@ -478,7 +529,7 @@ describe("idempotency and --check", () => {
     const check = generate(dirs, ["--check"]);
     expect(check.status, check.stderr).toBe(0);
     expect(check.stdout).toContain("check: in sync");
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("reports drift and exits non-zero when a derivative changed on disk", () => {
     const dirs = runDir("drift");
@@ -491,13 +542,13 @@ describe("idempotency and --check", () => {
     const check = generate(dirs, ["--check"]);
     expect(check.status).toBe(1);
     expect(check.stderr).toContain("DRIFT");
-    expect(check.stderr).toContain("detail/landscape.jpg");
+    expect(posix(check.stderr)).toContain("detail/landscape.jpg");
 
     // A normal run repairs it, and --check is green again.
     expect(generate(dirs).status).toBe(0);
     const repaired = generate(dirs, ["--check"]);
     expect(repaired.status, repaired.stderr).toBe(0);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("reports drift when the ladder changed since the last run", () => {
     const dirs = runDir("ladder-drift");
@@ -513,7 +564,7 @@ describe("idempotency and --check", () => {
     const check = generate(dirs, ["--check"]);
     expect(check.status).toBe(1);
     expect(check.stderr).toContain("ladder changed");
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("re-renders when a source changed and the new version reaches the manifest", async () => {
     const dirs = runDir("source-change", { fixtures: ["landscape"], captions: null });
@@ -529,7 +580,7 @@ describe("idempotency and --check", () => {
 
     expect(after).not.toBe(before);
     expect(generate(dirs, ["--check"]).status).toBe(0);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
@@ -569,9 +620,9 @@ describe("stale derivative pruning", () => {
     // And the tree is back in sync.
     const check = generate(dirs, ["--check"]);
     expect(check.status, check.stderr).toBe(0);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
-  it("skips a symlinked rung directory instead of pruning outside the output tree (SEC-002)", () => {
+  linkIt("skips a symlinked rung directory instead of pruning outside the output tree (SEC-002)", () => {
     const dirs = runDir("symlink-rung", { fixtures: ["landscape"], captions: null });
     expect(generate(dirs).status).toBe(0);
 
@@ -607,7 +658,7 @@ describe("stale derivative pruning", () => {
     expect(forced.stderr).toContain("refusing to write into");
     expect(existsSync(join(outside, "victim.jpg"))).toBe(true);
     expect(existsSync(join(outside, "landscape.webp"))).toBe(false);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("reports a stale derivative as drift in --check without deleting it", () => {
     const dirs = runDir("prune-check", { fixtures: ["landscape", "alpha"], captions: null });
@@ -619,13 +670,32 @@ describe("stale derivative pruning", () => {
 
     const check = generate(dirs, ["--check"]);
     expect(check.status).toBe(1);
-    expect(check.stderr).toContain("stale derivative tile/retired-photo.jpg");
+    expect(posix(check.stderr)).toContain("stale derivative tile/retired-photo.jpg");
 
     // The gate reports; it never deletes. The clean run is the one that prunes.
     expect(existsSync(orphan)).toBe(true);
     expect(generate(dirs).status).toBe(0);
     expect(existsSync(orphan)).toBe(false);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
+});
+
+// ---------------------------------------------------------------------------
+// Host capability — the guard above must itself be observable
+// ---------------------------------------------------------------------------
+
+describe("symlink capability", () => {
+  it("either creates a link inside the temp dir or names the code that forbids it", () => {
+    if (!symlinks.ok) {
+      expect(symlinks.reason).toMatch(/^(EPERM|EACCES)$/);
+      return;
+    }
+    const dir = tempRoot();
+    const target = join(dir, "target");
+    writeFileSync(target, "probe");
+    const link = join(dir, "link");
+    symlinkSync(target, link);
+    expect(lstatSync(link).isSymbolicLink()).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -660,7 +730,7 @@ describe("input rejection", () => {
 
     // The healthy photo is unaffected by the three refusals.
     expect(existsSync(rungFile(dirs, "landscape", "tile", "jpeg"))).toBe(true);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("rejects an undecodable source instead of silently skipping it", () => {
     const dirs = runDir("corrupt", { fixtures: ["landscape"], captions: null });
@@ -678,7 +748,7 @@ describe("input rejection", () => {
 
     // The healthy photo still rendered — one bad drop does not stop the ladder.
     expect(existsSync(rungFile(dirs, "landscape", "tile", "jpeg"))).toBe(true);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("refuses to write a manifest that would be incomplete", () => {
     const dirs = runDir("incomplete", { fixtures: ["landscape"], captions: null });
@@ -689,9 +759,9 @@ describe("input rejection", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("manifest: not written");
     expect(existsSync(dirs.manifest)).toBe(false);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
-  it("skips a symlinked source rather than following it out of the folder", () => {
+  linkIt("skips a symlinked source rather than following it out of the folder", () => {
     const dirs = runDir("symlink", { fixtures: ["landscape"], captions: null });
     const outside = join(tempRoot(), "outside.jpg");
     writeFileSync(outside, fixtures.alpha);
@@ -706,7 +776,7 @@ describe("input rejection", () => {
     expect(manifestOf(dirs.manifest).photos.map((entry) => entry.filename)).toEqual(["landscape.jpg"]);
     // The pipeline does not delete owner files, not even a symlink it refuses to read.
     expect(lstatSync(join(dirs.source, "escape.jpg")).isSymbolicLink()).toBe(true);
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 
   it("takes every rung edge from scripts/photo-ladder.json", () => {
     const dirs = runDir("ladder-edges", { fixtures: ["landscape"], captions: null });
@@ -724,7 +794,7 @@ describe("input rejection", () => {
       detail: LADDER.detail.edge,
       download: LADDER.download.edge,
     });
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 });
 
 // ---------------------------------------------------------------------------
@@ -783,5 +853,5 @@ describe.runIf(phpAvailable)("parity with photos.php", () => {
         });
       }
     }
-  }, 30_000);
+  }, RENDER_TIMEOUT);
 });

@@ -95,6 +95,11 @@ tile (their 720 px edge is twice the 360 px tile rung), so the tile ceiling does
 | IONOS gzip/brotli | — | — | NOT ASSESSED |
 | Cold-cache first visit on real mobile | — | — | NOT ASSESSED |
 
+**Resolution (2026-11-22, #35):** the font row is fixed. `chivo-latin.woff2` now ships at
+**29,368 B** (97.9 % of the 30,000 B ceiling, −3,884 B) and the ceiling is enforced by
+`npm run gate:fonts` in CI. The measurements above are kept as the baseline they are; evidence in
+`docs/build/i5b-verification.md`.
+
 ## Confirmed defects
 
 1. **EXIF orientation divergence** — PHP thumb applies orientation (540×720); static sharp/sips thumb does not (720×540); manifest `width`/`height` come from `getimagesize()` **unrotated** (5712×4284). Card aspect can be wrong for rotated photos.

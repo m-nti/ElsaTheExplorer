@@ -39,6 +39,12 @@ tests/fixtures/image-sources.json
 # duplicate-code reports
 reports/
 
+# Playwright artifacts (traces, videos, failure screenshots)
+test-results/
+playwright-report/
+# Playwright run artifacts (traces, videos, failure screenshots)
+test-results/
+
 # svelte-check artifacts
 .svelte-check/
 
@@ -49,3 +55,6 @@ coverage/
 
 # Subagent-driven-development workspace (per-plan ledgers, briefs, reports).
 .superpowers/
+
+# Playwright run artifacts (traces, videos, failure screenshots)
+test-results/
