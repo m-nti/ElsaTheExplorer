@@ -19,6 +19,7 @@
 
 import { defineRecipe, defineTokens } from "@pandacss/dev";
 import type { ContrastPair } from "../../src/lib/domain/contrast";
+import type { StarCount } from "../../src/lib/domain/card-stars";
 import type { RarityTier } from "../../src/lib/domain/rarity";
 import { motionCssVars } from "./motion";
 
@@ -46,6 +47,8 @@ export const palette = {
   // Hairlines / chrome.
   line: "rgb(245 240 234 / 14%)",
   lineStrong: "rgb(245 240 234 / 28%)",
+  // Empty star slot: meaningful (the row is a 5-slot scale), so it must clear 3:1 on the plate.
+  starEmpty: "rgb(245 240 234 / 38%)",
   mask: "#000000",
   chipText: "#211d27",
   focusCard: "#fff0d9",
@@ -95,7 +98,12 @@ export interface RarityTierSpec {
   readonly foilStrength: number;
   readonly glint: Readonly<{ duration: string; opacity: number }>;
   readonly rays: number;
-  readonly stars: number;
+  /**
+   * Filled slots in the card strip — 3 / 4 / 5 of five (#51). The union comes
+   * from the domain so an out-of-scale value is a compile error, and
+   * `tests/unit/card-stars.test.ts` pins each row to `RARITY_STARS`.
+   */
+  readonly stars: StarCount;
   readonly starColor: string;
   readonly chip: Readonly<{ background: string; color: string; border: string }>;
   readonly name: Readonly<{ color: string; fill: string; image: string; shadow: string }>;
@@ -115,7 +123,7 @@ export const RARITY_TIERS: Readonly<Record<RarityTier, RarityTierSpec>> = {
     foilStrength: 0,
     glint: { duration: "0s", opacity: 0 },
     rays: 0,
-    stars: 1,
+    stars: 3,
     starColor: palette.starCommon,
     chip: {
       background: "rgb(245 240 234 / 6%)",
@@ -140,7 +148,7 @@ export const RARITY_TIERS: Readonly<Record<RarityTier, RarityTierSpec>> = {
     foilStrength: 0.28,
     glint: { duration: "5.2s", opacity: 0.34 },
     rays: 0,
-    stars: 2,
+    stars: 4,
     starColor: palette.starRare,
     chip: {
       background: `var(--elsa-gradients-foil-pastel)`,
@@ -165,7 +173,7 @@ export const RARITY_TIERS: Readonly<Record<RarityTier, RarityTierSpec>> = {
     foilStrength: 0.56,
     glint: { duration: "5.2s", opacity: 0.56 },
     rays: 0.5,
-    stars: 3,
+    stars: 5,
     starColor: palette.starHolo,
     chip: {
       background: `var(--elsa-gradients-foil-spectrum)`,
@@ -255,6 +263,7 @@ export const tokens = defineTokens({
 
     line: value(palette.line),
     "line-strong": value(palette.lineStrong),
+    "star-empty": value(palette.starEmpty),
     mask: value(palette.mask),
     "chip-text": value(palette.chipText),
     "focus-card": value(palette.focusCard),
@@ -420,6 +429,18 @@ const buildingSurfaces = [
 ] as const;
 
 export const contrastPairs: readonly ContrastPair[] = [
+  // The empty star slot is a meaningful UI element (the strip is a five-slot scale),
+  // so it is held to 3:1 rather than the decorative line token's 28 %.
+  {
+    id: "star-empty-on-plate",
+    fg: palette.starEmpty,
+    // The strip sits on the plate gradient's lightest stop, not the flat surface;
+    // measuring against the darker surface would over-report by ~0.04.
+    bg: palette.plateBodyFrom,
+    minimum: 3,
+    role: "ui" as const,
+    note: "--star-empty on the card plate",
+  },
   // Building text on every structural surface it can sit on.
   ...buildingSurfaces.flatMap(({ name, value: bg }) => [
     {

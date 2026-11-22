@@ -1,6 +1,7 @@
 <script lang="ts">
   import CardFace from "$lib/components/CardFace.svelte";
   import type { CardFaceModel } from "$lib/domain/card";
+  import { cardStars } from "$lib/domain/card-stars";
 
   /**
    * B1 fixture only. The manifest → CardView pipeline arrives in B2/B3; until
@@ -14,7 +15,7 @@
     mood: "Aufmerksam",
     rarity: "holo",
     rarityLabel: "Holo-Pracht",
-    stars: 3,
+    stars: cardStars("holo"),
     edition: "Erste Auflage · Serie I",
     keyword: "Blickkontakt",
     story:
