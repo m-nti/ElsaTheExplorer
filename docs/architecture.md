@@ -64,16 +64,20 @@
 │  │   heic.ts (lazy heic2any import)                                      │  │
 │  └──────────────────────────────────────────────────────────────────────┘  │
 └──────────────┬─────────────────────────────────────────────┬───────────────┘
-               │ HTTPS fetch                                 │ (dev only)
-               ▼                                             ▼
-┌──────────────────────────────┐              ┌──────────────────────────────┐
-│ IONOS static webspace        │              │ Node toolchain (never shipped)│
-│  photos.php?list=1  ────────►│ runtime      │  sharp thumbnails → photos/   │
-│  photos.php?thumb=NAME       │ manifest +   │  thumbs/ + crop anchors       │
-│  photos.php?view=NAME        │ images       │  scripts/*.mjs (owner’s QA)   │
-│  photos.json        ◄─────────│ (fallback)   └──────────────────────────────┘
-│  photos/captions.json        │
-└──────────────────────────────┘
+               │ HTTPS fetch (derivative URLs)                         │ (dev only)
+               ▼                                                    ▼
+┌────────────────────────────────┐    ┌────────────────────────────────┐
+│ IONOS static webspace          │    │ Node toolchain (never shipped) │
+│  ?list=1             (manifest)│    │  sharp → photos/thumbs/        │
+│  ?image=NAME&size=             │    │        + derivatives/ (dev/QA  │
+│        tile|pack|detail        │    │        mirror of PHP cache)    │
+│      &format=jpeg|webp         │    │  scripts/*.mjs (owner’s QA)    │
+│  ?thumb=NAME     (720 alias)   │    └────────────────────────────────┘
+│  ?download=NAME  (1600 px)     │
+│  ?view=NAME   (302 download)   │
+│  photos.json captions.json     │
+│  cache OUTSIDE webroot         │
+└────────────────────────────────┘
 ```
 
 Layer rule: dependencies point downward only. A component may import a store; a store
@@ -204,7 +208,8 @@ interface Props {
 Native `<dialog>` + `showModal()` (focus trapping for free), `onclose` fires from
 Esc and backdrop. Context-dependent rarity: cards opened from a pack slot show
 the slot's presented rarity; from the binder or deep link, intrinsic rarity.
-Actions: save (original via `view`), share (`share.ts`: `navigator.share` →
+Actions: save (`images.download` → 1600 px compressed JPEG; the source is never
+downloadable through the UI), share (`share.ts`: `navigator.share` →
 clipboard fallback → visible confirmation state), "another pack".
 **Keyboard: `P` opens a pack, `←`/`→` step cards, focus returns to the pack button
 on close (F20). No swipe gestures — if copy once promised swiping, that copy is
@@ -364,18 +369,101 @@ announcement strings flow through `i18n.t` so they switch with the language (F8/
 
 ## Data Contracts
 
-### `photos.php` runtime endpoints (unchanged, binding)
+### `photos.php` runtime endpoints — derivative contract (ADR-0008)
+
+`photos.php` is the **only** renderer of photo bytes. It never serves an original. Every
+request resolves to one of four fixed renditions, a legacy alias, or a non-image error;
+there is no code path that streams the source file to a browser.
 
 | Endpoint | Returns |
 | --- | --- |
-| `photos.php?list=1` | JSON manifest (below), `Cache-Control: no-store` |
-| `photos.php?thumb=NAME` | cached JPEG ≤ 720 px (GD, `.cache/`), falls back to the file itself |
-| `photos.php?view=NAME` | original image; HEIC → converted JPEG when Imagick can, else original |
+| `photos.php?list=1` | JSON manifest (below), `Cache-Control: no-store`. Contract unchanged. |
+| `photos.php?image=NAME&size=tile\|pack\|detail&format=jpeg\|webp` | Cached fixed-size rendition (longest edge 360 / 720 / 1200), served `public, max-age=31536000, immutable` — the URL carries the source version, so a replaced photo gets a new URL. Unknown `size`/`format` → **415**; nothing else is accepted. |
+| `photos.php?thumb=NAME` | Compatibility alias for `size=pack&format=jpeg` (720 px), kept so a stale client still receives a bounded image. Documented deprecated. |
+| `photos.php?download=NAME` | Explicit 1600 px compressed JPEG with `Content-Disposition: attachment` — what "Foto speichern" fetches. Never the source. |
+| `photos.php?view=NAME` | **Retired as an image source**: `302` → `?download=NAME`. Exists only so pre-refactor clients do not break; it never returns source bytes. |
 
-Path hardening stays as-is: `basename`, extension allowlist, `realpath` inside
-`photos/` only, `nosniff`, `Referrer-Policy: same-origin` (PRD §5 Security).
+**Measured baseline (2026-11-22), the reason this contract exists:** a 3.98 MB original
+(5712×3840) produced a 540×720 PHP thumbnail of **61.9 KB** — 1.6 % of the source — while
+`?view=` delivered the full **3.98 MB** on a UI request. That is a ~64× overdraw on the one
+request the card grid and the dialog both make. Worse, the old `sendThumbnail()` fell
+through to `serveFile($path)` on every failure branch (photos.php:346 / 352 / 361), so a
+*thumbnail* request could hand a phone the original. This contract removes that failure
+class structurally instead of patching branches.
 
-### Manifest shape — current (documented from `photos.php` + `photos.json`)
+#### Rendition matrix — fixed sizes only
+
+| Rendition | Longest edge | Formats (quality) | Byte ceiling |
+| --- | --- | --- | --- |
+| `tile` | 360 | jpeg 78 / webp 72 | ≤ **45 KB** (art bible §8 thumbnail target) |
+| `pack` | 720 | jpeg 80 / webp 74 | ≤ **120 KB** (art bible §8 display-copy cap; measured 61.9 KB today) |
+| `detail` | 1200 | jpeg 82 / webp 76 | **target ≤ 150 KB, hard cap ≤ 210 KB** (art bible §8 amendment, ratified 2026-11-22) |
+| `download` | 1600 | jpeg 85 / webp 80 | **target ≤ 350 KB, hard cap ≤ 500 KB** (art bible §8 amendment) |
+
+`webp` is the **default** where the client advertises it (`Accept: image/webp`) or asks for
+it explicitly with `format=webp`; `jpeg` is the fallback and the default everywhere else.
+The art-bible §8 amendment (**done**, 2026-11-22) carries this 360 / 720 / 1200 / 1600 ladder
+and the WebP-with-JPEG-fallback rule, so §8 and this table agree. AGENTS.md's "sharp
+thumbnails … dev/QA only" line still needs its one-line sync (Open Questions, item 8).
+
+#### No-original rule
+
+1. **Every error path returns an error body or a neutral placeholder, never the source.**
+2. Only fixed renditions exist. There is no `w=`/`h=`/`q=` parameter surface, so no request
+   can ask the server to transcode an arbitrary size or quality.
+3. The manifest stops advertising a source URL: no emitted field addresses `photos/<file>`.
+   `src` / `view` survive as deprecated fields pointing at bounded renditions.
+4. Residual exposure: direct static URLs (`/photos/<file>`) bypass PHP entirely. Deny them
+   via `.htaccess` `<FilesMatch>` and/or keep the photo store above the webroot where the
+   host allows — **HOST-VERIFIED-PENDING**.
+
+#### Error taxonomy (image endpoints)
+
+| Status | When | Body | Headers |
+| --- | --- | --- | --- |
+| `404` | name not in the allowlist, or file gone | JSON `{ "error": "missing" }` | `no-store` |
+| `415` | unsupported or corrupt source (HEIC with no Imagick), unknown `size`/`format`, undecodable EXIF | JSON `{ "error": "unsupported" }` | `no-store` |
+| `413` | source over the configured byte/pixel limits (below) | JSON `{ "error": "too_large" }` | `no-store` |
+| `503` | encoder failure, cache write failure, lock timeout | generated neutral placeholder at the requested rendition size, or JSON for `?list=1` | `no-store`, `Retry-After: 1` |
+| `405` | any method other than `GET`/`HEAD` | empty | `no-store`, `Allow: GET, HEAD` |
+
+Bodies never contain server paths, exception text, or the source's pixel dimensions; a 4xx
+never carries image bytes. `X-Content-Type-Options: nosniff` and
+`Referrer-Policy: same-origin` stay on every response (PRD §5 Security), including errors.
+
+#### Pre-decode safety limits
+
+Enforced **before** any decode, from `filesize` + `getimagesize` only — a 60 MP file is
+rejected without ever becoming a 240 MB GD bitmap:
+
+- compressed file ≤ **20 MiB** (configured constant) → else `413`
+- pixels ≤ **24 MP** and either edge ≤ **8000 px** → else `413`
+- decode-memory guard: need ≈ `w × h × 4 × 1.5`; if that exceeds the PHP memory limit minus
+  headroom → `413` instead of a fatal error mid-response
+- `GET`/`HEAD` only; `HEAD` returns the same headers with a zero-length body
+- EXIF orientation applied (rotate/flip) before resizing; re-encode strips EXIF/GPS —
+  verified by inspection, not assumed
+- extension **and** signature allowlist; `basename` + `realpath` inside the photo store only
+
+#### Rendition cache
+
+- **Key** = `sha256(source identity | mtime | size | rendition | format | quality | pipeline
+  version)`. The pipeline version is a hard-coded constant bumped whenever resampling,
+  quality or limit settings change — a settings change invalidates every derived file
+  without touching sources. (The current `md5(name|mtime|size)` misses rendition, format,
+  quality and pipeline version; a quality change today silently keeps stale files.)
+- **Concurrency**: per-rendition `flock` on `<key>.lock`; render into `<key>.<pid>.tmp`,
+  then `rename()` (atomic on the same filesystem). Bounded wait: if the lock is not acquired
+  within ~2 s, serve the existing cached file if there is one, else `503` + `Retry-After`.
+  Two visitors hitting a cold photo cause one render, not two.
+- **Location**: outside the webroot where the host permits (`../elsa-derivatives/`), else
+  `photos/.cache/` with an `.htaccess` deny — never publicly listable, never in the manifest.
+- **Pruning**: opportunistic, on a small random fraction of cache misses — drop files older
+  than 30 days, then enforce a total-size cap oldest-first. No cron, no admin surface.
+- Long `max-age` is safe precisely because the URL contains the source version: replacement
+  photos produce new URLs, so no cache can serve a superseded image.
+
+### Manifest shape
 
 ```jsonc
 {
@@ -384,9 +472,23 @@ Path hardening stays as-is: `basename`, extension allowlist, `realpath` inside
   "photos": [
     {
       "id": "elsa-01",                       // slugified, server-side deduped with -2, -3 …
-      "src": "photos/elsa-01.jpg",           // HEIC files: "photos.php?view=NAME"
-      "thumb": "photos/thumbs/elsa-01.jpg",  // php: "photos.php?thumb=NAME"
-      "view": "photos/elsa-01.jpg",
+      "ver": "9f3a1c2d",                     // NEW source version: short hash of mtime+size
+
+      // NEW, preferred: every rendition the UI may use, with its own pixel size
+      "images": {
+        "tile":   { "jpeg": "photos.php?image=elsa-01.jpg&size=tile&format=jpeg&v=9f3a1c2d",
+                    "webp": "photos.php?image=elsa-01.jpg&size=tile&format=webp&v=9f3a1c2d",
+                    "w": 270, "h": 360 },
+        "pack":   { "jpeg": "…&size=pack&format=jpeg&v=9f3a1c2d",   "webp": "…", "w": 540, "h": 720 },
+        "detail": { "jpeg": "…&size=detail&format=jpeg&v=9f3a1c2d", "webp": "…", "w": 900, "h": 1200 },
+        "download": "photos.php?download=elsa-01.jpg&v=9f3a1c2d"
+      },
+
+      // DEPRECATED but still emitted (backward compatibility, one release):
+      "src":    "photos.php?image=elsa-01.jpg&size=detail&format=jpeg&v=9f3a1c2d",
+      "thumb":  "photos.php?image=elsa-01.jpg&size=tile&format=jpeg&v=9f3a1c2d",
+      "view":   "photos.php?download=elsa-01.jpg&v=9f3a1c2d",
+
       "filename": "elsa-01.jpg",
       "caption": "",                         // string OR { "de": "…", "en": "…" }
       "alt":    { "de": "…", "en": "…" },    // string OR Localized
@@ -396,19 +498,53 @@ Path hardening stays as-is: `basename`, extension allowlist, `realpath` inside
       "rarity": "",                          // '' | 'common' | 'rare' | 'holo' (F23 override)
       "demo": false,                         // true ⇒ sample card (never empty site, PRD §7)
       "heic": false,
-      "width": 5712,
+      "width": 5712,                         // SOURCE dimensions — aspect ratio authority
       "height": 3840
     }
   ]
 }
 ```
 
+**`ver` — cache invalidation without redeploy.** A short hash over `mtime` + `size`, carried
+in every derivative URL as `&v=`. The owner FTP-drops a replacement photo → mtime and size
+change → the hash changes → the manifest advertises new URLs → every layer (browser, CDN,
+IONOS cache) fetches fresh bytes, while everything else keeps its 1-year `immutable` entry.
+This is what makes the long `max-age` in the endpoint table safe rather than a
+stale-content bug. Cheap to compute (`stat` only), so no hash pass over the photo store.
+
+**`images` — per-rendition URLs.** Every entry is a fixed rendition, never the source, and
+carries its own `w`/`h` so a component can never render a rendition at the wrong ratio.
+The top-level `width`/`height` keep describing the **source** aspect ratio, which is what
+`CardTile`'s `object-fit: cover` window depends on — renditions preserve that ratio, so the
+existing CLS contract is untouched.
+
+**Backward compatibility rules** (binding for every consumer):
+
+1. Unknown fields are ignored; `images` and `ver` are **optional**. Absent `images` →
+   fall back to the bounded `thumb` (tile) and to `src`, which now points at the `detail`
+   rendition — **never at a file**. Absent `ver` → request the URL without `&v=`.
+2. A legacy `src` of the form `photos/<file>` (the v1 static `photos.json` shape, still
+   present in the owner's old file) normalizes as **metadata only**: it is retained for
+   bookkeeping and is **never rendered, never emitted as an image URL**. Rendering falls back
+   to a bounded derivative — `images.*` when present, else the pre-built
+   `photos/thumbs/<name>.jpg` (sharp, ≤ 720 px) in the static-fallback deployment. If
+   neither exists the card is `unavailable`, not the source. This is the one place where a
+   v1 manifest could otherwise smuggle the original back into the UI.
+3. `normalize.ts` is still the single funnel: it types `images`, validates that each URL is
+   same-origin and under `photos.php` (or a `photos/thumbs/` derivative), and **drops the
+   `images` block** (counting it) rather than trusting a cross-origin or `photos/<file>` URL.
+   A malformed derivative block degrades to the deprecated fields; it never becomes a
+   source-image request.
+4. The static fallback (`photos.json`, no PHP) emits the same shape, with `derivatives/`
+   produced ahead of time by the sharp scripts. PHP stays optional.
+
 `captions.json` (owner-authored, per-photo) is merged server-side by `photos.php`;
 the client never reads it directly.
 
 ### Manifest v2 extension — optional, backward compatible
 
-Three new **optional** fields per photo; every consumer must treat them as absent:
+Three **optional** fields per photo; every consumer must treat them as absent. Unaffected
+by the derivative contract above (v1.1 adds `ver` / `images` independently of these):
 
 ```jsonc
 "set": "sommer-2026",              // optional grouping tag, default null; used for binder headings
@@ -500,8 +636,11 @@ keys (AGENTS.md binding) → stores reset → fresh cycle announced.
 | Initial CSS (gzip) | ≤ 30 KB — counts Svelte-scoped CSS **plus** generated Panda artifacts (`styled-system/`) | same, plus the ADR-0002 CSS byte-budget gate |
 | LCP | < 2.5 s mid-tier mobile; < 1.8 s desktop | Playwright trace on the qa profile, advisory |
 | CLS | 0 | `width`/`height` on every image; fixed card frame grid |
-| Images on cards/binder | ≤ 720 px display copies only | thumbs pipeline (PHP runtime / sharp dev) |
-| Originals | detail dialog + "Foto speichern" only | CardDetail uses `view`, never `thumb` |
+| Images on cards/binder | fixed renditions only: `tile` 360 px ≤ 45 KB, `pack` 720 px ≤ 120 KB (longest edge) | `?image=…&size=` fixed matrix; CI byte assertion below |
+| Detail dialog | `detail` 1200 px, ≤ 210 KB hard cap (150 KB target) | dedicated rendition, never the source |
+| Download ("Foto speichern") | `download` 1600 px, ≤ 500 KB hard cap (350 KB target) | explicit user action only, `Content-Disposition: attachment` |
+| Originals | **never requested by the UI** | no manifest field addresses `photos/<file>`; `?view=` 302s to `?download=` |
+| Derivative byte bound | every response bounded, and **never equal to the source byte length** | CI job: `php -S` + repo `photos.php`, assert per rendition `Content-Length ≤ ceiling` and `≠ filesize(source)`; same assertion in the release checklist against IONOS, plus a Playwright route-mock that fails if the client ever requests a `photos/` URL |
 | Binder images | lazy-loaded, native `loading="lazy"` | BinderShelf |
 | Third-party | none, ever: no CDN fonts (Chivo self-hosted), no analytics, no external requests (PRD §5/§7) | Playwright request-block audit |
 | HEIC decoder | dynamic `import()` only when a HEIC src is actually needed | heic.ts |
@@ -524,8 +663,9 @@ theatre animation code.
 | | `network-error` | both fetches failed/timed out/non-JSON | "can't reach the archive" + retry button |
 | | `invalid` | manifest parsed but > 0 entries dropped | ready + inline count: "N cards were skipped (malformed)" |
 | Single image (CardTile/Detail) | `loaded` | — | — |
-| | `thumb-failed` | thumb 404/error | fall back to `src` |
-| | `image-failed` | src also fails (R7 HEIC worst case) | card frame stays readable, printed text carries the card (PRD R7) |
+| | `derivative-failed` | `?image=` returns 404/415/413 | one retry against the next-smaller rendition (detail → pack → tile); if that also fails, the placeholder state below. Never falls back to the source |
+| | `unavailable` | `?image=` returns 503 (+ `Retry-After`) | same downgrade chain; the card renders its printed text, no error chrome |
+| | `image-failed` | every rendition fails (R7 HEIC worst case) | card frame stays readable, printed text carries the card (PRD R7) |
 | localStorage | `ok` / `unavailable` | write/read throws | continue with in-memory defaults; never block the visit; reset button disabled with explanation |
 | Share | `native` / `clipboard` / `denied` | API presence / promise result | visible confirmation per state; never silent failure (F25) |
 | Audio | `enabled` / `silent` | context creation fails or muted | no error UI, sound toggle reflects intent |
@@ -533,7 +673,9 @@ theatre animation code.
 
 Rule: **every async consumer declares its terminal states in a discriminated
 union**, and every terminal state has bilingual copy. A component cannot render
-"nothing" for a state it forgot.
+"nothing" for a state it forgot. Terminal image states never resolve to the original bytes:
+the downgrade chain stops at the placeholder, and the source is not in the client's address
+space at all (no manifest field points at `photos/<file>`).
 
 ---
 
@@ -565,7 +707,17 @@ Per-concern keys, each value a self-versioned envelope:
 ```
 EhrenElsa/
 ├─ index.html                  # shell: <html lang="de">, meta/og, noscript, font preload
-├─ photos.php  photos.json  photos/captions.json   # runtime data (owner’s FTP flow)
+├─ photos.php                  # runtime: ?list=1 (manifest) + ?image= (tile|pack|detail)
+│                              # + ?thumb= (720 alias) ?download= (1600) ?view= (302 → download)
+├─ photos.json                 # static manifest fallback (same v1.1 shape; PHP optional)
+├─ photos/
+│  ├─ <original>.jpg|jpeg|heic # source store — FTP drop target; never rendered by the UI
+│  ├─ thumbs/<slug>.jpg        # sharp: pre-built tiles for the static-fallback deployment
+│  ├─ captions.json            # owner-authored, merged server-side
+│  └─ .cache/                  # derivative cache — ONLY if the host forbids a dir above
+│                              # the webroot; .htaccess-deny + never listable (ADR-0008)
+├─ ../elsa-derivatives/        # preferred derivative cache, outside the webroot
+│                              # (gitignored, host-created, same key/atomic-rename rules)
 ├─ assets/                     # v1 static files → deleted at refactor end
 ├─ src/
 │  ├─ main.ts                  # mount, font/loading, error boundary
@@ -642,11 +794,31 @@ no kit needed).
 - Error states via route mocking: `photos.php` 500 → `photos.json` fallback works
   (degraded); both fail → `network-error` + retry; valid-but-empty → `empty`
   owner instructions. The v1 "fetch-failure ≡ empty" collapse is asserted impossible.
+- **Derivative bound (image contract)**: in a CI job running the repo's `photos.php` under
+  `php -S` — for each rendition assert `Content-Length ≤` its ceiling **and** `≠
+  filesize(source)`; assert `?image=…&size=orig|huge` → 415, `?view=` → 302 with no image
+  body, a missing name → 404 and a 60 MP fixture → 413, all with `Cache-Control: no-store`;
+  assert a replacement file (new mtime) changes `ver` and therefore the URL. In Playwright:
+  a request-log assertion that no request in any flow targets `photos/<file>` or an
+  unbounded `?image=` URL — the client-side half of the no-original rule. The same
+  byte-bound script runs against IONOS in the release checklist (CI has no PHP host).
 - Layout: no horizontal overflow at 320/390/414/640/1280/1920 (F17); card zones
   never overflow at the longest permitted strings (budget strings injected).
 - a11y: axe-core pass (WCAG 2.2 AA) on the built bundle, verifying the contrast
   gate's token math holds in rendered output.
 - Privacy: zero third-party requests on a clean run (request-block audit).
+
+**Test-plan conflicts — resolved (follow UX v2, not the old test plan).** Three conflicts
+flagged against the earlier test plan are settled by the UX v2 documents and ADR-0003 scope;
+tests must assert the v2 behaviour, and a v1-derived assertion is a defect, not a requirement:
+
+- **C2 (swipe)** — no swipe interaction exists. Tests assert `P`, `←/→`, `Esc`, tab order and
+  click only; any copy mentioning swiping fails the interaction-copy audit (see Testing, Vitest).
+- **C4 (verb "gesammelt"/"collected")** — the archive's copy verb is owned by the UX v2 docs and
+  the narrative source, not by the test plan; tests assert the v2 strings through `i18n.t`, never
+  a hard-coded v1 verb.
+- **C5 (storage keys)** — `lucky-elsa.*` envelopes and migration are ADR-0003 scope; tests assert
+  the envelope schema and `wipe()` semantics from ADR-0003, and must not pin v1 bare keys.
 
 **Styling enforcement belt (mandatory CI, per ADR-0002).**
 
@@ -659,8 +831,8 @@ no kit needed).
 - CSS byte budget in the bundle check (includes generated `styled-system/` output).
 
 CI order: `svelte-check --tsgo` + `tsc --noEmit` → Stylelint + cross-file diff +
-knip → Vitest (incl. contrast gate) → build + bundle-budget check → Playwright.
-`scripts/qa.mjs`'s checks are absorbed here.
+knip → Vitest (incl. contrast gate) → build + bundle-budget check → image-derivative
+byte assertion (`php -S`) → Playwright. `scripts/qa.mjs`'s checks are absorbed here.
 
 ---
 
@@ -675,6 +847,11 @@ knip → Vitest (incl. contrast gate) → build + bundle-budget check → Playwr
 
 External contracts (frozen, change only via ADR): `photos.php` endpoints and
 manifest shape above; the `lucky-elsa.*` storage namespace.
+**This v1.1 revision *is* the ADR-0008 change** (`docs/adr/ADR-0008-image-derivatives.md`):
+the endpoint set in the derivative-contract table and the manifest shape carrying `ver` +
+`images` are the new frozen contract; `?view=`-as-original is withdrawn, and no future change
+to sizes, formats, error statuses or manifest image fields may land without superseding
+ADR-0008.
 
 ---
 
@@ -685,6 +862,7 @@ manifest shape above; the `lucky-elsa.*` storage namespace.
 | Card content overflows its fixed frame | Fixed-percentage zone grid in `CardTile` + hard character budgets in `budgets.ts`, truncated at `CardView` build time, pinned by unit test + overflow e2e |
 | Holo promotion applied to a copy → rarity diverges between pack and binder | `PackSlot { photoId, promoted }` slots instead of copied records; frozen `PhotoRecord`; one `rarity.ts` for both contexts; dedicated invariant test |
 | Fetch failure and empty archive collapsed into one state | `ManifestStatus` discriminated union with separate `network-error` / `empty` phases + route-mocked e2e |
+| Thumbnail endpoint fell through to `serveFile($path)` → a *thumbnail* request delivered the 3.98 MB original (measured 2026-11-22; 64× overdraw) | Closed parameter surface (only `tile`/`pack`/`detail`/`download` exist; no `w=`/`h=`/`q=`) + **no-original rule** (every error path returns an error body or placeholder) + `ver`-keyed immutable derivative cache + CI byte-bound assertion (`Content-Length ≤ ceiling` **and** `≠ filesize(source)`) + Playwright assertion that no request targets `photos/<file>` |
 | `--quiet` contrast below 4.5:1 | Typed token source `design/tokens/` (single corrected value); Vitest contrast gate over `tokens.ts` fails the build on any sub-4.5:1 token (with a negative test against the v1 value); stylelint `var()`-only bars off-token colors; axe-core verifies rendered output |
 | Copy promised swipe navigation that doesn't exist | Interaction-copy audit test: every interaction word in copy must map to a handler; swipe removed from copy (feature not planned) |
 
@@ -713,6 +891,7 @@ ratification (2026-11-22); the list below is shifted accordingly.
 | ADR-0005 | Card frame & content budgets | The overflow fix is a component-level contract |
 | ADR-0006 | A11y runtime architecture (announcer, focus, motion) | Committed Standard tier |
 | ADR-0007 | Test architecture & CI gates | Budget enforcement needs a home |
+| ADR-0008 | Image derivative & manifest contract (`?image=` renditions, `ver`, no-original rule, cache) | The owner's FTP flow, the runtime image path and the byte budget all meet here; required before the derivative layer ships |
 
 ## Architecture Principles
 
@@ -746,6 +925,16 @@ during the first build phase (ADR-0001 Consequences; ADR-0002 Spike Items):
 4. Remaining ADR-0002 spikes: stylelint `var()`-only + duplicate-selector config,
    holo-recipe reconciliation with old-vs-new rendered CSS diff, Svelte
    unused-CSS-warning CI escalation, cross-file selector-diff check.
+5. **PHP 8.6 deprecation hygiene for image endpoints** (blocking for the derivative layer):
+   remove every `imagedestroy()` call (photos.php:356/360/431/441/448) — the function is
+   deprecated in PHP 8.5+ and its notice can be printed into the response, corrupting JPEG
+   bytes at exactly the moment the encoder succeeded — and set `display_errors=0` (plus
+   `log_errors=1`) for image endpoints so no notice can ever precede image bytes. Verify by
+   rendering with `error_reporting=E_ALL` and asserting the byte stream still starts with the
+   JPEG/WebP magic number and keeps its declared `Content-Length`.
+6. **Derivative cache placement + host capability probe**: probe writability above the
+   webroot, GD `imagewebp`/`imageavif`, `memory_limit`, and `.htaccess` deny support on
+   IONOS; record results in the ADR-0008 Consequences (HOST-VERIFIED-PENDING).
 
 ## Open Questions
 
@@ -760,3 +949,20 @@ during the first build phase (ADR-0001 Consequences; ADR-0002 Spike Items):
 4. **`set` presentation** — binder headings vs. filter; UX decision pending.
 5. **EN lazy-loading** — ship dictionary per language if the 60 KB budget
    tightens; harmless now, revisit at first build measurement.
+
+Image-contract follow-ups (ADR-0008; do not block the derivative layer, but land before release):
+
+6. **PRD R4 wording must be restated.** PRD R4 currently reads "the original only in the
+   dialog and in 'Foto speichern'". The ratified contract replaces both: the dialog uses the
+   **1200 px `detail` rendition** and "Foto speichern" uses the **1600 px `download`
+   rendition** — the source is never sent to a browser. Owner edit to `PRD.md` §5 / R4
+   (architecture cannot edit the PRD); until it lands, this document is the binding version.
+7. **Art bible §8 amendment — DONE (2026-11-22).** §8 now carries the 360 / 720 / 1200 / 1600
+   ladder and WebP-default-with-JPEG-fallback, and the byte ceilings here are aligned with it
+   (tile ≤ 45 KB, pack ≤ 120 KB, detail 150 KB target / 210 KB cap, download 350 KB target /
+   500 KB cap). No further action; recorded so nobody re-opens it.
+8. **AGENTS.md photo-pipeline line needs a one-line sync.** AGENTS.md still says "Node/sharp
+   scripts generate thumbnails and crop anchors for local dev/QA only". It should read
+   "sharp generates `photos/thumbs/` + `derivatives/` for dev/QA and the static fallback;
+   `photos.php` renders the fixed runtime renditions". Owner edit — AGENTS.md is binding for
+   every agent, so it must not drift from this architecture.
