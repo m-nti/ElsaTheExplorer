@@ -990,9 +990,10 @@ bytes.
 
 ### 8.3 Branch protection
 
-Required checks: every gate `.github/gates.json` declares **enforced** — thirteen today
-(canon, canon self-tests, table integrity, typecheck, svelte-check, stylelint, selector
-diff, unused CSS, ESLint, knip, jscpd, Vitest, build). `npm run ci:gates` fails when that
+Required checks: every gate `.github/gates.json` declares **enforced** — sixteen today
+(canon, canon self-tests, table integrity, art bible token parity, typecheck,
+svelte-check, stylelint, selector diff, unused CSS, ESLint, knip, jscpd, Vitest, build,
+font byte budget). `npm run ci:gates` fails when that
 list, the `npm run` scripts and the `ci.yml` steps disagree, so the count cannot drift
 again. No `continue-on-error`, no `|| true`, no `--passWithNoTests`. Gate 10 runs on every
 PR (the `pwa` project plus two byte checks —
@@ -1092,7 +1093,7 @@ default checklist because the project is a full refactor with a committed a11y t
       (`U-PWA-07` parity), an eviction path covered by `U-PWA-06`, and an `E-PWA-05/06`
       assertion. An unbounded cache is a NOT-done condition, not a follow-up ticket.
 - [ ] Bundle budgets unchanged, or the increase is documented and approved in the PR.
-- [ ] All thirteen CI gates green on the merged commit (the enforced list in
+- [ ] All sixteen CI gates green on the merged commit (the enforced list in
       `.github/gates.json`; `npm run verify` mirrors it locally).
 - [ ] Screenshots of every touched screen captured to
       `qa-shots/<story-slug>/<viewport>.png` (UI and Visual/Feel stories).

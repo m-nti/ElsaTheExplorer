@@ -68,6 +68,12 @@ jobs:
       - name: Markdown table integrity
         run: npm run gate:tables
 
+      # The bible is a document, so its palette can go stale while the tokens
+      # pass every contrast check (#30: --quiet and credit were quoted retired).
+      # Each palette row and each inline `--token #value` must equal tokens.ts.
+      - name: Art bible <-> token parity
+        run: npm run gate:parity
+
       - name: Typecheck (tsc)
         run: npm run check:ts
 
@@ -97,3 +103,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # #99: the 30,000 B per-woff2 ceiling in art bible §8, measured on the
+      # files that actually ship. It ran only inside test:unit before, so a
+      # breach was red but unnamed; now it is its own step and its own gate.
+      - name: Font byte budget
+        run: npm run gate:fonts

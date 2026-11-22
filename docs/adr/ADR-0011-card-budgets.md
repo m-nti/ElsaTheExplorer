@@ -260,15 +260,16 @@ gate ("Bundle + byte budget", `scripts/budget-check.mjs`), gate 10 the PWA byte 
 | Any original served to the UI | first occurrence | 9 (ledger) | **no** — #25; also `E-PWA-06`, ADR-0008 |
 | Precache total | > 400 KB compressed | 10 | **no** — issue #19 |
 | `dist/sw.js` | > 25 KB gzip | 10 | **no** — #19 |
-| Font, per woff2 | > 30 KB | none — #35's AC adds it to gate 9 | **no** |
+| Font, per woff2 | > 30 KB | 9 — `font-budget` (`npm run gate:fonts`), #99 | **yes** |
 | Bay overflow, CLS, strings over budget | any failure | 7 (`E-OVF-06`, `E-OVF-12`), 5 (`U-CV-01/03`) | **no** — Playwright suite is #24 |
 
-That table is the honest state, not a wish: `.github/gates.json` enforces thirteen steps today
-(canon, its self-test, table-integrity, typecheck, svelte-check, stylelint, selector-diff,
-unused-css, eslint, knip, jscpd, unit, build) and lists `e2e`, `axe`, `budget`, `pwa` as `pending`
-against issues #24, #24, #25, #19.
-**No enforced step measures bytes**, which is why the Chivo breach is visible only in a report.
-Until #25 lands, review is the gate; after it lands, this table is the gate.
+That table is the honest state, not a wish: `.github/gates.json` enforces sixteen steps today
+(gate-manifest, canon, its self-test, table-integrity, art bible token parity, typecheck,
+svelte-check, stylelint, selector-diff, unused-css, eslint, knip, jscpd, unit, build, font-budget)
+and lists `e2e`, `axe`, `budget`, `pwa` as `pending` against issues #24, #24, #25, #19.
+**The font ceiling is the only enforced byte measure** (#99, a named step since #105); every other
+byte row above is still visible only in a report. Until #25 lands, review is the gate; after it
+lands, this table is the gate.
 
 **Ratchets** — values that may only fall, in the tighter of their two metrics; a rise needs an
 ADR amendment, not a review comment:
