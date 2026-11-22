@@ -1,6 +1,6 @@
 # Action Plan — Elsa the Explorer
 
-> Living document · rev 3 · 2026-11-22.
+> Living document · rev 4 · 2026-11-22.
 > Sources of truth: `AGENTS.md`, `design/`, `docs/architecture.md`, `docs/adr/`,
 > `docs/decisions.md`, `design/copy/copy-deck.md`, `docs/test-plan.md`.
 >
@@ -81,8 +81,11 @@ Process skills run **before** domain skills: `brainstorming` and
 
 ### 0.5 Workstream → studio owner → cross-check
 
-The **studio agent owns the domain**; the `cs-*` agent is the cross-check, never the
-reverse. A workstream that names only one of the two has skipped the inventory rule.
+The **studio agent owns the domain**; the `cs-*` agent is the cross-check. One exception:
+the PHP runtime service (`photos.php`) is owned by `cs-backend-engineer` — server code, not
+game content — with `security-engineer` cross-checking; the studio `tools-programmer` owns
+the sharp CLI beside it. A workstream that names only one of the two has skipped the
+inventory rule.
 
 | Workstream | Studio owner (author) | Studio skills | Cross-check (reviewer) |
 |---|---|---|---|
@@ -147,19 +150,28 @@ Harness for this section: `brainstorming` only where a design is open; otherwise
 mechanical proof. Crew: `ux-designer` / `art-director` / `writer`; conductor runs
 `consistency-check` itself.
 
-## 2 · PR #2 — merge gate
+## 2 · PR #2 — merged (record)
 
 | # | Task | Status |
 |---|---|---|
-| P1 | Code/security blockers B1–B5 | ✅ fixed & pushed (5339111) |
-| P2 | Architecture blockers (12) — contract reconciliation | ✅ applied |
-| P3 | Fresh review at the current head: `cs-code-auditor` + `cs-architecture-reviewer` | 🟡 architecture review posted (A1–A4, all fixed 2026-11-22); code re-review running |
-| P4 | Resolution comment → merge to `main` (squash, admin bypass allowed) | ⬜ |
+| P1 | Code/security blockers B1–B5 | ✅ |
+| P2 | Architecture blockers (12) — contract reconciliation | ✅ |
+| P3 | Fresh reviews: `cs-code-auditor` + `cs-architecture-reviewer` | ✅ A0–A11 closed; code B1/H1–H6 closed (H6 deferred to #25/#35) |
+| P4 | Merge to `main` | ✅ **76f7ff4**, squash, 2026-11-22 |
 | P5 | Branch protection: required check `verify`, conversation resolution, squash-only, 0 approvals | ✅ |
 
-Merge gate: both reviews on the current head + every finding in the resolution table +
-`verify` green on that head + 0 unresolved threads. The steward posts the table, then
-merges; the board moves #9 → Done, #10 → Done, and §3/B2 → Ready.
+Post-merge verification: `main` contains the B0/B1 scaffold (`index.html`, `src/`,
+`public/img/`); run **45018732135** on `76f7ff4` is green through `Build`; the pre-merge
+head `c0a310d` was green in 45018634899 and 45018637250. The merge condition the owner
+set — *the new `index.html`/`src` must exist and build* — was therefore met.
+
+The owner merged before the last review line closed. That is recorded, not glossed: the
+only open line (A11 residual, §0.5 "never the reverse" vs the PHP-service row) is fixed
+in this PR, and the post-merge code re-review at `c0a310d` reports on #2; any finding it
+raises becomes a follow-up ticket with a fix PR, never a silent loss.
+
+Stacked PRs #36/#37/#40/#41 were retargeted to `main` and rebased onto `76f7ff4`. The
+`design/explorer-foundation` branch is retired once they land.
 
 Harness: `requesting-code-review` → `receiving-code-review` → `verification-before-completion`
 → `finishing-a-development-branch`, with the project reviewers as the named crew.
@@ -173,7 +185,7 @@ harness and are recorded as such; B2 onward carry a plan and a ledger.
 |---|---|---|---|---|
 | B0 | Scaffold | `package.json`, `vite.config.ts`, TS 7 (+6 alias), `panda.config.ts`, `src/`, ESLint/Stylelint/knip/jscpd, CI `verify` | ✅ | pre-harness (`docs/build/b0-b1-verification.md`) |
 | B1 | Tokens + gates | typed palette/type/spacing, rarity table + recipe, motion tokens, contrast gate that rejects the legacy `--quiet`, negative proofs | ✅ | pre-harness |
-| B2 | CardFace | fixed %-height zones, 4:5 photo window, 5-layer foil, tilt, focus anchor, error state, 3-card + holo slice | ⬜ #13 | plan `2026-11-22-b2-cardface.md` (first task of the phase) · `ui-programmer` + `technical-artist` → `cs-code-auditor` |
+| B2 | CardFace | fixed %-height zones, 4:5 photo window, 5-layer foil, tilt, focus anchor, error state, 3-card + holo slice | ⬜ #13 — **unblocked 2026-11-22** | plan `2026-11-22-b2-cardface.md` (first task of the phase) · `ui-programmer` + `technical-artist` → `cs-code-auditor` |
 | B3 | Entrance hall | static shell independent of the manifest, pack CTA, progress + Zuwachs lines, empty/error states | ⬜ #14 | plan per phase · `ui-programmer` → `ux-review` + `cs-accessibility-engineer` |
 | B4 | Pack theatre | 4-card sequential focus + camera pull-back, skip semantics, reduced-motion grid, announcements | ⬜ #15 | plan · `gameplay-programmer` + `cs-accessibility-engineer` |
 | B5 | Collection | rooms, per-set progress, milestones (door sign/lamp/rope), frame unlocks, empty rooms omitted | ⬜ #16 | plan · `ui-programmer` + `game-designer` |
@@ -181,7 +193,7 @@ harness and are recorded as such; B2 onward carry a plan and a ledger.
 | B7 | Meta layer | Sonderausstellung, Sammelbogen, Der Aushang, card backs, completion (Ehrenmensch + Gesamtverzeichnis) | ⬜ #18 | plan · `systems-designer` + `writer` + `ui-programmer` |
 | B8 | Hardening + PWA | perf budgets, a11y Standard audit, offline shell + derivative cache + install, deploy | ⬜ #19 | plan · `performance-analyst` + `accessibility-specialist` + `devops-engineer` |
 
-Dependencies: B2 waits only on P4; B3→B8 are sequential on the branch, but their
+Dependencies: B2 is unblocked (PR #2 merged); B3→B8 are sequential, but their
 **plans** may be written in parallel (`writing-plans` is read-only), and the design
 tickets in §1 run in parallel throughout (L-005).
 
