@@ -24,7 +24,7 @@
 
 ## Review Focus
 
-- **A masked region that never closes** — an unclosed `<script>`/`<style>` in a `.svelte` file would mask the rest of the file and silence real copy; the #38 uppercase-close class. Pinned by the seeded line 25 (live text *after* `</style>` **and** after `<!-- -->`) and the uppercase `</SCRIPT>` close in Task 2's fixture.
+- **A masked region that never closes** — an unclosed `<script>`/`<style>` in a `.svelte` file would mask the rest of the file and silence real copy; the #38 uppercase-close class. Pinned by the seeded line 25 (live text *after* `</style>` **and** after `<!-- -->`); the uppercase close itself stays pinned by `masked-regions/c-uppercase.html` through the same masker.
 - **Template text read as markup, not copy** — the exact blind spot in #49. Pinned by Task 2's `[7, 8]` DE/EN text-node assertions.
 - **A copy attribute on its own line missed** — `alt`/`aria-label` on a wrapped tag (the `html-attributes` shape). Pinned by the fixture's `alt` on its own line, Task 2.
 - **Svelte syntax read as copy, or its column shifted** — `{#each …}`, `{model.serial}`, `class="katalog-grid"`, `id="katalog-liste"` must stay silent; a hit in a text node beside an expression keeps its column. Pinned by Task 2's line-6 "hooks are not copy" case.
@@ -315,8 +315,27 @@ Expected: `canon` exit 0 with `7 known defect(s)`; `test:canon` 0 failed; `test:
 node scripts/canon-check.mjs --json --root tests/canon/fixtures/svelte-template
 ```
 
-Paste the violation lines (7, 8, 9, 10, 11, 12, 22) into the PR body as the fixture output.
+Paste the violation lines (7, 8, 11, 13, 14, 15, 25) into the PR body as the fixture output.
 
 - [ ] **Step 3: No allowlist change**
 
 `git diff --stat main -- scripts/canon-allowlist.json` → empty. `maxBaseline` is still 7; no entry added.
+
+---
+
+### Task 5: Two host-only blockers found while running the chain (added during execution)
+
+Recorded, not guessed — each was reproduced before it was touched.
+
+**5a. `verify` could not spawn a gate (0 ms failures).** `spawnSync("npm", …)` is ENOENT on Windows: `npm` is `npm.cmd`, and Node refuses to spawn a `.cmd` without a shell (CVE-2024-27980). Evidence: `spawnSync('npm',['run','canon'])` → `status: null, error: ENOENT`; `verify: FAILED canon — stopping … 0.0s` while `npm run canon` alone was green. Fix: `scripts/verify.mjs` runs npm's own CLI (`process.env.npm_execpath`) through `process.execPath`, falling back to `npm` with a shell on Windows. The Linux path is unchanged (`spawnSync("npm", …)`, no shell).
+
+**5b. The fixtures are scanner inputs, not source.** `eslint .` failed on both new `.svelte` fixtures: the seeded one was not valid Svelte by design, and `.svelte` under `tests/` is outside the tsconfig project service. `eslint.config.js` now ignores `tests/canon/fixtures/**` — the directory `knip.json` already ignores. The seeded fixture is shaped as a valid component (`<script module lang="ts">` with an exported const) so `svelte-check` stays honest; the uppercase-close case stays pinned by `masked-regions/c-uppercase.html` through the shared masker, so dropping `</SCRIPT>` from the `.svelte` fixture loses nothing.
+
+- [ ] **Step 1: Verify** — `npm run verify`: every gate up to `unit` green (`canon`, `canon-self-test`, `table-integrity`, `typecheck`, `svelte-check`, `stylelint`, `selector-diff`, `unused-css`, `eslint`, `knip`, `jscpd`); `npm run build` green when run alone (verify stops at `unit`).
+- [ ] **Step 2: Disclose the pre-existing `unit` failures** — 8 cases, none in a file this diff touches, each host-only: `registry.test.ts` splits on `"\n"` while this checkout is CRLF (717 of 718 lines), `photo-derivatives.test.ts` needs POSIX paths and unprivileged symlinks, `pre-push-refs.test.ts` compares an 8.3 short path with `realpathSync`. Named in the PR; not fixed here — a different workstream, and this ticket does not inflate its diff.
+- [ ] **Step 3: Commit**
+
+```bash
+git add scripts/verify.mjs eslint.config.js tests/canon/fixtures/svelte-template/src/App.svelte docs/superpowers/plans/2026-11-22-d12b-canon-svelte.md
+git commit -m "fix(canon): keep fixtures out of lint and the gate chain spawnable on Windows (#49)"
+```

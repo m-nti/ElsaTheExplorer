@@ -1,7 +1,7 @@
-<script lang="ts">
+<script module lang="ts">
   // Der Katalog does not belong in a script comment.
-  const copy = { de: "Der Katalog does not belong in a script literal." };
-</SCRIPT>
+  export const copy = "Der Katalog does not belong in a script literal.";
+</script>
 
 <main class="katalog-grid" id="katalog-liste">
   <h1>Der Katalog ist kein Name mehr</h1>
