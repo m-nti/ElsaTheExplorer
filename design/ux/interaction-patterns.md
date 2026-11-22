@@ -117,7 +117,7 @@ implementation change.
 | Catalogue Grid Roving Arrows | Navigation | Arrow-key roving over catalogue tiles; `Tab` still leaves the grid | The Collection (flat + grouped) | Draft |
 | Keyboard Shortcut | Input | Global single-key actions (`P`, `F`, arrows) | Global (page + lightbox) | Draft |
 | Close Button | Input | Icon-only dialog dismissal | Pack Dialog, Card Lightbox | Draft |
-| Live Region Announcement | Feedback | `role="status"` line for non-focus events | Global (`#live`), share status | Draft |
+| Live Region Announcement | Feedback | `role="status"` line for non-focus events | Global (`#live-status`) | Draft |
 | Empty State | Feedback | Designed "nothing here yet" that tells the curator what to do | Binder grid | Draft |
 | Loading State | Feedback | "Karten werden gesucht" while the manifest resolves | Stage, Binder | Draft |
 | Error State | Feedback | Soft failure copy; never the reader's fault | Binder, Lightbox (share) | Draft |
