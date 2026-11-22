@@ -254,7 +254,7 @@ No string may be assembled by concatenating a noun with a count.
 | `card.rarity.common` | Häufig | Common | 10 | printed word is the non-colour carrier for rarity | PL, JRN |
 | `card.rarity.rare` | Selten | Rare | 10 | | PL, JRN |
 | `card.rarity.holo` | Holo-Pracht | Holo glory | 12 | **space-critical** — plate chip; "Holo" alone is retired (D7) | JRN, CRD |
-| `card.stars.aria` | {n} von 5 Sternen | {n} of 5 stars | 20 | stars are decorative to sighted users, count spoken | PL |
+| `card.stars.aria` | {n} von 5 Sternen | {n} of 5 stars | 20 | the strip is a five-slot row filled 3/4/5 (Häufig / Selten / Holo-Pracht) — #51; the chip word repeats the tier and the count is spoken, so the row never carries rarity alone. Row width is constant across tiers, so the credit beside it cannot re-truncate | PL |
 | `card.moment.label` | Elsa-Moment | The Elsa moment | 16 | band 4 keyword; small caps by CSS | CRD §5.3 |
 | `card.moment.imageNote` | Im Bild: {note} | In the picture: {note} | 44 | **space-critical** — first thing to yield when band 4 is full, never the sentence | CRD §13 |
 | `card.stats.label` | Fantasiewerte · mit voller Überzeugung | Imaginary stats · held with conviction | 42 | **space-critical** — DE 39 / EN 38; wraps to 2 short lines above the chips. "Fantasiewerte / Imaginary" still leads, so the values can never read as data. Must precede the values in the accessible name. Also `plaque.caption`. **re-voiced 2026-11-22** · VOICE | BR, GDD R-I, CRD |

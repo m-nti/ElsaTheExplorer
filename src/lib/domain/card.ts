@@ -1,3 +1,4 @@
+import type { StarCount } from "./card-stars";
 import type { RarityTier } from "./rarity";
 
 /** The card face's fixed zone content. Mirrors `CardFace.svelte`'s zone order. */
@@ -9,8 +10,11 @@ export interface CardFaceModel {
   readonly rarity: RarityTier;
   /** Visible chip text: the non-colour rarity backup (Häufig / Selten / Holo-Pracht). */
   readonly rarityLabel: string;
-  /** Star count in the strip: the second non-colour rarity backup. */
-  readonly stars: 0 | 1 | 2 | 3;
+  /**
+   * Filled slots in the strip: the second non-colour rarity backup. Fill it with
+   * `cardStars(rarity)` — the scale is 3 / 4 / 5 of five, never a tier index.
+   */
+  readonly stars: StarCount;
   readonly edition: string;
   readonly keyword: string;
   readonly story: string;
