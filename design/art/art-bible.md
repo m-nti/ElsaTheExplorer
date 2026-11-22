@@ -182,11 +182,27 @@ glow to be noticed, the hierarchy is wrong — promote it or delete it.
 | Holo spectrum `#ff6dbd / #ffd35b / #86edbd / #67d7ff / #ad8aff` at 118° | holo card edge, sachet tear | "Chase" — full-spectrum interference. Belongs to holo cards and the pack tear only. |
 | Photo-window holo `hsl(328 95% 70%) / hsl(42 100% 72%) / hsl(151 83% 66%) / hsl(198 100% 70%) / hsl(262 88% 74%)` | `.card__photo::after` | Foil *on the photograph* — pointer-driven, capped, **high-key-corrected** (see holo material rules below). |
 
-**Card print colours** (fixed tokens on the indigo plates): name `#fbf5ed`, number
-`#c4b7aa`, mood `#c5b8c6`, rarity text `#e5d7c6`, keyword `#f0d5bd`, copy `#d6cdd7`,
-print-line `#b7aab8`, stat-key `#b8adbb`, stat-value `#f6eee5`, serial `#b7aaba`,
-credit `#9a8da0`, stats-label `#bfb1ca`, kind `#c2b7c5`. All measured ≥ 4.5:1 against
-their plate. The credit is `#9a8da0` — **5.02:1 on the body plate, 4.65:1 on the lightest header stop**; the retired `#928697` measured 4.23:1 there and is not used (see §7).
+**Card print colours** (fixed tokens on the indigo plates):
+
+| Hex / value | Token | Role |
+| --- | --- | --- |
+| `#fbf5ed` | `--print-name` | Card name. |
+| `#f7f4ee` | `--print-paper` | Print sheet paper — the light document, not the dark parlour. |
+| `#1c1a20` | `--print-ink` | Print sheet ink. |
+| `#c4b7aa` | `--print-number` | Number on the plate. |
+| `#c5b8c6` | `--print-mood` | Mood word. |
+| `#e5d7c6` | `--print-rarity` | Rarity chip text. |
+| `#f0d5bd` | `--print-keyword` | Keyword. |
+| `#d6cdd7` | `--print-copy` | Copy panel. |
+| `#b7aab8` | `--print-line` | Print hairline. |
+| `#b8adbb` | `--print-stat-key` | Stat key. |
+| `#f6eee5` | `--print-stat-value` | Stat value. |
+| `#b7aaba` | `--print-serial` | Serial. |
+| `#9a8da0` | `--print-credit` | Credit, at 8px. |
+| `#bfb1ca` | `--print-stats-label` | Stats label. |
+| `#c2b7c5` | `--print-kind` | Kind. |
+
+Every row is measured ≥ 4.5:1 against its plate. The credit is `#9a8da0` — **5.02:1 on the body plate, 4.65:1 on the lightest header stop**; the retired `#928697` measured 4.23:1 there and is not used (see §7). The rows above are the machine-readable declaration: `scripts/bible-tokens-parity.mjs` compares each one with `design/tokens/tokens.ts` and fails the build on drift (#30).
 
 ### Semantic usage
 
@@ -471,7 +487,7 @@ Contrast measured against shipped values (WCAG relative-luminance):
 | `--muted #aaa3b2` on `--bg` | 7.7:1 | pass (body) — **the default for all essential small text** |
 | `--quiet #978fa0` on `--bg` | **6.08:1** | resolved value (shipped `#756e7d` measured 3.86:1 and is retired). 5.62 on raised, 5.30 on surface, 4.66 on surface-light — passes the Vitest contrast gate. Used for `progress__note`, `stage__hint`, `print__hint` at 10–11px |
 | card copy tokens on plates | 7.1–13.5:1 | pass |
-| credit `#9a8da0` at 8px | 5.02:1 body / 4.65:1 header | raised from `#928697` (4.23:1 on the lightest header stop) and now passes on every plate it can sit on |
+| `--print-credit #9a8da0` at 8px | 5.02:1 body / 4.65:1 header | raised from `#928697` (4.23:1 on the lightest header stop) and now passes on every plate it can sit on |
 
 Rules and flags:
 
