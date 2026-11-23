@@ -6,21 +6,18 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   /**
-   * Four, not "100%": this suite drives four engines over a five-by-five card
-   * matrix with full-page screenshots, and the card spec alone is 16 tests per
-   * project. On a 4-core host the default oversubscribes and the run ends in
-   * 30 s teardown timeouts that look like defects but are load. CI already uses
-   * four, so local and CI now mean the same thing.
+   * Two workers, not "100%": this suite opens four engines over a five-by-five
+   * card matrix, and every context records a video that is encoded and ditched
+   * at teardown. Sixteen concurrent contexts end in "Tearing down context
+   * exceeded the test timeout" — a teardown measurement reported as a failure —
+   * while the tests themselves take ~1.4 s each. Measured on this 4-core
+   * Windows host: 4 workers → 6.1 min with 9-10 teardown failures; 2 workers →
+   * 1.5 min, 64/64 green. Raise it only with a run to back it.
    */
-  workers: 4,
+  workers: 2,
   /**
-   * 60 s, not the 30 s default. The *tests* run in ~3 s; the binding constraint
-   * is context teardown, which Playwright bounds by the same clock and which
-   * has to encode and ditch a video per test (`retain-on-failure` records
-   * every one). Sixteen concurrent browsers on a four-core host therefore end
-   * in "Tearing down context exceeded the test timeout" — a teardown
-   * measurement reported as a failure. The bumped clock only bounds a
-   * pathological hang; it does not slow a passing run.
+   * 60 s, not the 30 s default: bounds teardown of a video-recording context
+   * under load. Only a pathological hang runs into it; a passing run is unaffected.
    */
   timeout: 60_000,
   reporter: [
