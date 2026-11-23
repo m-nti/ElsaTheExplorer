@@ -65,6 +65,46 @@ export default defineConfig({
       descentOverride: "19.2%",
       lineGapOverride: "0%",
     },
+    /**
+     * The metric-matched interim face for Chivo (#81). `swap` is the art-bible
+     * rule, so body text changes face after first paint; without a face whose
+     * advances and vertical metrics already match Chivo, that swap moves the
+     * tagline and the eyebrow 1 px (measured CLS 0.000565 at 390 x 844 DPR 2).
+     * Advance ratio from measured widths at 100 px: Chivo 3268.149 / Arial
+     * 3095.654 = 105.57 %. Chivo's hhea is 940 / -250 at 1000 upem with no line
+     * gap (94 % / 25 %); the overrides are relative to the adjusted em, so both
+     * are divided by 1.0557. Arial is metric-compatible with Liberation Sans,
+     * which is what the same `local()` resolves to on Linux.
+     */
+    "Chivo Fallback": {
+      src: 'local("Arial"), local("Liberation Sans")',
+      fontStyle: "normal",
+      fontWeight: "400 700",
+      fontDisplay: "swap",
+      sizeAdjust: "105.57%",
+      ascentOverride: "89.04%",
+      descentOverride: "23.68%",
+      lineGapOverride: "0%",
+    },
+    /**
+     * The interim face for tracked uppercase labels (#81). A single size-adjust
+     * cannot serve both cases: Chivo's sentence copy is 5.6 % wider than Arial's,
+     * its uppercase 3.3 % narrower, and the eyebrow is centred — the centred line
+     * moves by half the advance change (measured 7.95 px with `Chivo Fallback`
+     * alone, CLS 0.000121). This face matches the rendered eyebrow (11 px, 600,
+     * 0.14 em tracking): Chivo 212.97 / Arial 220.15 = 96.72 %. Same hhea
+     * division as the body face.
+     */
+    "Chivo Label Fallback": {
+      src: 'local("Arial"), local("Liberation Sans")',
+      fontStyle: "normal",
+      fontWeight: "400 700",
+      fontDisplay: "swap",
+      sizeAdjust: "96.72%",
+      ascentOverride: "97.19%",
+      descentOverride: "25.85%",
+      lineGapOverride: "0%",
+    },
   },
 
   globalCss: {

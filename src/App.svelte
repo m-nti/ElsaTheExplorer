@@ -296,6 +296,9 @@
 
   .eyebrow {
     color: var(--elsa-colors-metal);
+    /* Tracked uppercase matches Chivo's caps advance, not its sentence copy:
+       `fonts.label` carries the label-specific interim face (#81). */
+    font-family: var(--elsa-fonts-label);
     font-size: var(--elsa-font-sizes-sm);
     font-weight: var(--elsa-font-weights-semibold);
     letter-spacing: var(--elsa-letter-spacings-eyebrow);
