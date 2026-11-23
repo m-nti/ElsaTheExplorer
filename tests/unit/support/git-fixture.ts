@@ -18,6 +18,71 @@ export interface GitOutput {
 }
 
 /**
+ * Deadline for a single child process the fixture spawns (#111).
+ *
+ * The suites are spawn-bound, not compute-bound: one test costs six to twelve `git`
+ * processes, and the hook cases boot a whole ESLint. A single step never legitimately
+ * runs long — the slowest measured step on this host under 8-way CPU contention was
+ * ~15 s — so this is a hang guard, not a budget. It exists because `spawnSync` blocks
+ * the worker thread, which means Vitest's own timeout cannot interrupt a stuck child:
+ * without this deadline a hung `git` would hang the gate instead of failing it.
+ */
+export const FIXTURE_STEP_TIMEOUT_MS = 120_000;
+
+/**
+ * Whole-test budget for anything that drives the fixture (#111). Pass it as the last
+ * argument to the suite's `it`, never re-declare it per test.
+ *
+ * These tests are correct and their assertions are cheap; the *environment* is what is
+ * slow. Measured on this host (8 logical CPUs, Git for Windows 2.56.1):
+ *
+ * | case                                  | idle   | 8-way CPU contention |
+ * |---------------------------------------|--------|----------------------|
+ * | heaviest `git`-only fixture test      | 1.3 s  | 17.9 s   (13x)       |
+ * | real-ESLint hook test                 | 9.8 s  | 150 s    (15x)       |
+ * | heaviest real-ESLint hook test        | 6.6 s  | 188 s    (29x)       |
+ *
+ * Vitest's 5 s default is below even the idle cost of the ESLint cases, and the two
+ * opposite ends of 60 s both fell over under contention. 300 s is 1.6x the worst measured
+ * case and 30x the worst idle one: wide enough to survive several concurrent agents on
+ * one machine, narrow enough that a genuine hang is still reported inside a gate run.
+ */
+export const FIXTURE_TEST_BUDGET_MS = 300_000;
+
+export interface StepOptions {
+  cwd: string;
+  input?: string;
+  env?: NodeJS.ProcessEnv;
+  timeoutMs?: number;
+}
+
+/**
+ * `spawnSync`, but a step that overruns its own deadline says which step it was (#111).
+ *
+ * A test-level `TestTimeoutError` names a line number and, because the body is
+ * synchronous, is only reported once the body returns — the failure that made this ticket
+ * looked like a mystery 5 s test instead of a stalled `git commit`. Only a deadline
+ * overrun is ours to explain: ENOENT is a host fact (`findPosixShell` probes for it), so
+ * it keeps its old silent-status shape.
+ */
+export function runStep(command: string, args: string[], options: StepOptions): GitOutput {
+  const timeoutMs = options.timeoutMs ?? FIXTURE_STEP_TIMEOUT_MS;
+  const result = spawnSync(command, args, {
+    cwd: options.cwd,
+    env: options.env ?? gitEnv(),
+    input: options.input,
+    encoding: "utf8",
+    timeout: timeoutMs,
+  });
+  if (result.error !== undefined && (result.error as NodeJS.ErrnoException).code === "ETIMEDOUT") {
+    throw new Error(
+      `git-fixture: step \`${[command, ...args].join(" ")}\` timed out after ${timeoutMs} ms in ${options.cwd}`,
+    );
+  }
+  return { status: result.status, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
+}
+
+/**
  * A git environment with the repo-discovery variables removed.
  *
  * `git push` exports `GIT_DIR` to its hooks, and this test is reachable from the pre-push
@@ -57,11 +122,12 @@ export function samePath(a: string, b: string): boolean {
  */
 export function findPosixShell(): string | null {
   for (const candidate of ["sh", "bash"]) {
-    if (spawnSync(candidate, ["-c", "exit 0"], { encoding: "utf8" }).status === 0) return candidate;
+    const probe = runStep(candidate, ["-c", "exit 0"], { cwd: process.cwd() });
+    if (probe.status === 0) return candidate;
   }
   if (process.platform !== "win32") return null;
-  const execPath = spawnSync("git", ["--exec-path"], { encoding: "utf8" }).stdout?.trim();
-  if (execPath === undefined || execPath === "") return null;
+  const execPath = runStep("git", ["--exec-path"], { cwd: process.cwd() }).stdout.trim();
+  if (execPath === "") return null;
   // <git>/mingw64/libexec/git-core → <git>, where bin/sh.exe and usr/bin/sh.exe live.
   const root = resolve(execPath, "..", "..", "..");
   for (const relative of ["bin/sh.exe", "usr/bin/sh.exe"]) {
@@ -73,8 +139,21 @@ export function findPosixShell(): string | null {
 
 /** `spawnSync("git", …)` in `dir`, with the hermetic environment and text output. */
 export function runGit(dir: string, args: string[]): GitOutput {
-  const result = spawnSync("git", args, { cwd: dir, env: gitEnv(), encoding: "utf8" });
-  return { status: result.status, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
+  return runStep("git", args, { cwd: dir, env: gitEnv() });
+}
+
+/**
+ * One named fixture step, so a stall reports `makeRepo step "commit"` rather than a bare
+ * timeout (#111). Steps are named for the repo action, not the argv: `git add .` in a
+ * fixture nobody can see names nothing.
+ */
+function step<T>(label: string, action: () => T): T {
+  try {
+    return action();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`git-fixture: makeRepo step "${label}" failed: ${message}`, { cause: error });
+  }
 }
 
 /**
@@ -86,14 +165,14 @@ export function runGit(dir: string, args: string[]): GitOutput {
 export function makeRepo(prefix: string): { dir: string; git: (...args: string[]) => GitOutput } {
   const dir = mkdtempSync(join(tmpdir(), prefix));
   const git = (...args: string[]) => runGit(dir, args);
-  git("init", "-q");
+  step("init", () => git("init", "-q"));
   // Hermetic, or the whole point of the fixture is lost: it must never be the real repo.
-  const toplevel = git("rev-parse", "--show-toplevel").stdout.trim();
+  const toplevel = step("hermeticity guard", () => git("rev-parse", "--show-toplevel").stdout.trim());
   if (!samePath(toplevel, dir)) throw new Error(`fixture repo is not hermetic: ${toplevel} !== ${dir}`);
-  git("config", "user.email", "test@example.com");
-  git("config", "user.name", "test");
+  step("config user.email", () => git("config", "user.email", "test@example.com"));
+  step("config user.name", () => git("config", "user.name", "test"));
   writeFileSync(join(dir, "README"), "fixture\n");
-  git("add", ".");
-  git("commit", "-qm", "one");
+  step("add", () => git("add", "."));
+  step("commit", () => git("commit", "-qm", "one"));
   return { dir, git };
 }

@@ -3,7 +3,15 @@ import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { findPosixShell, gitEnv, makeRepo, runGit, type GitOutput } from "./support/git-fixture";
+import {
+  FIXTURE_TEST_BUDGET_MS,
+  findPosixShell,
+  gitEnv,
+  makeRepo,
+  runGit,
+  runStep,
+  type GitOutput,
+} from "./support/git-fixture";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 /** MSYS `sh` takes a forward-slash path; a POSIX host sees no change. */
@@ -65,7 +73,7 @@ function write(dir: string, relative: string, contents: string): void {
 
 function runHook(dir: string) {
   if (shell === null) throw new Error(`no POSIX shell to run the hook: ${shellReason}`);
-  return spawnSync(shell, [hook], { cwd: dir, env: gitEnv(), encoding: "utf8" });
+  return runStep(shell, [hook], { cwd: dir, env: gitEnv() });
 }
 
 /** The hook may spell a path `./src/a.ts`; compare the path it was given, not its prefix. */
@@ -92,7 +100,7 @@ describe("pre-commit lint hook (#103)", () => {
     expect(output).toMatch(/1:\d+\s+error/);
     expect(output).toContain("@typescript-eslint/no-unused-vars");
     expect(output).toContain("commit blocked");
-  }, 60_000);
+  }, FIXTURE_TEST_BUDGET_MS);
 
   hookIt("commits a clean staged change", () => {
     const { dir, git } = fixture();
@@ -103,7 +111,7 @@ describe("pre-commit lint hook (#103)", () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("ESLint on 1 staged file");
-  }, 60_000);
+  }, FIXTURE_TEST_BUDGET_MS);
 
   hookIt("passes an empty lintable stage without starting ESLint", () => {
     const { dir, git, passed } = recorder();
@@ -116,7 +124,7 @@ describe("pre-commit lint hook (#103)", () => {
     expect(result.stdout).toBe("");
     expect(result.stderr).toBe("");
     expect(passed()).toEqual([]);
-  });
+  }, FIXTURE_TEST_BUDGET_MS);
 
   hookIt("ignores an unstaged file that holds an unused variable", () => {
     const { dir, git } = fixture();
@@ -128,7 +136,7 @@ describe("pre-commit lint hook (#103)", () => {
 
     expect(result.status).toBe(0);
     expect(`${result.stdout}${result.stderr}`).not.toContain("no-unused-vars");
-  }, 60_000);
+  }, FIXTURE_TEST_BUDGET_MS);
 
   hookIt("hands ESLint every staged source extension and nothing else", () => {
     const { dir, git, passed } = recorder();
@@ -147,12 +155,12 @@ describe("pre-commit lint hook (#103)", () => {
 
     expect(result.status).toBe(0);
     expect(paths(passed()).sort()).toEqual([...staged, "src/mein hund.ts"].sort());
-  });
+  }, FIXTURE_TEST_BUDGET_MS);
 
   it("is committed executable, so a Linux checkout can run it", () => {
     const listing = runGit(repoRoot, ["ls-files", "-s", ".githooks/pre-commit"]).stdout.trim();
     expect(listing.split(/\s+/)[0]).toBe("100755");
-  });
+  }, FIXTURE_TEST_BUDGET_MS);
 
   it("is installed by the hook-path step of `npm run prepare`", () => {
     const { dir } = makeRepo("precommit-");
@@ -166,5 +174,5 @@ describe("pre-commit lint hook (#103)", () => {
 
     expect(result.status).toBe(0);
     expect(runGit(dir, ["config", "core.hooksPath"]).stdout.trim()).toBe(".githooks");
-  });
+  }, FIXTURE_TEST_BUDGET_MS);
 });
