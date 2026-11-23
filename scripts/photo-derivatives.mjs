@@ -55,6 +55,7 @@ import {
 import { basename, dirname, extname, join, parse as parsePath, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { defaultUrlPrefix } from "./photo-urls.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
@@ -114,7 +115,8 @@ const USAGE = `Static derivative ladder (sharp) — local dev/QA only.
   --out DIR         derivative output (default: <source>/derived, i.e. photos/derived)
   --manifest FILE   manifest v2 path (default: photos.json)
   --captions FILE   caption metadata (default: <source>/captions.json)
-  --url-prefix P    public prefix for manifest URLs (default: <out> relative to the repo root)
+  --url-prefix P    public prefix for manifest URLs (default: <out> relative to the repo root,
+                    or <out>'s directory name when it lives outside the repository)
   --check           read-only: verify the ladder and the manifest, exit 1 on drift
   --verbose         one line per written file
   --help            this text
@@ -186,18 +188,8 @@ function resolvePaths(options) {
     out,
     manifest: resolve(ROOT, options.manifest),
     captions: options.captions === null ? join(source, "captions.json") : resolve(ROOT, options.captions),
-    urlPrefix: stripTrailingSlash(options.urlPrefix ?? defaultUrlPrefix(out)),
+    urlPrefix: stripTrailingSlash(options.urlPrefix ?? defaultUrlPrefix(ROOT, out)),
   };
-}
-
-/**
- * Manifest URLs must be deployable and repo-relative (§13.3: `photos/derived/tile/<id>.jpg`).
- * A QA run into a temp directory keeps a neutral prefix instead of leaking an absolute path.
- */
-function defaultUrlPrefix(out) {
-  const rel = relative(ROOT, out);
-  if (rel === "" || rel.startsWith("..") || resolve(ROOT, rel) !== out) return basename(out);
-  return rel.split("\\").join("/");
 }
 
 function stripTrailingSlash(value) {
