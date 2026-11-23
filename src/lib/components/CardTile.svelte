@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CardFaceModel } from "$lib/domain/card";
   import { tileAlt, tileNumberLabel } from "$lib/domain/tile";
+  import { focusToObjectPosition } from "$lib/domain/card-photo";
   import { i18n } from "$lib/stores/i18n.svelte";
 
   interface Props {
@@ -42,7 +43,7 @@
       {alt}
       width={model.photo.width}
       height={model.photo.height}
-      style:object-position={model.photo.focus ?? "var(--elsa-sizes-photo-anchor)"}
+      style:object-position={focusToObjectPosition(model.photo.focus)}
       loading="lazy"
       decoding="async"
     />

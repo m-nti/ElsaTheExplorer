@@ -5,7 +5,21 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 4 : "100%",
+  /**
+   * Two workers, not "100%": this suite opens four engines over a five-by-five
+   * card matrix, and every context records a video that is encoded and ditched
+   * at teardown. Sixteen concurrent contexts end in "Tearing down context
+   * exceeded the test timeout" — a teardown measurement reported as a failure —
+   * while the tests themselves take ~1.4 s each. Measured on this 4-core
+   * Windows host: 4 workers → 6.1 min with 9-10 teardown failures; 2 workers →
+   * 1.5 min, 64/64 green. Raise it only with a run to back it.
+   */
+  workers: 2,
+  /**
+   * 60 s, not the 30 s default: bounds teardown of a video-recording context
+   * under load. Only a pathological hang runs into it; a passing run is unaffected.
+   */
+  timeout: 60_000,
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "reports/playwright-html" }],

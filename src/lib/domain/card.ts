@@ -1,4 +1,5 @@
 import type { StarCount } from "./card-stars";
+import type { FocusPoint } from "./card-photo";
 import type { RarityTier } from "./rarity";
 
 /** The card face's fixed zone content. Mirrors `CardFace.svelte`'s zone order. */
@@ -22,6 +23,11 @@ export interface CardFaceModel {
   readonly stats: readonly CardStat[];
   readonly serial: string;
   readonly credit: string;
+  /**
+   * `false` renders the printed frame and requests no image (manifest
+   * `renderable`, ADR-0004). Absent is treated as renderable.
+   */
+  readonly renderable?: boolean;
   readonly photo: CardPhoto;
 }
 
@@ -37,6 +43,6 @@ export interface CardPhoto {
   /** Intrinsic dimensions of the derivative; keeps CLS at zero. */
   readonly width: number;
   readonly height: number;
-  /** Per-photo crop anchor; defaults to the archive's reading line, center 42%. */
-  readonly focus?: string;
+  /** Per-photo crop anchor in 0..1; defaults to the archive's reading line, center 42%. */
+  readonly focus?: FocusPoint;
 }

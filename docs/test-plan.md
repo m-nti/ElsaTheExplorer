@@ -697,6 +697,7 @@ net for the refactor, because v1 passed focus checks only by accident.
 | E-IMG-06 | No image response ever triggers an error dialog or a toast | Error State pattern: no modal errors |
 | E-IMG-07 | Image failure does not block collection, progress or navigation | Core loop survives |
 | E-IMG-08 | Broken image alt text is the photo's localized alt, never the filename | F2/F10 |
+| E-IMG-09 | Manifest `renderable: false` → the card renders the **printed frame** and makes **no image request** for `photo.src` (assert on the request log), with no `<img>`, no broken-image icon and the photo's alt shown as the caption. Distinct from E-IMG-04: the HEIC converter is not involved — the archive simply has no photograph | ADR-0004; `src/lib/domain/render-mode.ts` |
 
 ### 6.7 Overflow matrix — `tests/e2e/overflow.spec.ts`
 

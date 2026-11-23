@@ -3,6 +3,7 @@
   import CardDialog from "$lib/components/CardDialog.svelte";
   import CardTile from "$lib/components/CardTile.svelte";
   import ResetConfirmDialog from "$lib/components/ResetConfirmDialog.svelte";
+  import CardFaceSlice from "$lib/components/CardFaceSlice.svelte";
   import type { CardFaceModel } from "$lib/domain/card";
   import { cardStars } from "$lib/domain/card-stars";
   import {
@@ -45,7 +46,7 @@
         alt: "Elsa schläft zusammengerollt auf einer grünen Decke.",
         width: 540,
         height: 720,
-        focus: "center 42%",
+        focus: { x: 0.5, y: 0.42 },
       },
     },
     {
@@ -73,7 +74,7 @@
         alt: "Elsa blickt unter einer Decke hervor.",
         width: 540,
         height: 720,
-        focus: "center 42%",
+        focus: { x: 0.5, y: 0.42 },
       },
     },
     {
@@ -101,7 +102,7 @@
         alt: "Elsa sitzt auf der Fensterbank und schaut hinaus.",
         width: 540,
         height: 720,
-        focus: "center 42%",
+        focus: { x: 0.5, y: 0.42 },
       },
     },
     {
@@ -129,7 +130,7 @@
         alt: "Elsa sitzt im Auto und legt die Nase an die Scheibe.",
         width: 540,
         height: 720,
-        focus: "center 42%",
+        focus: { x: 0.5, y: 0.42 },
       },
     },
   ];
@@ -137,7 +138,21 @@
   let selectedId = $state<string | null>(null);
   const selected = $derived(fixtures.find((model) => model.id === selectedId) ?? null);
 
+  /**
+   * `?slice=1` renders the B2 CardFace QA matrix instead of the product app.
+   *
+   * Why a query flag rather than a second entry point: the matrix must be built
+   * by the same bundle the product ships (same CSS, same component, same
+   * tokens), and a second HTML entry would let those drift. The import is
+   * static on purpose — an async chunk left the printed-frame assertion racing
+   * the import on WebKit, and the fixture is ~6 kB of copy that B3 deletes with
+   * the flag. B3 replaces it with the manifest loader.
+   */
+  const slice = new URLSearchParams(window.location.search).get("slice") === "1";
+
   onMount(() => {
+    // The QA matrix is not a collection: no total, no deep link, no dialog.
+    if (slice) return;
     collection.setTotal(fixtures.length);
     const linked = resolveDeepLink(readPhotoParam(window.location.search), fixtures);
     if (!linked) return;
@@ -182,43 +197,47 @@
 <div id="live-status" class="sr-only" role="status" aria-atomic="true"></div>
 <div id="live-alert" class="sr-only" role="alert" aria-atomic="true"></div>
 
-<main class="reading-room">
-  <section class="stage" id="stage" tabindex="-1">
-    <header class="masthead">
-      <p class="eyebrow">Sammelwerk · Erste Auflage</p>
-      <h1 class="wordmark">Elsa the Explorer</h1>
-      <p class="tagline">{i18n.t("app.tagline")}</p>
-    </header>
-    <button
-      class="stage__cta"
-      id="open-pack"
-      data-focus-id="open-pack"
-      type="button"
-      onclick={enterCollection}
-    >
-      {i18n.t("nav.catalogue")}
-    </button>
-    <div class="stage-tools">
-      <ResetConfirmDialog />
-    </div>
-  </section>
+{#if slice}
+  <CardFaceSlice />
+{:else}
+  <main class="reading-room">
+    <section class="stage" id="stage" tabindex="-1">
+      <header class="masthead">
+        <p class="eyebrow">Sammelwerk · Erste Auflage</p>
+        <h1 class="wordmark">Elsa the Explorer</h1>
+        <p class="tagline">{i18n.t("app.tagline")}</p>
+      </header>
+      <button
+        class="stage__cta"
+        id="open-pack"
+        data-focus-id="open-pack"
+        type="button"
+        onclick={enterCollection}
+      >
+        {i18n.t("nav.catalogue")}
+      </button>
+      <div class="stage-tools">
+        <ResetConfirmDialog />
+      </div>
+    </section>
 
-  <section class="collection" id="katalog" aria-labelledby="collection-title">
-    <div class="collection__head">
-      <h2 class="collection__title" id="collection-title">{i18n.t("catalogue.title")}</h2>
-      <p class="collection__lede">{i18n.t("catalogue.lede")}</p>
-    </div>
-    <ul class="collection__grid">
-      {#each fixtures as model (model.id)}
-        <li class="collection__item">
-          <CardTile {model} collected={collection.has(model.id)} onactivate={activateCard} />
-        </li>
-      {/each}
-    </ul>
-  </section>
+    <section class="collection" id="katalog" aria-labelledby="collection-title">
+      <div class="collection__head">
+        <h2 class="collection__title" id="collection-title">{i18n.t("catalogue.title")}</h2>
+        <p class="collection__lede">{i18n.t("catalogue.lede")}</p>
+      </div>
+      <ul class="collection__grid">
+        {#each fixtures as model (model.id)}
+          <li class="collection__item">
+            <CardTile {model} collected={collection.has(model.id)} onactivate={activateCard} />
+          </li>
+        {/each}
+      </ul>
+    </section>
 
-  <CardDialog model={selected} open={selectedId !== null} onclosed={handleClosed} />
-</main>
+    <CardDialog model={selected} open={selectedId !== null} onclosed={handleClosed} />
+  </main>
+{/if}
 
 <svelte:window on:popstate={handlePopState} />
 

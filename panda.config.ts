@@ -1,5 +1,5 @@
 import { defineConfig } from "@pandacss/dev";
-import { motionCssVars, rarityRecipe, tokens } from "./design/tokens/tokens";
+import { cardCssVars, motionCssVars, rarityRecipe, tokens } from "./design/tokens/tokens";
 
 export default defineConfig({
   // Presets stay explicit: base gives the utility conditions, panda gives the
@@ -110,6 +110,9 @@ export default defineConfig({
   globalCss: {
     ":root": {
       ...motionCssVars,
+      // The card's one root em scale (#89): published here, beside the motion
+      // names, because it is a scale rather than four Panda token groups.
+      ...cardCssVars,
     },
   },
 
