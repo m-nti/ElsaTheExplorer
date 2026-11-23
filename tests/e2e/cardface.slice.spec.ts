@@ -371,7 +371,7 @@ test("tilt follows the pointer and releases at rest (E-KBD-06 tilt input)", asyn
   expect((await tilt()).y).toBe("0deg");
 
   // Near the card's right edge the yaw leaves zero.
-  await page.mouse.move(box!.x + box!.width * 0.9, box!.y + box!.height * 0.5);
+  await face.hover({ position: { x: box!.width * 0.9, y: box!.height * 0.5 } });
   await expect.poll(async () => (await tilt()).y).not.toBe("0deg");
 
   // Leaving the card returns the rest frame.
